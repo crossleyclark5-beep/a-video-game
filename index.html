@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0b1220" />
+  <title>A Video Game</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="top">
+      <h1>A Video Game</h1>
+      <div class="hud">
+        <span>Score <strong id="score">0</strong></span>
+        <span>Best <strong id="best">0</strong></span>
+      </div>
+    </header>
+
+    <canvas id="game" width="390" height="640" aria-label="Game canvas"></canvas>
+
+    <div id="overlay" class="overlay">
+      <p class="eyebrow">Tap / click to play</p>
+      <h2 id="overlay-title">Ready?</h2>
+      <p id="overlay-msg">Dodge the meteors. Collect stars.</p>
+      <button id="start-btn" type="button">Play</button>
+    </div>
+
+    <p class="hint">Move with touch, mouse, or ← →</p>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>

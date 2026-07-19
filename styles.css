@@ -1,0 +1,135 @@
+:root {
+  --bg: #0b1220;
+  --panel: #121a2b;
+  --text: #e8eefc;
+  --muted: #8b9bb8;
+  --accent: #3dd6c6;
+  --danger: #ff6b6b;
+  --star: #ffd166;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background:
+    radial-gradient(ellipse at 20% 0%, #1a2744 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, #132033 0%, transparent 45%),
+    var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", system-ui, sans-serif;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+
+#app {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 12px calc(16px + env(safe-area-inset-bottom));
+  gap: 10px;
+}
+
+.top {
+  width: min(100%, 390px);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.top h1 {
+  margin: 0;
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+}
+
+.hud {
+  display: flex;
+  gap: 14px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.hud strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+#game {
+  width: min(100%, 390px);
+  height: auto;
+  aspect-ratio: 390 / 640;
+  background: linear-gradient(180deg, #0e1628 0%, #152038 55%, #1a1830 100%);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  display: block;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  background: rgba(7, 11, 20, 0.72);
+  backdrop-filter: blur(6px);
+  text-align: center;
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+}
+
+.overlay h2 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.overlay p {
+  margin: 0;
+  color: var(--muted);
+  max-width: 260px;
+}
+
+#start-btn {
+  margin-top: 8px;
+  border: 0;
+  border-radius: 999px;
+  padding: 14px 36px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #06201c;
+  background: var(--accent);
+  cursor: pointer;
+}
+
+#start-btn:active {
+  transform: scale(0.98);
+}
+
+.hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
