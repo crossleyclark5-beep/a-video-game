@@ -1,4 +1,6 @@
-# Digital Frontier
+# Cooper Game (Digital Frontier)
+
+Godot project name: **Cooper Game** · Game title: **Digital Frontier**
 
 A commercial-quality **2.5D top-down hex-world creature adventure** built with **Godot 4.7.1**, designed for a dedicated handheld device.
 

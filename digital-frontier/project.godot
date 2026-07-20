@@ -7,8 +7,8 @@ config_version=5
 
 [application]
 
-config/name="Digital Frontier"
-config/description="A 2.5D top-down hex-world adventure."
+config/name="Cooper Game"
+config/description="Digital Frontier — a 2.5D top-down hex-world creature adventure."
 config/version="0.1.0"
 run/main_scene="res://scenes/bootstrap/boot.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")

@@ -2,7 +2,7 @@ class_name GameConstants
 extends RefCounted
 ## Project-wide constants. Prefer data files for content; use this for engine-level values only.
 
-const PROJECT_NAME := &"Digital Frontier"
+const PROJECT_NAME := &"Cooper Game"
 const SAVE_FILE_EXTENSION := &".sav"
 const SAVE_SLOT_COUNT := 3
 
