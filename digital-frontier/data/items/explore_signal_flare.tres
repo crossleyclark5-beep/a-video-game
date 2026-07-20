@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/item_data.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"explore_signal_flare"
+display_name = "Signal Flare"
+description = "Marks a waypoint. Helpful when lost in hills."
+item_type = 0
+shop_category = 4
+max_stack = 6
+sell_value = 60
+buy_value = 175
+shop_blurb = "Adventure / Explore"
+use_effect_id = &"adventure_ration"

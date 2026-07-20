@@ -20,12 +20,14 @@ static func _build_rolling_hills(parent: Node3D) -> void:
 	var hills := [
 		{"pos": Vector3(120, 0, 160), "h": 2.4, "r": 14.0},
 		{"pos": Vector3(-60, 0, -140), "h": 1.8, "r": 11.0},
-		{"pos": Vector3(320, 0, 380), "h": 2.8, "r": 16.0},
+		{"pos": Vector3(280, 0, 900), "h": 2.8, "r": 16.0},
 		{"pos": Vector3(600, 0, -400), "h": 2.2, "r": 13.0},
-		{"pos": Vector3(1100, 0, -900), "h": 2.6, "r": 15.0},
-		{"pos": Vector3(750, 0, 1800), "h": 2.0, "r": 12.0},
-		{"pos": Vector3(400, 0, 2800), "h": 2.4, "r": 14.0},
-		{"pos": Vector3(2000, 0, -1800), "h": 2.2, "r": 13.0},
+		{"pos": Vector3(40, 0, -1100), "h": 2.6, "r": 15.0},
+		{"pos": Vector3(1700, 0, 1800), "h": 2.0, "r": 12.0},
+		{"pos": Vector3(2100, 0, 2800), "h": 2.4, "r": 14.0},
+		{"pos": Vector3(90, 0, -2100), "h": 2.2, "r": 13.0},
+		{"pos": Vector3(-720, 0, 680), "h": 2.0, "r": 12.0},
+		{"pos": Vector3(1100, 0, 90), "h": 1.6, "r": 10.0},
 	]
 	for i in hills.size():
 		_hill(parent, hills[i]["pos"], float(hills[i]["h"]), float(hills[i]["r"]), i)
@@ -82,7 +84,8 @@ static func _build_valleys(parent: Node3D) -> void:
 	var valleys := [
 		[Vector3(80, 0.01, 90), Vector3(40, 0.04, 10)],
 		[Vector3(500, 0.01, -200), Vector3(60, 0.04, 12)],
-		[Vector3(900, 0.01, 2000), Vector3(50, 0.04, 14)],
+		[Vector3(1700, 0.01, 2000), Vector3(50, 0.04, 14)],
+		[Vector3(-400, 0.01, 500), Vector3(45, 0.04, 11)],
 	]
 	for i in valleys.size():
 		var v: Array = valleys[i]
@@ -93,7 +96,7 @@ static func _build_west_ridge(parent: Node3D, result: Dictionary) -> void:
 	## Boundary mountain west of Park — summit only via switchback trail.
 	var ridge := Node3D.new()
 	ridge.name = "WestRidge"
-	ridge.position = Vector3(-420.0, 0.0, 80.0)
+	ridge.position = GrasslandLayout.LANDMARK_WEST_RIDGE
 	parent.add_child(ridge)
 	_mountain_mass(ridge, Vector3(70, 22, 55), WorldPalette.ROCK)
 	## Steep cliff faces (near-vertical) — blocks direct climb.
@@ -114,7 +117,7 @@ static func _build_north_pass(parent: Node3D, result: Dictionary) -> void:
 	## Mountain pass on the NE road toward Risky Reels — trail required.
 	var pass_n := Node3D.new()
 	pass_n.name = "NorthPass"
-	pass_n.position = Vector3(900.0, 0.0, -900.0)
+	pass_n.position = GrasslandLayout.LANDMARK_NORTH_PASS
 	parent.add_child(pass_n)
 	_mountain_mass(pass_n, Vector3(90, 26, 70), WorldPalette.ROCK.darkened(0.04))
 	StylizedMesh.add_box(pass_n, Vector3(10, 22, 60), WorldPalette.ROCK, Vector3(40, 11, 0), "WallE", true, 1.0, &"dirt")
@@ -137,7 +140,7 @@ static func _build_south_bluffs(parent: Node3D, result: Dictionary) -> void:
 	## Southern boundary cliffs beyond Fatal Fields.
 	var bluffs := Node3D.new()
 	bluffs.name = "SouthBluffs"
-	bluffs.position = Vector3(520.0, 0.0, 4900.0)
+	bluffs.position = GrasslandLayout.LANDMARK_SOUTH_BLUFFS
 	parent.add_child(bluffs)
 	_mountain_mass(bluffs, Vector3(110, 28, 50), WorldPalette.ROCK.darkened(0.06))
 	StylizedMesh.add_box(bluffs, Vector3(100, 20, 10), WorldPalette.ROCK, Vector3(0, 10, -22), "FaceN", true, 1.0, &"dirt")

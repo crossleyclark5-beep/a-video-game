@@ -8,8 +8,8 @@ id = &"loot_chest_normal"
 display_name = "Normal Chest Loot"
 description = "Common suburban stash table."
 rolls = 1
-bits_min = 5
-bits_max = 15
+bits_min = 8
+bits_max = 18
 entries = Array[Dictionary]([{
 "item_id": "hex_shard",
 "weight": 50.0,

@@ -8,8 +8,8 @@ id = &"loot_chest_legendary"
 display_name = "Legendary Chest Loot"
 description = "Once-in-a-park legendary finds."
 rolls = 2
-bits_min = 50
-bits_max = 90
+bits_min = 70
+bits_max = 110
 entries = Array[Dictionary]([{
 "item_id": "rare_gem",
 "weight": 40.0,

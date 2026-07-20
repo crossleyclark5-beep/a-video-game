@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"creature_den"
+display_name = "Creature Den"
+description = "A mossy rock nest along Market Mile road."
+category = 0
+region_id = &"grassland"
+short_blurb = "Something small nests between trips."
+bits_reward = 14
+map_hint = "East road toward the Mile"
+creature_xp_reward = 6
+is_secret = false

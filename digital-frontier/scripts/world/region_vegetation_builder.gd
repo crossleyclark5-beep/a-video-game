@@ -23,7 +23,10 @@ static func _build_corridor_forests(parent: Node3D) -> void:
 	## Tree line west of Park (natural barrier toward West Ridge).
 	_tree_line(forests, Vector3(-180, 0, -120), Vector3(-180, 0, 220), 14, 4)
 	## Tree line framing North Pass approach.
-	_tree_line(forests, Vector3(760, 0, -700), Vector3(1040, 0, -1100), 12, 5)
+	_tree_line(forests, Vector3(-40, 0, -1100), Vector3(200, 0, -1700), 12, 5)
+	_forest_along(forests, GrasslandLayout.path_park_to_mere(), 4)
+	_forest_along(forests, GrasslandLayout.path_park_to_mile(), 5)
+	_forest_along(forests, GrasslandLayout.path_park_to_grove(), 6)
 
 
 static func _forest_along(parent: Node3D, points: Array[Vector3], seed_base: int) -> void:
@@ -157,7 +160,7 @@ static func _build_special_clearings(parent: Node3D) -> void:
 	## Named exploration pockets between POIs.
 	var pine := Node3D.new()
 	pine.name = "PineHollow"
-	pine.position = Vector3(420.0, 0.0, 520.0)
+	pine.position = GrasslandLayout.LANDMARK_PINE_HOLLOW
 	parent.add_child(pine)
 	_clearing(pine, Vector3.ZERO, 101)
 	for j in 8:
@@ -167,7 +170,7 @@ static func _build_special_clearings(parent: Node3D) -> void:
 
 	var meadow := Node3D.new()
 	meadow.name = "MeadowClearing"
-	meadow.position = Vector3(1780.0, 0.0, -1680.0)
+	meadow.position = GrasslandLayout.LANDMARK_MEADOW_CLEARING
 	parent.add_child(meadow)
 	StylizedMesh.add_box(meadow, Vector3(22, 0.05, 18), WorldPalette.GRASS_LIGHT, Vector3(0, 0.03, 0), "Meadow", false, 1.0, &"grass")
 	_flower_scatter(meadow, Vector3(0, 0, 0), 44)
