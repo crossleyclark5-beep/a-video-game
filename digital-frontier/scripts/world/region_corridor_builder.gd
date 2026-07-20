@@ -92,11 +92,15 @@ static func _road_segment(parent: Node3D, a: Vector3, b: Vector3, color: Color, 
 
 
 static func _shoulder_forest(parent: Node3D, a: Vector3, b: Vector3, seed_i: int) -> void:
+	## Keep woodland outside the road clearance so trunks never sit on asphalt.
+	var clear := GrasslandLayout.road_clearance() + 6.0
 	var mid := a.lerp(b, 0.45)
-	var side := _perp(a, b) * (14.0 + float(seed_i % 5) * 3.0)
+	var side := _perp(a, b) * (clear + 8.0 + float(seed_i % 5) * 2.5)
 	var base := mid + side * (1.0 if seed_i % 2 == 0 else -1.0)
 	for j in 5:
 		var p := base + Vector3(float(j) * 3.2 - 6.0, 0, float((j + seed_i) % 3) * 2.2)
+		if not GrasslandLayout.is_on_island(p, -60.0):
+			continue
 		StylizedMesh.add_box(parent, Vector3(0.32, 1.65, 0.32), WorldPalette.TRUNK, p + Vector3(0, 0.82, 0), "Trunk", false, 1.0, &"wood")
 		var leaf_c := WorldPalette.LEAF if j % 2 == 0 else WorldPalette.LEAF_DARK
 		StylizedMesh.add_box(parent, Vector3(1.5, 1.15, 1.5), leaf_c, p + Vector3(0, 2.05, 0), "Canopy", false, 1.0, &"leaf")
@@ -105,9 +109,11 @@ static func _shoulder_forest(parent: Node3D, a: Vector3, b: Vector3, seed_i: int
 			StylizedMesh.add_box(parent, Vector3(0.35, 0.2, 0.3), WorldPalette.ROCK, p + Vector3(1.2, 0.12, 0.4), "Rock", false, 1.0, &"dirt")
 			StylizedMesh.add_box(parent, Vector3(0.12, 0.28, 0.12), WorldPalette.LEAF_DARK, p + Vector3(-1.0, 0.14, 0.6), "Plant")
 	## Second belt further out for denser woodland read.
-	var outer := mid + side * (1.0 if seed_i % 2 == 0 else -1.0) * 1.55
+	var outer := mid + side * (1.0 if seed_i % 2 == 0 else -1.0) * 1.45
 	for j in 3:
 		var p2 := outer + Vector3(float(j) * 4.0 - 4.0, 0, float(j) * 1.5)
+		if not GrasslandLayout.is_on_island(p2, -60.0):
+			continue
 		StylizedMesh.add_box(parent, Vector3(0.28, 1.5, 0.28), WorldPalette.TRUNK, p2 + Vector3(0, 0.75, 0), "Trunk2", false, 1.0, &"wood")
 		StylizedMesh.add_box(parent, Vector3(1.35, 1.0, 1.35), WorldPalette.LEAF_LIT, p2 + Vector3(0, 1.9, 0), "CanopyO", false, 1.0, &"leaf")
 

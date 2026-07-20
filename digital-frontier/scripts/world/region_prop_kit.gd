@@ -121,7 +121,7 @@ static func make_enterable_house(
 	house.position = pos
 	house.rotation_degrees.y = yaw
 	parent.add_child(house)
-	StylizedMesh.add_box(house, Vector3(8, 0.05, 7), WorldPalette.GRASS, Vector3(0, 0.03, 0), "Yard", false, 1.0, &"grass")
+	StylizedMesh.add_box(house, Vector3(8, 0.05, 7), WorldPalette.DIRT.lightened(0.08), Vector3(0, 0.03, 0), "Yard", false, 1.0, &"dirt")
 	StylizedMesh.add_box(house, Vector3(5.5, 0.2, 4.8), WorldPalette.SIDEWALK, Vector3(0, 0.12, 0), "Foundation", false, 1.0, &"asphalt")
 	StylizedMesh.add_box(house, Vector3(5.4, 2.8, 0.2), wall, Vector3(0, 1.5, -2.3), "WallBack", true, 1.0, &"brick")
 	StylizedMesh.add_box(house, Vector3(0.2, 2.8, 4.6), wall, Vector3(-2.6, 1.5, 0), "WallL", true, 1.0, &"brick")

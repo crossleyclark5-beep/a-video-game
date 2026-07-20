@@ -20,6 +20,8 @@ var _look_ahead_offset := Vector3.ZERO
 var _zoom_velocity: float = 0.0
 var _interior_mode: bool = false
 var _active_follow_distance := Vector3(0.0, 22.0, 16.0)
+var _floor_focus_y: float = 0.0
+var _floor_focus_target: float = 0.0
 
 @onready var _camera: Camera3D = $Camera3D
 
@@ -61,6 +63,16 @@ func set_zoom_size(size: float, immediate: bool = false) -> void:
 func set_interior_mode(inside: bool) -> void:
 	_interior_mode = inside
 	_active_follow_distance = interior_follow_distance if inside else follow_distance
+	if not inside:
+		_floor_focus_target = 0.0
+		_floor_focus_y = 0.0
+
+
+func set_floor_focus_height(relative_y: float) -> void:
+	## Multi-story framing offset relative to ground (0 = ground).
+	## Player Y already rises with the story — this only adds a light lift so the
+	## occupied floor stays centered without double-counting world height.
+	_floor_focus_target = maxf(relative_y, 0.0) * 0.45
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -89,9 +101,12 @@ func _process(delta: float) -> void:
 	var desired_look := flat.normalized() * look_ahead * ahead_scale * (0.45 + speed_factor * 0.35) if flat.length() > 0.4 else Vector3.ZERO
 	_look_ahead_offset = _look_ahead_offset.lerp(desired_look, clampf(6.5 * delta, 0.0, 1.0))
 
-	var focus := _target.global_position + _look_ahead_offset
+	_floor_focus_y = lerpf(_floor_focus_y, _floor_focus_target, clampf(5.5 * delta, 0.0, 1.0))
+	var floor_lift := Vector3(0.0, _floor_focus_y, 0.0)
+
+	var focus := _target.global_position + _look_ahead_offset + floor_lift * 0.35
 	var height_boost := speed_factor * (0.2 if _interior_mode else 0.45)
-	var desired_pos := focus + _active_follow_distance + Vector3(0, height_boost, 0)
+	var desired_pos := focus + _active_follow_distance + Vector3(0, height_boost, 0) + floor_lift
 	var smooth := follow_smoothing if flat.length() > 0.2 else settle_smoothing
 	global_position = global_position.lerp(desired_pos, clampf(smooth * delta, 0.0, 1.0))
 	_camera.look_at(focus + look_at_offset, Vector3.UP)

@@ -1,8 +1,7 @@
 class_name RegionMiniMap
 extends Control
-## Handheld-friendly grassland mini / full map.
+## Handheld grassland mini / full map — island silhouette, not a blank rectangle.
 ## Undiscovered majors = desaturated mystery icons; discovered = full color + name.
-## Buttons only — no mouse required. Parent HUD handles open/close.
 
 @export var show_labels: bool = false
 @export var show_player: bool = true
@@ -38,20 +37,30 @@ func _draw() -> void:
 	if rect.size.x < 8.0 or rect.size.y < 8.0:
 		return
 	var bounds := RegionMapCatalog.region_bounds()
-	## Paper / ink handheld chrome.
 	if frame_map:
 		draw_rect(rect, WorldPalette.UI_BORDER)
 		rect = rect.grow(-3.0)
-	draw_rect(rect, WorldPalette.UI_PAPER.darkened(0.08))
-	## Terrain wash.
-	draw_rect(rect.grow(-2.0), Color(0.42, 0.62, 0.36))
-	_draw_explored_wash(rect, bounds)
+	## Ocean / off-island wash.
+	draw_rect(rect, Color(0.22, 0.42, 0.62))
+	## Island land mass (actual coastline, not a rectangle).
+	var island := _island_map_poly(rect, bounds)
+	if island.size() >= 3:
+		draw_colored_polygon(island, Color(0.40, 0.58, 0.34))
+		## Soft beach rim.
+		draw_polyline(island, Color(0.78, 0.72, 0.48, 0.85), 2.0, true)
+	_draw_explored_wash(rect, bounds, island)
 	_draw_terrain(rect, bounds)
 	_draw_roads(rect, bounds)
 	_draw_markers(rect, bounds)
 	_draw_player(rect, bounds)
-	## Inner border.
 	draw_rect(rect, WorldPalette.UI_BORDER, false, 2.0)
+
+
+func _island_map_poly(map_rect: Rect2, bounds: Rect2) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	for p in GrasslandLayout.island_coastline():
+		pts.append(_world_to_map(Vector3(p.x, 0.0, p.y), map_rect, bounds))
+	return pts
 
 
 func _world_to_map(world: Vector3, map_rect: Rect2, bounds: Rect2) -> Vector2:
@@ -64,8 +73,13 @@ func _world_to_map(world: Vector3, map_rect: Rect2, bounds: Rect2) -> Vector2:
 	)
 
 
-func _draw_explored_wash(map_rect: Rect2, bounds: Rect2) -> void:
-	## Soft brighter patches where the player has explored cells.
+func _point_in_island(map_pt: Vector2, island: PackedVector2Array) -> bool:
+	if island.size() < 3:
+		return true
+	return Geometry2D.is_point_in_polygon(map_pt, island)
+
+
+func _draw_explored_wash(map_rect: Rect2, bounds: Rect2, island: PackedVector2Array) -> void:
 	var cells: Array = WorldManager.get_explored_cells()
 	if cells.is_empty():
 		return
@@ -77,7 +91,11 @@ func _draw_explored_wash(map_rect: Rect2, bounds: Rect2) -> void:
 		var cx := int(parts[0])
 		var cz := int(parts[1])
 		var world := Vector3(float(cx) * cell + cell * 0.5, 0.0, float(cz) * cell + cell * 0.5)
+		if not GrasslandLayout.is_on_island(world, -40.0):
+			continue
 		var p := _world_to_map(world, map_rect, bounds)
+		if not _point_in_island(p, island):
+			continue
 		var sx := map_rect.size.x * (cell / bounds.size.x)
 		var sy := map_rect.size.y * (cell / bounds.size.y)
 		draw_rect(Rect2(p - Vector2(sx, sy) * 0.5, Vector2(sx, sy)), Color(0.48, 0.70, 0.40, 0.35))
@@ -182,7 +200,6 @@ func _draw_icon(center: Vector2, kind: int, color: Color, discovered: bool) -> v
 			draw_circle(center, s, color)
 		_:
 			draw_rect(Rect2(center - Vector2(s * 0.7, s * 0.7), Vector2(s * 1.4, s * 1.4)), color)
-	## Mystery outline.
 	if not discovered:
 		draw_arc(center, s + 2.0, 0.0, TAU, 14, Color(0.2, 0.2, 0.22, 0.8), 1.5)
 
@@ -206,7 +223,6 @@ func _draw_player(map_rect: Rect2, bounds: Rect2) -> void:
 	draw_circle(p, pulse_r + 2.0, Color(1.0, 1.0, 1.0, 0.35))
 	draw_circle(p, 5.0, WorldPalette.UI_ACCENT)
 	draw_circle(p, 2.2, WorldPalette.UI_PAPER)
-	## Facing chevron from player basis if available.
 	var forward := Vector3(0, 0, -1)
 	if _player.has_node("VisualRoot"):
 		forward = -_player.get_node("VisualRoot").global_transform.basis.z
