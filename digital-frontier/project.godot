@@ -31,6 +31,7 @@ NPCManager="*res://scripts/autoload/npc_manager.gd"
 VehicleManager="*res://scripts/autoload/vehicle_manager.gd"
 CollectionManager="*res://scripts/autoload/collection_manager.gd"
 UIManager="*res://scripts/autoload/ui_manager.gd"
+DeviceService="*res://scripts/autoload/device_service.gd"
 
 [debug]
 

@@ -1,8 +1,8 @@
 extends BaseManager
 ## UI layer stack, modal management, and HUD visibility.
 ##
-## WHY: Multiple UI systems (HUD, inventory, dialogue, menus) compete for input focus.
-## UIManager coordinates z-order, modal stacking, and InputManager context pushes.
+## Handheld: modals push MENU context (stops walk). Confirm/cancel live in
+## InputManager; scenes handle focus. No mouse required.
 
 enum Layer {
 	HUD = 10,
@@ -17,7 +17,7 @@ var _registered_layers: Dictionary = {}  ## layer_id -> CanvasLayer
 
 
 func _initialize_manager() -> void:
-	_log("UIManager initialized")
+	_log("UIManager initialized (handheld modal stack)")
 
 
 func register_layer(layer_id: StringName, layer: CanvasLayer) -> void:
@@ -43,5 +43,16 @@ func pop_modal() -> void:
 	EventBus.ui_modal_closed.emit(closed)
 
 
+func clear_modals() -> void:
+	while not _modal_stack.is_empty():
+		pop_modal()
+
+
 func has_open_modal() -> bool:
 	return not _modal_stack.is_empty()
+
+
+func get_top_modal() -> StringName:
+	if _modal_stack.is_empty():
+		return &""
+	return _modal_stack[_modal_stack.size() - 1]

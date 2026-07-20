@@ -248,3 +248,4 @@ func _unlock_achievement(a: AchievementData) -> void:
 	if a.bits_reward > 0:
 		InventoryManager.add_bits(a.bits_reward, true, "Achievement")
 	EventBus.sfx_play_requested.emit(&"achievement", Vector3.ZERO)
+	DeviceService.notify_event(&"achievement")

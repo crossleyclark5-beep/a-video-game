@@ -14,7 +14,7 @@ func _ready() -> void:
 			if child is Marker3D:
 				target_spawn = child
 				break
-	prompt_text = "Press E to go upstairs" if going_up else "Press E to go downstairs"
+	prompt_verb = "Go upstairs" if going_up else "Go downstairs"
 
 
 func _on_interact(actor: Node) -> void:

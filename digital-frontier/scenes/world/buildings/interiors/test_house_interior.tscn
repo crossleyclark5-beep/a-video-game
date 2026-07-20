@@ -25,7 +25,7 @@ collision_mask = 0
 script = ExtResource("3_stairs")
 target_floor_index = 1
 going_up = true
-prompt_text = "Press E to go upstairs"
+prompt_verb = "Go upstairs"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="GroundFloor/StairsUp"]
 shape = SubResource("BoxShape_stairs")
@@ -49,7 +49,7 @@ collision_mask = 0
 script = ExtResource("3_stairs")
 target_floor_index = 0
 going_up = false
-prompt_text = "Press E to go downstairs"
+prompt_verb = "Go downstairs"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Upstairs/StairsDown"]
 shape = SubResource("BoxShape_stairs")

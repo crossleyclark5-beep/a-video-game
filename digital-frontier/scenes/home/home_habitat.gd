@@ -28,6 +28,7 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	## Enter still works if focus is elsewhere; Start is handled by HomeHud.
 	if event.is_action_pressed(&"go_adventure"):
 		_on_adventure()
 

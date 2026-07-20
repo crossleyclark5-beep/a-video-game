@@ -7,7 +7,7 @@ extends Interactable
 
 func _ready() -> void:
 	super._ready()
-	prompt_text = "Press E to read"
+	prompt_verb = "Read"
 
 
 func _on_interact(_actor: Node) -> void:
