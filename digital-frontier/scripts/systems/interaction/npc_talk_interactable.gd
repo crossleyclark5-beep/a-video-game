@@ -1,6 +1,6 @@
 class_name NpcTalkInteractable
 extends Interactable
-## Placeholder NPC talk target for quests / tutorial dialogue.
+## Field Unit dialogue card — quest-aware lines via ChapterCast when available.
 
 @export var npc_id: StringName = &""
 @export var npc_display_name: String = "Someone"
@@ -15,13 +15,12 @@ func _ready() -> void:
 
 
 func _on_interact(_actor: Node) -> void:
-	EventBus.npc_dialogue_started.emit(npc_id)
-	var line := dialogue_lines[0] if dialogue_lines.size() > 0 else "..."
-	## Cycle a simple line index via world flag so repeats feel alive.
-	var idx := int(WorldManager.get_world_flag(StringName("npc_line_%s" % String(npc_id)), 0))
-	if dialogue_lines.size() > 0:
-		idx = idx % dialogue_lines.size()
-		line = dialogue_lines[idx]
-		WorldManager.set_world_flag(StringName("npc_line_%s" % String(npc_id)), idx + 1)
-	EventBus.ui_notification_requested.emit("%s: %s" % [npc_display_name, line], 3.5)
-	EventBus.npc_dialogue_ended.emit(npc_id)
+	var lines := ChapterCast.lines_for(npc_id)
+	if lines.is_empty():
+		lines = dialogue_lines
+	if lines.is_empty():
+		lines = PackedStringArray(["…"])
+	var host := get_tree().current_scene if get_tree() else null
+	if host == null:
+		host = get_tree().root
+	DeviceDialogue.present(host, npc_id, npc_display_name, lines)

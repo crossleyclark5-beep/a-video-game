@@ -6,11 +6,11 @@
 script = ExtResource("1_quest")
 id = &"first_steps"
 display_name = "First Steps"
-description = "Explore Pleasant Park: discover a landmark, open a chest, and talk to the Park Guide."
+description = "Your first Field Unit outing: find the welcome sign, open a chest, and report to the Park Guide."
 quest_type = 0
-reward_item_ids = PackedStringArray("hex_shard", "park_map_fragment")
-reward_quantities = PackedInt32Array(2, 1)
-reward_bits = 40
+reward_item_ids = PackedStringArray("hex_shard", "park_map_fragment", "heal_field_salve")
+reward_quantities = PackedInt32Array(2, 1, 1)
+reward_bits = 50
 stages = Array[Dictionary]([{
 "type": "discover",
 "target_id": "park_welcome",

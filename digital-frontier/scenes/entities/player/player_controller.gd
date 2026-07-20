@@ -139,6 +139,9 @@ func _creature_action() -> void:
 
 
 func _go_home() -> void:
+	EventBus.ui_notification_requested.emit("Returning to Home — progress autosaves…", 1.6)
+	EventBus.sfx_play_requested.emit(&"ui_confirm", Vector3.ZERO)
+	SaveManager.request_autosave()
 	SceneManager.change_scene(String(GameConstants.SCENE_HOME), true)
 
 

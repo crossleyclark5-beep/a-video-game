@@ -171,6 +171,16 @@ func _apply_effect(effect_id: StringName, _data: ItemData) -> String:
 			return CreatureManager.rest()
 		&"heal_boost":
 			var m2 := CreatureManager.rest()
+			## Also restore field HP when exploring.
+			var healed_player := false
+			var tree := Engine.get_main_loop() as SceneTree
+			if tree:
+				for n in tree.get_nodes_in_group(&"player_health"):
+					if n.has_method("heal"):
+						n.call("heal", 45.0)
+						healed_player = true
+			if healed_player:
+				return "Field Salve — partner rested and you recovered HP!"
 			return "Healing glow. %s" % m2
 		&"adventure_ration":
 			return "Packed trail rations — ready for the road."

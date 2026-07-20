@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/quest_data.gd" id="1_quest"]
+
+[resource]
+script = ExtResource("1_quest")
+id = &"grassland_call"
+display_name = "Grassland Call"
+description = "The Field Ranger needs help — something dark stirs toward Pine Hollow."
+quest_type = 0
+prerequisite_quest_ids = PackedStringArray("first_steps")
+reward_item_ids = PackedStringArray("heal_field_salve")
+reward_quantities = PackedInt32Array(2)
+reward_bits = 50
+stages = Array[Dictionary]([{
+"type": "talk",
+"target_id": "field_ranger",
+"count": 1
+}])
+start_npc_id = &"field_ranger"
+turn_in_npc_id = &"field_ranger"

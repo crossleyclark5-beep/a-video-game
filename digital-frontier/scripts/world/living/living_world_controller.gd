@@ -221,7 +221,7 @@ func _maintain_population() -> void:
 func _count_non_boss_hostiles() -> int:
 	var n := 0
 	for child in _root_hostiles.get_children():
-		if child is RegionBossActor:
+		if child is RegionBossActor or child is MiniBossActor:
 			continue
 		n += 1
 	return n
@@ -298,7 +298,7 @@ func _despawn_far(root: Node3D, radius: float) -> void:
 	if _player == null:
 		return
 	for child in root.get_children():
-		if child is RegionBossActor:
+		if child is RegionBossActor or child is MiniBossActor:
 			continue
 		if child is Node3D:
 			if _player.global_position.distance_to((child as Node3D).global_position) > radius:

@@ -17,6 +17,7 @@ var _interaction_prompt: Control = null
 var _device_hud: CanvasLayer = null
 var _atmosphere: WorldAtmosphere = null
 var _living_world: LivingWorldController = null
+var _chapter: ChapterDirector = null
 var _checkpoint_timer: float = 0.0
 
 
@@ -30,11 +31,14 @@ func _ready() -> void:
 	_spawn_player()
 	_spawn_companion()
 	_spawn_living_world()
+	_spawn_chapter_director()
 	_bind_prompt()
 	_spawn_ambient_fx()
 	QuestManager.ensure_starter_quest()
 	## Same CreatureInstance continues from home — tiny outing XP seed.
 	CreatureManager.grant_adventure_experience(2)
+	if not EventBus.save_completed.is_connected(_on_save_completed):
+		EventBus.save_completed.connect(_on_save_completed)
 
 
 func _process(delta: float) -> void:
@@ -144,6 +148,21 @@ func _spawn_living_world() -> void:
 		var health := _player.get_node_or_null("PlayerHealth")
 		if health:
 			_device_hud.call("bind_player_health", health)
+
+
+func _spawn_chapter_director() -> void:
+	if _player == null or _living_world == null:
+		return
+	_chapter = ChapterDirector.new()
+	_chapter.name = "ChapterDirector"
+	add_child(_chapter)
+	_chapter.setup(_player, _living_world, _device_hud)
+
+
+func _on_save_completed(_slot: int, success: bool) -> void:
+	if success:
+		EventBus.ui_notification_requested.emit("Field Unit saved.", 1.4)
+		EventBus.sfx_play_requested.emit(&"ui_confirm", Vector3.ZERO)
 
 
 func _save_checkpoint() -> void:

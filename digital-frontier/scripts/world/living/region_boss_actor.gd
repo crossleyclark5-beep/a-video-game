@@ -71,6 +71,15 @@ func _die() -> void:
 	EventBus.hostile_defeated.emit(species_id, global_position)
 	CollectionManager.record_creature_battle(species_id, true)
 	InventoryManager.add_bits(reward_bits)
+	## Grant authored boss rewards when available.
+	var boss_data: BossData = ResourceRegistry.get_boss(species_id)
+	if boss_data:
+		for i in boss_data.reward_item_ids.size():
+			var iid := StringName(boss_data.reward_item_ids[i])
+			var qty := 1
+			if i < boss_data.reward_quantities.size():
+				qty = int(boss_data.reward_quantities[i])
+			InventoryManager.add_item(iid, qty, true)
 	CreatureManager.grant_adventure_experience(40)
 	CreatureManager.grant_adventure_bond(8.0, "%s shared the victory!" % CreatureManager.get_companion_nickname())
 	QuestManager.notify_objective(&"defeat", species_id, 1)
