@@ -27,7 +27,7 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 	]
 	for i in fields.size():
 		var p: Vector3 = fields[i]
-		StylizedMesh.add_box(hub, Vector3(22, 1.1, 18), corn if i % 2 == 0 else corn_dark, p + Vector3(0, 0.55, 0), "Corn_%d" % i, false, 1.0, &"grass")
+		StylizedMesh.add_box(hub, Vector3(22, 1.1, 18), corn if i % 2 == 0 else corn_dark, p + Vector3(0, 0.55, 0), "Corn_%d" % i, false, 1.0, &"leaf")
 		for r in 4:
 			StylizedMesh.add_box(
 				hub,
@@ -85,7 +85,7 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 	creek.name = "FarmCreek"
 	creek.position = Vector3(-10, 0, -48)
 	hub.add_child(creek)
-	StylizedMesh.add_box(creek, Vector3(50, 0.2, 6), WorldPalette.ROCK, Vector3(0, -0.05, 0), "Bed", true)
+	StylizedMesh.add_box(creek, Vector3(50, 0.2, 6), WorldPalette.ROCK, Vector3(0, -0.05, 0), "Bed", true, 1.0, &"dirt")
 	var water := MeshInstance3D.new()
 	water.name = "Water"
 	var wm := BoxMesh.new()
@@ -94,7 +94,11 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 	water.material_override = StylizedMesh.make_water_material(WorldPalette.WATER)
 	water.position = Vector3(0, 0.05, 0)
 	creek.add_child(water)
-	StylizedMesh.add_box(creek, Vector3(3.5, 1.6, 2.5), WorldPalette.ROCK.darkened(0.1), Vector3(18, 0.6, 0), "Alcove", true)
+	## Creek bank detail — rocks + reeds.
+	for i in 5:
+		StylizedMesh.add_box(creek, Vector3(0.45, 0.3, 0.35), WorldPalette.ROCK.darkened(0.05 * float(i % 3)), Vector3(-16 + float(i) * 7, 0.15, 2.2), "BankRock", false, 1.0, &"dirt")
+		StylizedMesh.add_box(creek, Vector3(0.1, 0.45, 0.1), WorldPalette.LEAF_DARK, Vector3(-14 + float(i) * 7, 0.25, -2.0), "Reed", false, 1.0, &"leaf")
+	StylizedMesh.add_box(creek, Vector3(3.5, 1.6, 2.5), WorldPalette.ROCK.darkened(0.1), Vector3(18, 0.6, 0), "Alcove", true, 1.0, &"dirt")
 	RegionPropKit.add_discoverable(creek, &"farm_creek", "Farm Creek", Vector3(18, 0.8, 2), 14, "A cool alcove where the stream ducks underground.")
 
 	## Animal pen / stables yard.
@@ -125,9 +129,9 @@ static func _red_barn(parent: Node3D, pos: Vector3) -> void:
 	b.position = pos
 	parent.add_child(b)
 	StylizedMesh.add_box(b, Vector3(12, 6.5, 9), WorldPalette.ROOF_RED, Vector3(0, 3.25, 0), "BarnBody", true, 1.0, &"wood")
-	StylizedMesh.add_box(b, Vector3(13.2, 1.4, 10.2), WorldPalette.ROOF_RED.darkened(0.15), Vector3(0, 7.0, 0), "BarnRoof", false, 1.0, &"wood")
+	StylizedMesh.add_box(b, Vector3(13.2, 1.4, 10.2), WorldPalette.ROOF_RED.darkened(0.15), Vector3(0, 7.0, 0), "BarnRoof", false, 1.0, &"roof")
 	StylizedMesh.add_box(b, Vector3(4.0, 4.2, 0.15), WorldPalette.WOOD.darkened(0.25), Vector3(0, 2.2, 4.55), "BarnDoor", false, 1.0, &"wood")
-	StylizedMesh.add_box(b, Vector3(1.4, 1.4, 0.1), WorldPalette.WINDOW, Vector3(0, 5.2, 4.55), "LoftWin")
+	StylizedMesh.add_window_pane(b, Vector3(1.4, 1.4, 0.1), Vector3(0, 5.2, 4.55), "LoftWin")
 
 
 static func _stables(parent: Node3D, pos: Vector3) -> void:
@@ -135,7 +139,7 @@ static func _stables(parent: Node3D, pos: Vector3) -> void:
 	s.position = pos
 	parent.add_child(s)
 	StylizedMesh.add_box(s, Vector3(14, 3.2, 6), Color(0.62, 0.48, 0.32), Vector3(0, 1.6, 0), "StableBody", true, 1.0, &"wood")
-	StylizedMesh.add_box(s, Vector3(15, 0.35, 7), WorldPalette.WOOD.darkened(0.1), Vector3(0, 3.4, 0), "StableRoof", false, 1.0, &"wood")
+	StylizedMesh.add_box(s, Vector3(15, 0.35, 7), WorldPalette.WOOD.darkened(0.1), Vector3(0, 3.4, 0), "StableRoof", false, 1.0, &"roof")
 	for i in 4:
 		StylizedMesh.add_box(s, Vector3(0.12, 2.2, 2.8), WorldPalette.WOOD, Vector3(-5.0 + float(i) * 3.2, 1.2, 0), "Stall", false, 1.0, &"wood")
 

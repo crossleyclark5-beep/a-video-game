@@ -21,7 +21,13 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 	## Compact cross streets through the hollow.
 	StylizedMesh.add_box(hub, Vector3(42, 0.08, 4.0), WorldPalette.ROAD, Vector3(0, 0.05, 0), "MainEW", true, 1.0, &"asphalt")
 	StylizedMesh.add_box(hub, Vector3(4.0, 0.08, 36), WorldPalette.ROAD, Vector3(0, 0.05, 0), "MainNS", true, 1.0, &"asphalt")
-	StylizedMesh.add_box(hub, Vector3(3.2, 0.06, 14), WorldPalette.PATH, Vector3(-10, 0.06, -8), "Alley", false, 1.0, &"dirt")
+	StylizedMesh.add_box(hub, Vector3(3.2, 0.06, 14), WorldPalette.PATH, Vector3(-10, 0.06, -8), "Alley", false, 1.0, &"path")
+	## Hillside grass clumps + rocks for denser pixel read.
+	for i in 8:
+		var ang := float(i) * 0.9
+		var hp := Vector3(cos(ang) * 28.0, 0.08, sin(ang) * 24.0)
+		StylizedMesh.add_box(hub, Vector3(0.4, 0.25, 0.35), WorldPalette.ROCK.darkened(0.05 * float(i % 3)), hp, "Rock_%d" % i, false, 1.0, &"dirt")
+		StylizedMesh.add_box(hub, Vector3(0.12, 0.28, 0.12), WorldPalette.LEAF_DARK, hp + Vector3(0.5, 0.1, 0.3), "Plant_%d" % i, false, 1.0, &"leaf")
 
 	RegionPropKit.add_welcome_sign(hub, Vector3(0, 0, 22), "SALTY SPRINGS", &"salty_springs_welcome")
 
@@ -67,10 +73,11 @@ static func _salty_house(parent: Node3D, house_name: String, pos: Vector3, wall:
 	h.rotation_degrees.y = yaw
 	parent.add_child(h)
 	StylizedMesh.add_box(h, size, wall, Vector3(0, size.y * 0.5, 0), "Body", true, 1.0, &"brick")
-	StylizedMesh.add_box(h, Vector3(size.x + 0.6, 0.4, size.z + 0.6), roof, Vector3(0, size.y + 0.15, 0), "Roof", false, 1.0, &"wood")
+	StylizedMesh.add_box(h, Vector3(size.x + 0.6, 0.4, size.z + 0.6), roof, Vector3(0, size.y + 0.15, 0), "Roof", false, 1.0, &"roof")
 	StylizedMesh.add_box(h, Vector3(1.0, 1.8, 0.1), WorldPalette.WOOD.darkened(0.2), Vector3(0, 1.0, size.z * 0.5 + 0.02), "Door", false, 1.0, &"wood")
 	StylizedMesh.add_window_pane(h, Vector3(0.85, 0.75, 0.08), Vector3(-size.x * 0.28, 1.5, size.z * 0.5 + 0.02), "Win")
 	StylizedMesh.add_box(h, Vector3(2.6, 1.8, 3.2), wall.darkened(0.05), Vector3(size.x * 0.55, 0.9, -0.2), "Garage", true, 1.0, &"brick")
+	StylizedMesh.add_box(h, Vector3(0.5, 0.35, 0.5), WorldPalette.BUSH, Vector3(-size.x * 0.4, 0.2, size.z * 0.45), "Bush", false, 1.0, &"leaf")
 
 
 static func _gas_station(parent: Node3D, pos: Vector3) -> void:
@@ -80,7 +87,7 @@ static func _gas_station(parent: Node3D, pos: Vector3) -> void:
 	parent.add_child(g)
 	StylizedMesh.add_box(g, Vector3(12, 0.1, 10), WorldPalette.ROAD, Vector3(0, 0.06, 0), "Lot", true, 1.0, &"asphalt")
 	StylizedMesh.add_box(g, Vector3(6.5, 3.0, 4.8), Color(0.86, 0.76, 0.28), Vector3(2.0, 1.5, 1.2), "Shop", true, 1.0, &"brick")
-	StylizedMesh.add_box(g, Vector3(7.4, 0.3, 5.6), WorldPalette.ROOF_RED, Vector3(2.0, 3.15, 1.2), "ShopRoof", false, 1.0, &"wood")
+	StylizedMesh.add_box(g, Vector3(7.4, 0.3, 5.6), WorldPalette.ROOF_RED, Vector3(2.0, 3.15, 1.2), "ShopRoof", false, 1.0, &"roof")
 	StylizedMesh.add_box(g, Vector3(8, 0.22, 4.5), WorldPalette.ROAD.darkened(0.1), Vector3(-1.5, 3.0, -1.5), "Canopy")
 	StylizedMesh.add_box(g, Vector3(0.28, 2.9, 0.28), WorldPalette.METAL, Vector3(-4, 1.45, -1.5), "Post1", true)
 	StylizedMesh.add_box(g, Vector3(0.28, 2.9, 0.28), WorldPalette.METAL, Vector3(1, 1.45, -1.5), "Post2", true)

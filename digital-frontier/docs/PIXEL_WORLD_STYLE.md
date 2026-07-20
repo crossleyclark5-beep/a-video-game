@@ -2,38 +2,43 @@
 
 ## Goal
 
-A modern pixel-art inspired **2.5D adventure diorama** — like a lost 1990s/early-2000s handheld classic rebuilt with modern tech.
+A modern pixel-art inspired **2.5D adventure diorama** — like a modern handheld game inspired by 90s pixel art.
 
-Not AAA realism. Not soft clay toy 3D.
+Not AAA realism. Not soft clay toy 3D. Not a low-res remake limited by old hardware.
 
-## Why it previously felt generic 3D
+## Why pixels previously felt too large
 
 | Cause | Effect |
 |-------|--------|
-| Soft GGX / plastic roughness | Plastic clay surfaces |
-| Filmic tonemap + glow bloom | Cinematic AAA “polish” |
-| High-segment spheres / cylinders | Smooth modern meshes |
-| Soft multi-sphere tree canopies | Blob vegetation |
-| Teal glass UI with rounded corners | Modern app chrome |
-| Soft camera look-ahead + settle | Floaty modern follow cam |
-| Per-prop pastel colors | No shared limited palette |
+| 16×16 procedural patterns | Very few texels per surface |
+| UV scale ~2 on BoxMesh faces | A 110-unit lawn had ~3.4-unit “pixels” |
+| No world-space tiling | Huge meshes magnified the same tiny atlas |
+| Sparse canopy / prop meshes | Silhouettes read as big flat blocks |
 
-## Art direction (applied)
+## Density upgrade (current)
 
-1. **`WorldPalette`** — one limited handcrafted palette + color quantization  
-2. **`StylizedMesh`** — flat toon materials, specular off, nearest textures, 16×16 pixel patterns (grass / asphalt / brick / wood / water / dirt)  
-3. **`WorldAtmosphere`** — linear tonemap, no glow, hard orthogonal sun shadows, discrete morning/afternoon/evening skies  
-4. **Pleasant Park** — pixel grass/roads, chunky box trees, brick/wood patterns on buildings, stylized flat water  
-5. **Camera** — snappier follow, less look-ahead, stepped zoom  
-6. **UI** — square ink/paper/accent Field Unit chrome  
-7. **Player / companion / habitat** — nearest flat materials, dim aura, no habitat bloom  
+1. **64×64 procedural patterns** — grass, asphalt, brick, wood, dirt, water, leaf, roof, path  
+2. **Triplanar world tiling** — stable ~0.1-unit pixels on huge ground and tiny props alike  
+3. **Richer pattern generators** — blades, grit, mortar, grain, shingles, leaf clusters  
+4. **Animated water** — 4-frame nearest AnimatedTexture + soft emission sparkle  
+5. **Framed windows** — sill, mullion, glass (not a bare pane)  
+6. **Denser environment props** — plants, rocks, path wear, multi-cluster trees, roof ridges  
+
+## Art direction (kept)
+
+1. **`WorldPalette`** — limited handcrafted palette + quantization  
+2. **`StylizedMesh`** — flat toon, specular off, nearest filter, high-res pixel patterns  
+3. **`WorldAtmosphere`** — linear tonemap, soft lamp glow (not cinematic bloom), parallel-split shadows with light blur, fog, pollen weather, slow morning→afternoon→evening cycle  
+4. **Region builders** — Pleasant Park + grassland POIs share the same density language  
+5. **Camera / UI** — snappy follow, stepped zoom, square ink/paper Field Unit chrome  
 
 ## Handheld notes
 
-- Material cache + shared palette → fewer unique variants  
-- Low mesh segments (≤8) and box-first props  
-- Soft particle counts reduced; cube pollen motes  
-- Orthographic diorama camera kept for small-screen readability  
+- Material + texture caches → few unique GPU variants  
+- Box-first props; low mesh segments (≤8)  
+- Soft particle counts (~48 cube motes)  
+- Orthographic diorama camera for small-screen readability  
+- Glow is thresholded and mild so it reads as lamp/water sparkle on a handheld LCD  
 
 ## Gameplay contracts (unchanged)
 
@@ -43,4 +48,4 @@ Not AAA realism. Not soft clay toy 3D.
 
 ## Feel test
 
-If you squint at the first frame of Adventure, it should read as a **colorful miniature handheld town**, not a soft modern 3D tech demo.
+If you squint at Adventure, it should read as a **colorful high-res handheld town** — more pixels and detail than a chunky remake, still proudly pixel-art.

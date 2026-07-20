@@ -25,6 +25,8 @@ static func _build_path(
 	path_root.name = path_name
 	parent.add_child(path_root)
 	var pattern: StringName = &"dirt" if dirt_style else &"asphalt"
+	if dirt_style and path_name.begins_with("ToSalty"):
+		pattern = &"path"
 	for i in range(1, points.size()):
 		var a: Vector3 = points[i - 1]
 		var b: Vector3 = points[i]
@@ -92,19 +94,32 @@ static func _shoulder_forest(parent: Node3D, a: Vector3, b: Vector3, seed_i: int
 	var base := mid + side * (1.0 if seed_i % 2 == 0 else -1.0)
 	for j in 3:
 		var p := base + Vector3(float(j) * 3.5 - 3.5, 0, float((j + seed_i) % 3) * 2.0)
-		StylizedMesh.add_box(parent, Vector3(0.35, 1.6, 0.35), WorldPalette.TRUNK, p + Vector3(0, 0.8, 0), "Trunk", false, 1.0, &"wood")
-		StylizedMesh.add_box(parent, Vector3(1.6, 1.3, 1.6), WorldPalette.LEAF if j % 2 == 0 else WorldPalette.LEAF_DARK, p + Vector3(0, 2.1, 0), "Canopy", false, 1.0, &"grass")
+		StylizedMesh.add_box(parent, Vector3(0.32, 1.65, 0.32), WorldPalette.TRUNK, p + Vector3(0, 0.82, 0), "Trunk", false, 1.0, &"wood")
+		var leaf_c := WorldPalette.LEAF if j % 2 == 0 else WorldPalette.LEAF_DARK
+		StylizedMesh.add_box(parent, Vector3(1.5, 1.15, 1.5), leaf_c, p + Vector3(0, 2.05, 0), "Canopy", false, 1.0, &"leaf")
+		StylizedMesh.add_box(parent, Vector3(0.85, 0.7, 0.85), leaf_c.lightened(0.08), p + Vector3(0.35, 2.55, 0.15), "Canopy2", false, 1.0, &"leaf")
+		if j == 1:
+			StylizedMesh.add_box(parent, Vector3(0.35, 0.2, 0.3), WorldPalette.ROCK, p + Vector3(1.2, 0.12, 0.4), "Rock", false, 1.0, &"dirt")
+			StylizedMesh.add_box(parent, Vector3(0.12, 0.28, 0.12), WorldPalette.LEAF_DARK, p + Vector3(-1.0, 0.14, 0.6), "Plant")
 
 
 static func _meadow_patch(parent: Node3D, pos: Vector3, idx: int) -> void:
 	StylizedMesh.add_box(parent, Vector3(16, 0.04, 10), WorldPalette.GRASS_LIGHT, pos + Vector3(0, 0.02, 0), "Meadow_%d" % idx, false, 1.0, &"grass")
-	for i in 4:
+	StylizedMesh.add_box(parent, Vector3(5, 0.03, 3.5), WorldPalette.DIRT.lightened(0.05), pos + Vector3(2, 0.03, -1), "Dirt_%d" % idx, false, 1.0, &"dirt")
+	for i in 6:
 		StylizedMesh.add_box(
 			parent,
-			Vector3(0.28, 0.28, 0.28),
+			Vector3(0.22, 0.22, 0.22),
 			WorldPalette.FLOWER if i % 2 == 0 else WorldPalette.FLOWER_Y,
-			pos + Vector3(-4 + float(i) * 2.5, 0.25, float(i % 2) * 1.5),
+			pos + Vector3(-5 + float(i) * 1.8, 0.22, float(i % 2) * 1.4 - 0.5),
 			"Bloom",
+		)
+		StylizedMesh.add_box(
+			parent,
+			Vector3(0.1, 0.2, 0.1),
+			WorldPalette.LEAF_DARK,
+			pos + Vector3(-4.5 + float(i) * 1.8, 0.12, float(i % 2) * 1.4),
+			"Stem",
 		)
 
 

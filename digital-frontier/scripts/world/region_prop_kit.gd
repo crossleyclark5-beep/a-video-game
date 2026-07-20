@@ -41,14 +41,17 @@ static func build_chest(
 			body_color = Color(0.45, 0.65, 0.95)
 		ChestInteractable.Rarity.LEGENDARY:
 			body_color = Color(0.95, 0.55, 0.2)
-	body.material_override = StylizedMesh.make_material(body_color, 1.0)
+	body.material_override = StylizedMesh.make_material(body_color, 1.0, 0.0, 0.0, &"wood")
 	area.add_child(body)
+	## Metal band + latch for recognizable high-res prop silhouette.
+	StylizedMesh.add_box(area, Vector3(0.98, 0.08, 0.72), body_color.darkened(0.25), Vector3(0, 0.05, 0), "Band", false, 1.0, &"brick")
+	StylizedMesh.add_box(area, Vector3(0.14, 0.12, 0.08), WorldPalette.METAL, Vector3(0, 0.22, 0.38), "Latch")
 	var lid := MeshInstance3D.new()
 	lid.name = "Lid"
 	var lid_mesh := BoxMesh.new()
 	lid_mesh.size = Vector3(0.98, 0.18, 0.72)
 	lid.mesh = lid_mesh
-	lid.material_override = StylizedMesh.make_material(body_color.darkened(0.15), 1.0)
+	lid.material_override = StylizedMesh.make_material(body_color.darkened(0.15), 1.0, 0.0, 0.0, &"wood")
 	lid.position = Vector3(0, 0.35, 0)
 	area.add_child(lid)
 	var shape := CollisionShape3D.new()
@@ -119,7 +122,7 @@ static func make_enterable_house(
 	house.rotation_degrees.y = yaw
 	parent.add_child(house)
 	StylizedMesh.add_box(house, Vector3(8, 0.05, 7), WorldPalette.GRASS, Vector3(0, 0.03, 0), "Yard", false, 1.0, &"grass")
-	StylizedMesh.add_box(house, Vector3(5.5, 0.2, 4.8), WorldPalette.SIDEWALK, Vector3(0, 0.12, 0), "Foundation")
+	StylizedMesh.add_box(house, Vector3(5.5, 0.2, 4.8), WorldPalette.SIDEWALK, Vector3(0, 0.12, 0), "Foundation", false, 1.0, &"asphalt")
 	StylizedMesh.add_box(house, Vector3(5.4, 2.8, 0.2), wall, Vector3(0, 1.5, -2.3), "WallBack", true, 1.0, &"brick")
 	StylizedMesh.add_box(house, Vector3(0.2, 2.8, 4.6), wall, Vector3(-2.6, 1.5, 0), "WallL", true, 1.0, &"brick")
 	StylizedMesh.add_box(house, Vector3(0.2, 2.8, 4.6), wall, Vector3(2.6, 1.5, 0), "WallR", true, 1.0, &"brick")
@@ -137,10 +140,15 @@ static func make_enterable_house(
 	roof_mi.material_override = StylizedMesh.make_transparent_material(roof)
 	roof_mi.position = Vector3(0, 3.15, 0)
 	house.add_child(roof_mi)
-	StylizedMesh.add_box(house, Vector3(3.6, 0.55, 3.2), roof.darkened(0.08), Vector3(0, 3.55, 0), "RoofPeak", false, 1.0, &"wood")
+	StylizedMesh.add_box(house, Vector3(3.6, 0.55, 3.2), roof.darkened(0.08), Vector3(0, 3.55, 0), "RoofPeak", false, 1.0, &"roof")
+	StylizedMesh.add_box(house, Vector3(3.8, 0.1, 0.25), roof.lightened(0.05), Vector3(0, 3.85, 0), "Ridge", false, 1.0, &"roof")
 	StylizedMesh.add_box(house, Vector3(1.0, 1.9, 0.1), WorldPalette.WOOD.darkened(0.2), Vector3(0, 1.05, 2.4), "Door", false, 1.0, &"wood")
+	StylizedMesh.add_box(house, Vector3(0.1, 0.1, 0.1), WorldPalette.FLOWER_Y, Vector3(0.35, 1.05, 2.48), "Knob")
 	StylizedMesh.add_window_pane(house, Vector3(0.9, 0.8, 0.08), Vector3(-1.5, 1.7, 2.42), "WinL")
 	StylizedMesh.add_window_pane(house, Vector3(0.9, 0.8, 0.08), Vector3(1.5, 1.7, 2.42), "WinR")
+	## Yard micro props
+	StylizedMesh.add_box(house, Vector3(0.55, 0.4, 0.55), WorldPalette.BUSH, Vector3(-2.8, 0.25, 2.8), "Bush", false, 1.0, &"leaf")
+	StylizedMesh.add_box(house, Vector3(0.35, 0.18, 0.3), WorldPalette.ROCK, Vector3(2.6, 0.12, 2.5), "Rock", false, 1.0, &"dirt")
 
 	var door := Interactable.new()
 	door.name = "DoorInteractable"
@@ -166,7 +174,7 @@ static func make_enterable_house(
 	house.set("display_name", house_name)
 	house.set("exterior_zoom", 14.5)
 	house.set("interior_zoom", 9.5)
-	house.set("roof_paths", [NodePath("Roof"), NodePath("RoofPeak")])
+	house.set("roof_paths", [NodePath("Roof"), NodePath("RoofPeak"), NodePath("Ridge")])
 	house.set("cutaway_paths", [])
 	house.set("interior_scene", load("res://scenes/world/buildings/interiors/test_house_interior.tscn"))
 	if house.has_method("bind_door_now"):
