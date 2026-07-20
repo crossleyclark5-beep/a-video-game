@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/quest_data.gd" id="1_quest"]
+
+[resource]
+script = ExtResource("1_quest")
+id = &"pine_threat"
+display_name = "Pine Threat"
+description = "Defeat Glitch Alpha on the trail before facing the Hollow."
+quest_type = 0
+prerequisite_quest_ids = PackedStringArray("grassland_call")
+reward_item_ids = PackedStringArray("hex_shard", "heal_field_salve")
+reward_quantities = PackedInt32Array(3, 1)
+reward_bits = 80
+stages = Array[Dictionary]([{
+"type": "defeat",
+"target_id": "glitch_alpha",
+"count": 1
+}])
+start_npc_id = &"field_ranger"
+turn_in_npc_id = &"field_ranger"

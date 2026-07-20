@@ -336,6 +336,33 @@ static func _add_fuel_stop(root: Node3D, result: Dictionary) -> void:
 	fuel.add_child(brand)
 	StylizedMesh.add_box(fuel, Vector3(0.55, 0.75, 0.55), WorldPalette.BUSH, Vector3(5.5, 0.4, 4.0), "Bin", true)
 	StylizedMesh.add_box(fuel, Vector3(0.28, 1.1, 0.28), WorldPalette.FLOWER_Y, Vector3(-6, 0.55, 2.5), "AirPump", true)
+	## Outdoor shop counter — closes the Pleasant Park buy loop without leaving town.
+	var shop := ShopInteractable.new()
+	shop.name = "FuelShopCounter"
+	shop.shop_id = ShopManager.SHOP_ID_HOME
+	shop.shopkeeper_name = "Fuel Clerk"
+	shop.position = Vector3(0.5, 0.5, 3.2)
+	var sshape := CollisionShape3D.new()
+	var sbox := BoxShape3D.new()
+	sbox.size = Vector3(2.2, 2.0, 2.0)
+	sshape.shape = sbox
+	shop.add_child(sshape)
+	StylizedMesh.add_box(shop, Vector3(1.6, 1.0, 0.8), WorldPalette.WOOD, Vector3(0, 0.2, 0), "Counter", false, 1.0, &"wood")
+	fuel.add_child(shop)
+	var clerk := NpcTalkInteractable.new()
+	clerk.name = "FuelClerk"
+	clerk.npc_id = &"fuel_clerk"
+	clerk.npc_display_name = "Fuel Clerk"
+	clerk.position = Vector3(0.5, 0, 4.4)
+	clerk.dialogue_lines = ChapterCast.lines_for(&"fuel_clerk")
+	var cshape := CollisionShape3D.new()
+	var cbox := BoxShape3D.new()
+	cbox.size = Vector3(1.4, 2.0, 1.4)
+	cshape.shape = cbox
+	clerk.add_child(cshape)
+	StylizedMesh.add_cylinder(clerk, 0.32, 1.1, Color(0.85, 0.7, 0.25), Vector3(0, 0.65, 0), "Body", false, 10, 0.7)
+	StylizedMesh.add_sphere(clerk, 0.26, Color(0.96, 0.8, 0.65), Vector3(0, 1.4, 0), "Head", 10, 6, 0.6)
+	fuel.add_child(clerk)
 
 
 # --- Houses ------------------------------------------------------------------
@@ -1053,6 +1080,7 @@ static func _add_exploration_pois(root: Node3D, result: Dictionary) -> void:
 		"Nice exploring! Keep caring for your creature at Home, too.",
 		"Rare chests sparkle blue. Legendary ones glow orange — check behind the fuel stop!",
 	])
+	## ChapterCast overrides these at talk-time based on quest state.
 	var gshape := CollisionShape3D.new()
 	var gb := BoxShape3D.new()
 	gb.size = Vector3(1.8, 2.2, 1.8)

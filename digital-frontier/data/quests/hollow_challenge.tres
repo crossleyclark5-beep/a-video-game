@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/quest_data.gd" id="1_quest"]
+
+[resource]
+script = ExtResource("1_quest")
+id = &"hollow_challenge"
+display_name = "Hollow Challenge"
+description = "Discover Pine Hollow and defeat the Hollow Warden to close Chapter One."
+quest_type = 0
+prerequisite_quest_ids = PackedStringArray("pine_threat")
+reward_item_ids = PackedStringArray("hex_shard", "crystal_dust", "park_map_fragment")
+reward_quantities = PackedInt32Array(5, 2, 1)
+reward_bits = 200
+stages = Array[Dictionary]([{
+"type": "discover",
+"target_id": "pine_hollow",
+"count": 1
+}, {
+"type": "defeat",
+"target_id": "hollow_warden",
+"count": 1
+}])
+start_npc_id = &"field_ranger"
+turn_in_npc_id = &"park_guide"

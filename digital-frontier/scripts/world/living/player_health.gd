@@ -81,20 +81,17 @@ func _begin_death() -> void:
 
 func _do_respawn() -> void:
 	_respawn_timer = -1.0
-	var spawn := Vector3(0.0, 0.15, 18.0)
-	if WorldManager.has_player_checkpoint():
-		spawn = WorldManager.get_player_checkpoint()
-	## Prefer Pleasant Park if somehow underground.
-	if spawn.y < -2.0:
-		spawn = GrasslandLayout.PLEASANT_PARK + Vector3(0, 0.15, 18)
+	## Vertical slice: always reboot at Pleasant Park hub — never on top of the threat that killed you.
+	var spawn := GrasslandLayout.PLEASANT_PARK + Vector3(0.0, 0.15, 18.0)
 	if _player and is_instance_valid(_player):
 		_player.global_position = spawn
 		if _player is CharacterBody3D:
 			(_player as CharacterBody3D).velocity = Vector3.ZERO
 		_player.set_physics_process(true)
+	WorldManager.set_player_checkpoint(spawn)
 	full_heal()
 	invuln = 2.0
 	respawned.emit()
 	EventBus.player_respawned.emit(spawn)
-	EventBus.ui_notification_requested.emit("You wake near a safe checkpoint.", 2.8)
+	EventBus.ui_notification_requested.emit("Rebooted at Pleasant Park — restock at the Fuel Stop if you need salve.", 3.0)
 	EventBus.sfx_play_requested.emit(&"creature_heal", spawn)

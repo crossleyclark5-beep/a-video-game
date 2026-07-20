@@ -161,9 +161,12 @@ func _on_adventure() -> void:
 		return
 	if UIManager.has_open_modal():
 		return
+	if _hud:
+		_hud.show_status_message("Deploying Field Unit…")
 	if _lcd:
 		_lcd.play_transition_leave()
 	EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
+	SaveManager.request_autosave()
 	await get_tree().create_timer(0.55).timeout
 	if _transition:
 		await _transition.play_and_wait()

@@ -48,7 +48,8 @@ func _build_talk(def: Dictionary) -> void:
 	_talk.name = "Talk"
 	_talk.npc_id = npc_id
 	_talk.npc_display_name = display_name
-	var lines: PackedStringArray = def.get("lines", PackedStringArray(["Hello!"]))
+	var cast_lines := ChapterCast.lines_for(npc_id)
+	var lines: PackedStringArray = cast_lines if not cast_lines.is_empty() else def.get("lines", PackedStringArray(["Hello!"]))
 	_talk.dialogue_lines = lines
 	var shape := CollisionShape3D.new()
 	var sphere := SphereShape3D.new()
@@ -57,10 +58,15 @@ func _build_talk(def: Dictionary) -> void:
 	shape.position = Vector3(0, 0.8, 0)
 	_talk.add_child(shape)
 	add_child(_talk)
-	_talk.interacted.connect(_on_talked)
+	## Dialogue modal emits npc_dialogue_ended — offer quest after talk finishes.
+	## Listen via EventBus so DeviceDialogue close still counts.
+	if not EventBus.npc_dialogue_ended.is_connected(_on_dialogue_ended):
+		EventBus.npc_dialogue_ended.connect(_on_dialogue_ended)
 
 
-func _on_talked(_actor: Node) -> void:
+func _on_dialogue_ended(ended_id: StringName) -> void:
+	if ended_id != npc_id:
+		return
 	if quest_offer != &"" and not QuestManager.is_quest_active(quest_offer) and not QuestManager.is_quest_completed(quest_offer):
 		if QuestManager.start_quest(quest_offer):
 			EventBus.ui_notification_requested.emit("%s offered a quest!" % display_name, 2.5)

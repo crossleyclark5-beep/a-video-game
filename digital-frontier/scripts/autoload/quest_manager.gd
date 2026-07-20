@@ -43,15 +43,24 @@ func get_quest_status_line() -> String:
 		if not _completed_quests.is_empty():
 			return "No active quests"
 		return "Talk to the Park Guide to begin"
-	var lines: PackedStringArray = PackedStringArray()
+	## Prefer MAIN quests for the Field Unit chrome.
+	var main_line := ""
+	var side_line := ""
 	for qid in _active_quests.keys():
 		var data: QuestData = ResourceRegistry.get_quest(StringName(str(qid)))
 		if data == null:
 			continue
 		var stage_idx := int(_active_quests[qid])
 		var objective := _format_objective(data, stage_idx)
-		lines.append("%s: %s" % [data.display_name, objective])
-	return "\n".join(lines)
+		var line := "%s: %s" % [data.display_name, objective]
+		if data.quest_type == QuestData.QuestType.MAIN:
+			if main_line.is_empty():
+				main_line = line
+		elif side_line.is_empty():
+			side_line = line
+	if not main_line.is_empty():
+		return main_line
+	return side_line if not side_line.is_empty() else "Adventure awaits"
 
 
 func start_quest(quest_id: StringName) -> bool:
@@ -81,12 +90,22 @@ func ensure_starter_quest() -> void:
 
 
 func _offer_followups() -> void:
-	## Side / hidden quests unlock after the tutorial completes (or while active post-start).
+	## Main chapter spine first; sides drip in so the Field Unit chrome stays readable.
 	if not is_quest_completed(&"first_steps"):
 		return
-	for qid in [&"park_explorer", &"secret_seeker", &"spark_snack", &"field_patrol", &"wildlife_watch", &"index_novice"]:
-		if not is_quest_active(qid) and not is_quest_completed(qid):
-			start_quest(qid)
+	## Spine chain — start at most one main quest per pulse.
+	if not is_quest_active(&"grassland_call") and not is_quest_completed(&"grassland_call"):
+		start_quest(&"grassland_call")
+	elif is_quest_completed(&"grassland_call") and not is_quest_active(&"pine_threat") and not is_quest_completed(&"pine_threat"):
+		start_quest(&"pine_threat")
+	elif is_quest_completed(&"pine_threat") and not is_quest_active(&"hollow_challenge") and not is_quest_completed(&"hollow_challenge"):
+		start_quest(&"hollow_challenge")
+	## Side quests after Grassland Call — one unlock per pulse (complete / boot).
+	if is_quest_completed(&"grassland_call"):
+		for qid in [&"park_explorer", &"secret_seeker", &"spark_snack", &"wildlife_watch", &"index_novice", &"field_patrol"]:
+			if not is_quest_active(qid) and not is_quest_completed(qid):
+				start_quest(qid)
+				break
 
 
 ## Generic objective notifier used by interactables and managers.
@@ -135,8 +154,8 @@ func complete_quest(quest_id: StringName) -> void:
 	EventBus.ui_notification_requested.emit("Quest complete: %s" % title, 3.0)
 	CreatureManager.grant_adventure_experience(12)
 	_log("Quest completed: %s" % String(quest_id))
-	if quest_id == &"first_steps":
-		_offer_followups()
+	## Advance chapter spine or side unlocks.
+	_offer_followups()
 
 
 func export_state() -> Dictionary:
@@ -203,17 +222,39 @@ func _format_objective(data: QuestData, stage_idx: int) -> String:
 	var progress := int(_stage_progress.get(data.id, _stage_progress.get(String(data.id), 0)))
 	match stype:
 		"talk":
-			return "Talk to %s (%d/%d)" % [starget, mini(progress, needed), needed]
+			return "Talk to %s (%d/%d)" % [_pretty_target(starget), mini(progress, needed), needed]
 		"discover", "reach":
-			return "Discover %s (%d/%d)" % [starget, mini(progress, needed), needed]
+			return "Discover %s (%d/%d)" % [_pretty_target(starget), mini(progress, needed), needed]
 		"collect":
-			return "Collect %s (%d/%d)" % [starget, mini(progress, needed), needed]
+			return "Collect %s (%d/%d)" % [_pretty_target(starget), mini(progress, needed), needed]
+		"defeat":
+			return "Defeat %s (%d/%d)" % [_pretty_target(starget), mini(progress, needed), needed]
 		"chest", "open_chest":
 			return "Open chests (%d/%d)" % [mini(progress, needed), needed]
 		"chest_rarity":
 			return "Open a %s chest (%d/%d)" % [starget, mini(progress, needed), needed]
 		_:
 			return "%s %s (%d/%d)" % [stype, starget, mini(progress, needed), needed]
+
+
+func _pretty_target(raw: String) -> String:
+	match raw:
+		"field_ranger":
+			return "Field Ranger"
+		"park_guide":
+			return "Park Guide"
+		"glitch_alpha":
+			return "Glitch Alpha"
+		"hollow_warden":
+			return "Hollow Warden"
+		"pine_hollow":
+			return "Pine Hollow"
+		"park_welcome":
+			return "Welcome Sign"
+		"any":
+			return "any"
+		_:
+			return raw.replace("_", " ").capitalize()
 
 
 func _on_item_added(item_id: StringName, quantity: int) -> void:
