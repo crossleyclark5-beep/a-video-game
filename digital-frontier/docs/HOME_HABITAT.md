@@ -1,59 +1,61 @@
 # Home Habitat System
 
-The Home screen is the emotional center of Digital Frontier — a living creature habitat, not a menu.
+The Home screen is a **2D pixel digital companion device** — the nostalgic Field Unit LCD — not a 3D room and not a smartphone UI.
+
+Adventure mode remains the **2.5D living world**. Same `CreatureManager` instance bridges both.
+
+## Contrast
+
+| Mode | Feel |
+|------|------|
+| **Home** | Late-90s digital pet device — blocky pixels, limited palette, meters, button care |
+| **Adventure** | Modern handheld 2.5D world — your companion walks beside you |
 
 ## Scene entry
 
 | Path | Role |
 |------|------|
-| `scenes/home/home_habitat.tscn` | Active home (via `GameConstants.SCENE_HOME`) |
-| `scenes/home/home_companion.tscn` | Legacy flat UI (kept for reference) |
-
-Boot / Main still load `SCENE_HOME`, which now points at the 3D habitat.
+| `scenes/home/home_habitat.tscn` | Active home (`GameConstants.SCENE_HOME`) — **Control / 2D** |
+| `scenes/home/home_companion.tscn` | Legacy flat UI (reference only) |
 
 ## Modules
 
 | Module | Path | Purpose |
 |--------|------|---------|
-| HabitatEnvironment | `scripts/home/habitat_environment.gd` | Builds room, lighting, stations markers, decor hooks |
-| HabitatTimeOfDay | `scripts/home/habitat_time_of_day.gd` | Night/day/dawn/dusk + weather id foundation |
-| CompanionVisual | `scripts/home/companion_visual.gd` | Sparkbit silhouette + idle/walk/sleep/eat/happy/sad/hungry/stretch/pet |
-| CompanionActor | `scripts/home/companion_actor.gd` | Personality + needs AI, pet/status reactions |
-| CreatureInstance | `scripts/creatures/creature_instance.gd` | Runtime companion data (see `docs/CREATURE_COMPANION.md`) |
-| HomeStation | `scripts/home/home_station.gd` | Clickable bowl / bed / toy / train |
-| HomeHud | `scenes/home/ui/home_hud.tscn` | Handheld-device status + care + nav |
+| HomeHabitat | `scenes/home/home_habitat.gd` | Device bezel + LCD + HUD wiring + adventure transition |
+| PixelHabitatLcd | `scripts/home/pixel_habitat_lcd.gd` | 160×120 nearest LCD room, stations, AI wander |
+| PixelCreatureSprite | `scripts/home/pixel_creature_sprite.gd` | Procedural pixel frames (idle/walk/sleep/eat/happy/sad) |
+| HomeAdventureTransition | `scripts/home/home_adventure_transition.gd` | Pixel-gate wipe before loading adventure |
+| HomeHud | `scenes/home/ui/home_hud.tscn` | Care buttons + need meters (buttons only) |
+| CreatureManager | autoload | Shared needs / XP / friendship across Home ↔ Adventure |
+
+Legacy 3D modules (`HabitatEnvironment`, `CompanionActor`, `HomeStation`) remain in the repo for reference / adventure visuals reuse (`CompanionVisual` still powers the 3D adventure follower).
 
 ## Needs (CreatureManager)
 
-| Need | Meaning | Care influence |
-|------|---------|----------------|
-| Hunger | Fullness (high = fed) | Feed |
-| Happiness | Mood meter | Play / Feed / Train |
-| Energy | Tiredness | Rest / spent by Play+Train |
-| Friendship | Bond | Play / Train / passive when well-cared |
-| Health | Soft neglect meter | Rest / Feed; drops if multiple needs low |
+| Need | Care |
+|------|------|
+| Hunger | Feed |
+| Happiness | Play / Feed / Train / Pet |
+| Energy | Rest |
+| Friendship | Play / Train / Pet |
+| Health | Rest / Feed |
 
-Behavior bias (`get_behavior_bias`) drives autonomous walk-to-bed / bowl / toy.
+## Adventure transition
 
-## Player care loop
-
-1. Open device → nighttime habitat + wake stretch.
-2. Care via HUD (Feed / Rest / Play / Train) or click a station.
-3. Companion walks to the station and plays the matching animation.
-4. Adventure when ready (always available; soft gate messaging).
-
-## Extensibility hooks
-
-- **Multiple creatures** — swap `CompanionVisual` skin / species id from CreatureManager.
-- **Different homes** — new `HabitatEnvironment` layout builders or packed room scenes.
-- **Decorations** — `decor_hooks` markers; place prop scenes at runtime.
-- **Skins / seasonal** — override materials / `HabitatTimeOfDay` palettes.
-- **Shop / NFC** — Bits currency in InventoryManager; station ids ready for unlock gates.
+1. Player focuses Adventure (Start / A on Adventure).
+2. Pixel creature walks off the LCD (“BYE!”).
+3. `HomeAdventureTransition` scanline + pixel scramble.
+4. `SceneManager.change_scene(SCENE_GAME_WORLD)` loads 2.5D world with the **same** companion instance.
 
 ## Controls (home)
 
 | Input | Action |
 |-------|--------|
-| Enter | Adventure |
-| Click station | Care at that object |
-| HUD buttons | Care / Pack / Shop / Collection / Adventure |
+| D-pad | Focus care / nav buttons |
+| A | Activate focused button |
+| Y | Quick pet |
+| Start | Adventure |
+| B | Close pack / journal |
+
+No touchscreen required.
