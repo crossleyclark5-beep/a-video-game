@@ -115,46 +115,68 @@ static func make_enterable_house(
 	yaw: float,
 	result: Dictionary,
 ) -> Node3D:
-	## Compact interior-ready cottage shell (open top + door contract).
+	return make_enterable_building(
+		parent, house_name, pos, wall, roof, yaw, result, InteriorKinds.HOUSE
+	)
+
+
+static func make_enterable_building(
+	parent: Node3D,
+	building_name: String,
+	pos: Vector3,
+	wall: Color,
+	roof: Color,
+	yaw: float,
+	result: Dictionary,
+	kind: StringName = InteriorKinds.HOUSE,
+	footprint: Vector3 = Vector3(5.4, 2.8, 4.6),
+) -> Node3D:
+	## Universal enterable shell — open top, door contract, modular interior by kind.
 	var house := Node3D.new()
-	house.name = house_name
+	house.name = building_name
 	house.position = pos
 	house.rotation_degrees.y = yaw
 	parent.add_child(house)
-	StylizedMesh.add_box(house, Vector3(8, 0.05, 7), WorldPalette.DIRT.lightened(0.08), Vector3(0, 0.03, 0), "Yard", false, 1.0, &"dirt")
-	StylizedMesh.add_box(house, Vector3(5.5, 0.2, 4.8), WorldPalette.SIDEWALK, Vector3(0, 0.12, 0), "Foundation", false, 1.0, &"asphalt")
-	StylizedMesh.add_box(house, Vector3(5.4, 2.8, 0.2), wall, Vector3(0, 1.5, -2.3), "WallBack", true, 1.0, &"brick")
-	StylizedMesh.add_box(house, Vector3(0.2, 2.8, 4.6), wall, Vector3(-2.6, 1.5, 0), "WallL", true, 1.0, &"brick")
-	StylizedMesh.add_box(house, Vector3(0.2, 2.8, 4.6), wall, Vector3(2.6, 1.5, 0), "WallR", true, 1.0, &"brick")
-	StylizedMesh.add_box(house, Vector3(1.8, 2.8, 0.2), wall, Vector3(-1.7, 1.5, 2.3), "WallF1", true, 1.0, &"brick")
-	StylizedMesh.add_box(house, Vector3(1.8, 2.8, 0.2), wall, Vector3(1.7, 1.5, 2.3), "WallF2", true, 1.0, &"brick")
+	var fw := footprint.x
+	var fh := footprint.y
+	var fd := footprint.z
+	StylizedMesh.add_box(house, Vector3(fw + 2.6, 0.05, fd + 2.4), WorldPalette.DIRT.lightened(0.08), Vector3(0, 0.03, 0), "Yard", false, 1.0, &"dirt")
+	StylizedMesh.add_box(house, Vector3(fw + 0.2, 0.2, fd + 0.2), WorldPalette.SIDEWALK, Vector3(0, 0.12, 0), "Foundation", false, 1.0, &"asphalt")
+	StylizedMesh.add_box(house, Vector3(fw, fh, 0.2), wall, Vector3(0, fh * 0.5, -fd * 0.5), "WallBack", true, 1.0, &"brick")
+	StylizedMesh.add_box(house, Vector3(0.2, fh, fd), wall, Vector3(-fw * 0.5, fh * 0.5, 0), "WallL", true, 1.0, &"brick")
+	StylizedMesh.add_box(house, Vector3(0.2, fh, fd), wall, Vector3(fw * 0.5, fh * 0.5, 0), "WallR", true, 1.0, &"brick")
+	var gap := mini(1.8, fw * 0.35)
+	var wing := (fw - gap) * 0.5
+	StylizedMesh.add_box(house, Vector3(wing, fh, 0.2), wall, Vector3(-(gap * 0.5 + wing * 0.5), fh * 0.5, fd * 0.5), "WallF1", true, 1.0, &"brick")
+	StylizedMesh.add_box(house, Vector3(wing, fh, 0.2), wall, Vector3(gap * 0.5 + wing * 0.5, fh * 0.5, fd * 0.5), "WallF2", true, 1.0, &"brick")
 	var body_mark := Node3D.new()
 	body_mark.name = "Body"
 	house.add_child(body_mark)
-	StylizedMesh.add_box(house, Vector3(5.0, 0.08, 4.2), WorldPalette.WOOD, Vector3(0, 0.16, 0), "ShellFloor", false, 1.0, &"wood")
+	StylizedMesh.add_box(house, Vector3(fw - 0.4, 0.08, fd - 0.4), WorldPalette.WOOD, Vector3(0, 0.16, 0), "ShellFloor", false, 1.0, &"wood")
 	var roof_mi := MeshInstance3D.new()
 	roof_mi.name = "Roof"
 	var roof_mesh := BoxMesh.new()
-	roof_mesh.size = Vector3(6.2, 0.45, 5.4)
+	roof_mesh.size = Vector3(fw + 0.8, 0.45, fd + 0.8)
 	roof_mi.mesh = roof_mesh
 	roof_mi.material_override = StylizedMesh.make_transparent_material(roof)
-	roof_mi.position = Vector3(0, 3.15, 0)
+	roof_mi.position = Vector3(0, fh + 0.35, 0)
 	house.add_child(roof_mi)
-	StylizedMesh.add_box(house, Vector3(3.6, 0.55, 3.2), roof.darkened(0.08), Vector3(0, 3.55, 0), "RoofPeak", false, 1.0, &"roof")
-	StylizedMesh.add_box(house, Vector3(3.8, 0.1, 0.25), roof.lightened(0.05), Vector3(0, 3.85, 0), "Ridge", false, 1.0, &"roof")
-	StylizedMesh.add_box(house, Vector3(1.0, 1.9, 0.1), WorldPalette.WOOD.darkened(0.2), Vector3(0, 1.05, 2.4), "Door", false, 1.0, &"wood")
-	StylizedMesh.add_box(house, Vector3(0.1, 0.1, 0.1), WorldPalette.FLOWER_Y, Vector3(0.35, 1.05, 2.48), "Knob")
-	StylizedMesh.add_window_pane(house, Vector3(0.9, 0.8, 0.08), Vector3(-1.5, 1.7, 2.42), "WinL")
-	StylizedMesh.add_window_pane(house, Vector3(0.9, 0.8, 0.08), Vector3(1.5, 1.7, 2.42), "WinR")
-	## Yard micro props
-	StylizedMesh.add_box(house, Vector3(0.55, 0.4, 0.55), WorldPalette.BUSH, Vector3(-2.8, 0.25, 2.8), "Bush", false, 1.0, &"leaf")
-	StylizedMesh.add_box(house, Vector3(0.35, 0.18, 0.3), WorldPalette.ROCK, Vector3(2.6, 0.12, 2.5), "Rock", false, 1.0, &"dirt")
+	OcclusionUtil.mark_mesh(roof_mi)
+	var peak := StylizedMesh.add_box(house, Vector3(fw * 0.65, 0.55, fd * 0.6), roof.darkened(0.08), Vector3(0, fh + 0.75, 0), "RoofPeak", false, 1.0, &"roof")
+	OcclusionUtil.mark(peak)
+	var ridge := StylizedMesh.add_box(house, Vector3(fw * 0.7, 0.1, 0.25), roof.lightened(0.05), Vector3(0, fh + 1.05, 0), "Ridge", false, 1.0, &"roof")
+	OcclusionUtil.mark(ridge)
+	StylizedMesh.add_box(house, Vector3(1.0, 1.9, 0.1), WorldPalette.WOOD.darkened(0.2), Vector3(0, 1.05, fd * 0.5 + 0.1), "Door", false, 1.0, &"wood")
+	StylizedMesh.add_box(house, Vector3(0.1, 0.1, 0.1), WorldPalette.FLOWER_Y, Vector3(0.35, 1.05, fd * 0.5 + 0.18), "Knob")
+	StylizedMesh.add_window_pane(house, Vector3(0.9, 0.8, 0.08), Vector3(-fw * 0.28, fh * 0.6, fd * 0.5 + 0.12), "WinL")
+	StylizedMesh.add_window_pane(house, Vector3(0.9, 0.8, 0.08), Vector3(fw * 0.28, fh * 0.6, fd * 0.5 + 0.12), "WinR")
+	StylizedMesh.add_box(house, Vector3(0.55, 0.4, 0.55), WorldPalette.BUSH, Vector3(-fw * 0.5 - 0.2, 0.25, fd * 0.5 + 0.5), "Bush", false, 1.0, &"leaf")
 
 	var door := Interactable.new()
 	door.name = "DoorInteractable"
-	door.position = Vector3(0, 1.0, 2.7)
+	door.position = Vector3(0, 1.0, fd * 0.5 + 0.4)
 	door.once = false
-	door.prompt_verb = "Enter %s" % house_name
+	door.prompt_verb = "Enter %s" % building_name
 	var dshape := CollisionShape3D.new()
 	var dbox := BoxShape3D.new()
 	dbox.size = Vector3(1.4, 2.2, 1.0)
@@ -163,21 +185,23 @@ static func make_enterable_house(
 	house.add_child(door)
 	var exit_m := Marker3D.new()
 	exit_m.name = "ExteriorExit"
-	exit_m.position = Vector3(0, 0.15, 4.2)
+	exit_m.position = Vector3(0, 0.15, fd * 0.5 + 1.8)
 	house.add_child(exit_m)
 	var entry_m := Marker3D.new()
 	entry_m.name = "InteriorEntry"
 	entry_m.position = Vector3(0, 0.15, 0.8)
 	house.add_child(entry_m)
 	house.set_script(load("res://scripts/systems/buildings/building_volume.gd"))
-	house.set("building_id", StringName(house_name.to_snake_case()))
-	house.set("display_name", house_name)
+	house.set("building_id", StringName(building_name.to_snake_case()))
+	house.set("display_name", building_name)
+	house.set("interior_kind", kind)
+	house.set("interior_scene", null)
 	house.set("exterior_zoom", 14.5)
-	house.set("interior_zoom", 9.5)
+	house.set("interior_zoom", 9.2 if kind != InteriorKinds.TOWER else 8.5)
 	house.set("roof_paths", [NodePath("Roof"), NodePath("RoofPeak"), NodePath("Ridge")])
 	house.set("cutaway_paths", [])
-	house.set("interior_scene", load("res://scenes/world/buildings/interiors/test_house_interior.tscn"))
 	if house.has_method("bind_door_now"):
 		house.call("bind_door_now")
-	result[&"enterable_houses"].append(house)
+	if result.has(&"enterable_houses"):
+		result[&"enterable_houses"].append(house)
 	return house

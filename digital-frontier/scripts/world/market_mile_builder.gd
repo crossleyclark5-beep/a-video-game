@@ -22,12 +22,12 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 	_mile_arch(hub, Vector3(0, 0, -48))
 
 	## West shops (facing road).
-	_shop(hub, "ToyEmporium", Vector3(-14, 0, -28), Color(0.92, 0.45, 0.35), "TOYS", Color(0.95, 0.85, 0.3))
-	_shop(hub, "BitGrocer", Vector3(-14, 0, -8), Color(0.35, 0.65, 0.4), "GROCER", Color(0.9, 0.9, 0.85))
-	_shop(hub, "PixelDiner", Vector3(-14, 0, 12), Color(0.85, 0.55, 0.25), "DINER", Color(0.95, 0.75, 0.4))
+	RegionPropKit.make_enterable_building(hub, "ToyEmporium", Vector3(-14, 0, -28), Color(0.92, 0.45, 0.35), Color(0.95, 0.85, 0.3), 90.0, result, InteriorKinds.SHOP, Vector3(9.0, 3.6, 7.0))
+	RegionPropKit.make_enterable_building(hub, "BitGrocer", Vector3(-14, 0, -8), Color(0.35, 0.65, 0.4), Color(0.9, 0.9, 0.85), 90.0, result, InteriorKinds.SHOP, Vector3(9.0, 3.6, 7.0))
+	RegionPropKit.make_enterable_building(hub, "PixelDiner", Vector3(-14, 0, 12), Color(0.85, 0.55, 0.25), Color(0.95, 0.75, 0.4), 90.0, result, InteriorKinds.RESTAURANT, Vector3(9.0, 3.6, 7.0))
 	## East shops.
-	_shop(hub, "ClothLoop", Vector3(14, 0, -28), Color(0.45, 0.4, 0.7), "CLOTH", Color(0.8, 0.75, 0.95))
-	_shop(hub, "HexHardware", Vector3(14, 0, -8), Color(0.55, 0.5, 0.45), "TOOLS", Color(0.75, 0.7, 0.55))
+	RegionPropKit.make_enterable_building(hub, "ClothLoop", Vector3(14, 0, -28), Color(0.45, 0.4, 0.7), Color(0.8, 0.75, 0.95), -90.0, result, InteriorKinds.SHOP, Vector3(9.0, 3.6, 7.0))
+	RegionPropKit.make_enterable_building(hub, "HexHardware", Vector3(14, 0, -8), Color(0.55, 0.5, 0.45), Color(0.75, 0.7, 0.55), -90.0, result, InteriorKinds.SHOP, Vector3(9.0, 3.6, 7.0))
 	## Playable shop counter at Bit Grocer doorway.
 	_add_shop_counter(hub, Vector3(-9.5, 0.0, -4.0))
 	## Anchor department store (enterable).
@@ -125,8 +125,8 @@ static func _add_shop_counter(parent: Node3D, pos: Vector3) -> void:
 
 static func _anchor_store(parent: Node3D, result: Dictionary) -> void:
 	## Big end-of-mile store — enterable shell.
-	var store := RegionPropKit.make_enterable_house(
-		parent, "AnchorDepartment", Vector3(14, 0, 28), Color(0.72, 0.28, 0.32), WorldPalette.ROOF, -90.0, result
+	var store := RegionPropKit.make_enterable_building(
+		parent, "AnchorDepartment", Vector3(14, 0, 28), Color(0.72, 0.28, 0.32), WorldPalette.ROOF, -90.0, result, InteriorKinds.SHOP, Vector3(10.0, 4.0, 8.0)
 	)
 	## Extra wing / loading dock flavor on the enterable shell.
 	StylizedMesh.add_box(store, Vector3(4.5, 3.5, 6.0), Color(0.65, 0.25, 0.28), Vector3(4.5, 1.75, 0), "Wing", true, 1.0, &"brick")

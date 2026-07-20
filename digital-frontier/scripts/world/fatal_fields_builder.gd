@@ -41,19 +41,19 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 			)
 
 	## White farmhouse — CENTER of the farm (OG identity).
-	RegionPropKit.make_enterable_house(
-		hub, "WhiteFarmhouse", Vector3(-6, 0, 6), Color(0.92, 0.92, 0.88), WorldPalette.ROOF_RED, 180.0, result
+	RegionPropKit.make_enterable_building(
+		hub, "WhiteFarmhouse", Vector3(-6, 0, 6), Color(0.92, 0.92, 0.88), WorldPalette.ROOF_RED, 180.0, result, InteriorKinds.FARMHOUSE
 	)
 	StylizedMesh.add_box(hub, Vector3(2.8, 0.2, 2.0), WorldPalette.WOOD, Vector3(-6, 0.2, 10), "PorchExtra", false, 1.0, &"wood")
 
 	## Big red barn east of house.
-	_red_barn(hub, Vector3(22, 0, -6))
+	RegionPropKit.make_enterable_building(hub, "RedBarn", Vector3(22, 0, -6), WorldPalette.ROOF_RED, WorldPalette.ROOF, 0.0, result, InteriorKinds.BARN, Vector3(11.0, 5.5, 8.0))
 	## Stables north of barn.
-	_stables(hub, Vector3(24, 0, -28))
+	RegionPropKit.make_enterable_building(hub, "Stables", Vector3(24, 0, -28), Color(0.62, 0.48, 0.32), WorldPalette.ROOF, 0.0, result, InteriorKinds.BARN, Vector3(12.0, 3.0, 5.5))
 	## Smaller gray/white barn north-west.
-	_small_barn(hub, Vector3(-28, 0, -18), Color(0.72, 0.72, 0.68))
+	RegionPropKit.make_enterable_building(hub, "GrayBarn", Vector3(-28, 0, -18), Color(0.72, 0.72, 0.68), WorldPalette.ROOF, 90.0, result, InteriorKinds.BARN, Vector3(7.5, 4.0, 5.5))
 	## Tiny barn / hay shed south.
-	_tiny_barn(hub, Vector3(-20, 0, 28))
+	RegionPropKit.make_enterable_building(hub, "HayShed", Vector3(-20, 0, 28), WorldPalette.ROOF_RED.lightened(0.05), WorldPalette.ROOF, 0.0, result, InteriorKinds.WAREHOUSE, Vector3(5.0, 3.0, 4.0))
 
 	## Twin metal silos (OG chest-in-silo legend).
 	StylizedMesh.add_box(hub, Vector3(3.4, 9.0, 3.4), WorldPalette.METAL, Vector3(12, 4.5, 18), "SiloA", true)
@@ -62,9 +62,9 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 	StylizedMesh.add_box(hub, Vector3(3.8, 0.35, 3.8), WorldPalette.ROOF_RED, Vector3(18, 9.2, 18), "SiloBCap")
 
 	## Field sheds + hay.
-	_field_shed(hub, Vector3(-48, 0, -20), Color(0.88, 0.86, 0.8))
-	_field_shed(hub, Vector3(48, 0, 10), Color(0.45, 0.55, 0.35))
-	_field_shed(hub, Vector3(-50, 0, 25), Color(0.78, 0.7, 0.35))
+	RegionPropKit.make_enterable_building(hub, "FieldShedWest", Vector3(-48, 0, -20), Color(0.88, 0.86, 0.8), WorldPalette.ROOF, 0.0, result, InteriorKinds.WAREHOUSE, Vector3(5.0, 2.8, 4.0))
+	RegionPropKit.make_enterable_building(hub, "FieldShedEast", Vector3(48, 0, 10), Color(0.45, 0.55, 0.35), WorldPalette.ROOF, 180.0, result, InteriorKinds.WAREHOUSE, Vector3(5.0, 2.8, 4.0))
+	RegionPropKit.make_enterable_building(hub, "FieldShedSouth", Vector3(-50, 0, 25), Color(0.78, 0.7, 0.35), WorldPalette.ROOF, 90.0, result, InteriorKinds.WAREHOUSE, Vector3(5.0, 2.8, 4.0))
 	for i in 6:
 		StylizedMesh.add_box(
 			hub,

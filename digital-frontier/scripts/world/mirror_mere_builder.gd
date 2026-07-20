@@ -30,14 +30,14 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 	RegionPropKit.add_welcome_sign(hub, Vector3(0, 0, 42), "MIRROR MERE", &"mirror_mere_welcome")
 
 	## Shore cottages.
-	RegionPropKit.make_enterable_house(
-		hub, "ShoreCabinNorth", Vector3(-8, 0, -38), Color(0.82, 0.78, 0.68), WorldPalette.ROOF, 180.0, result
+	RegionPropKit.make_enterable_building(
+		hub, "ShoreCabinNorth", Vector3(-8, 0, -38), Color(0.82, 0.78, 0.68), WorldPalette.ROOF, 180.0, result, InteriorKinds.CABIN
 	)
-	_shore_cottage(hub, "EastCottage", Vector3(38, 0, 4), Color(0.55, 0.62, 0.78), WorldPalette.ROOF_RED, -90.0)
-	_shore_cottage(hub, "WestCottage", Vector3(-40, 0, 6), Color(0.72, 0.55, 0.42), WorldPalette.ROOF, 90.0)
+	RegionPropKit.make_enterable_building(hub, "EastCottage", Vector3(38, 0, 4), Color(0.55, 0.62, 0.78), WorldPalette.ROOF_RED, -90.0, result, InteriorKinds.CABIN)
+	RegionPropKit.make_enterable_building(hub, "WestCottage", Vector3(-40, 0, 6), Color(0.72, 0.55, 0.42), WorldPalette.ROOF, 90.0, result, InteriorKinds.CABIN)
 
 	## Boathouse + pier.
-	_boathouse(hub, Vector3(22, 0, 28))
+	RegionPropKit.make_enterable_building(hub, "Boathouse", Vector3(22, 0, 28), WorldPalette.WOOD, WorldPalette.ROOF_RED.darkened(0.1), 0.0, result, InteriorKinds.WAREHOUSE, Vector3(6.0, 3.0, 5.0))
 	_pier(hub, Vector3(0, 0, 22))
 
 	## Island landmark.
@@ -103,11 +103,12 @@ static func _island(parent: Node3D, result: Dictionary) -> void:
 	StylizedMesh.add_box(island, Vector3(18, 1.4, 14), WorldPalette.DIRT.lightened(0.05), Vector3(0, 0.5, 0), "Isle", true, 1.0, &"dirt")
 	StylizedMesh.add_box(island, Vector3(16, 0.2, 12), WorldPalette.GRASS, Vector3(0, 1.2, 0), "IsleGrass", false, 1.0, &"grass")
 	## Enterable island cabin — the landmark heart.
-	RegionPropKit.make_enterable_house(
-		island, "IslandCabin", Vector3(0, 1.2, 0), Color(0.62, 0.42, 0.28), WorldPalette.ROOF, 0.0, result
+	RegionPropKit.make_enterable_building(
+		island, "IslandCabin", Vector3(0, 1.2, 0), Color(0.62, 0.42, 0.28), WorldPalette.ROOF, 0.0, result, InteriorKinds.LANDMARK
 	)
 	StylizedMesh.add_box(island, Vector3(0.35, 1.8, 0.35), WorldPalette.TRUNK, Vector3(-5, 2.1, 3), "Tree", false, 1.0, &"wood")
-	StylizedMesh.add_box(island, Vector3(1.4, 1.1, 1.4), WorldPalette.LEAF, Vector3(-5, 3.2, 3), "Canopy", false, 1.0, &"leaf")
+	var isle_canopy := StylizedMesh.add_box(island, Vector3(1.4, 1.1, 1.4), WorldPalette.LEAF, Vector3(-5, 3.2, 3), "Canopy", false, 1.0, &"leaf")
+	OcclusionUtil.mark(isle_canopy)
 	result[&"chests"].append(
 		RegionPropKit.build_chest(island, "MereIslandChest", Vector3(4, 1.4, -3), ChestInteractable.Rarity.LEGENDARY, 0.0, "Pry the island crate")
 	)

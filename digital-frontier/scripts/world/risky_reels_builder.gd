@@ -53,29 +53,14 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 	RegionPropKit.add_discoverable(screen, &"drive_in_screen", "Drive-In Screen", Vector3(0, 1.0, 5), 18, "A silver cliff for stories — cars lined up for the show.")
 
 	## Ticket booth at south entrance.
-	var ticket := Node3D.new()
-	ticket.name = "TicketBooth"
-	ticket.position = Vector3(-8, 0, 42)
-	hub.add_child(ticket)
-	StylizedMesh.add_box(ticket, Vector3(4.5, 2.8, 3.2), Color(0.55, 0.2, 0.18), Vector3(0, 1.4, 0), "Booth", true, 1.0, &"wood")
-	StylizedMesh.add_box(ticket, Vector3(5.0, 0.3, 3.6), WorldPalette.ROOF, Vector3(0, 2.95, 0), "Roof", false, 1.0, &"roof")
-	StylizedMesh.add_box(ticket, Vector3(1.6, 1.0, 0.1), WorldPalette.WINDOW, Vector3(0, 1.5, 1.65), "Window")
-	var tlabel := Label3D.new()
-	tlabel.text = "TICKETS"
-	tlabel.font_size = 48
-	tlabel.position = Vector3(0, 2.4, 1.7)
-	tlabel.modulate = WorldPalette.UI_PAPER
-	ticket.add_child(tlabel)
-
+	RegionPropKit.make_enterable_building(hub, "TicketBooth", Vector3(-8, 0, 42), Color(0.55, 0.2, 0.18), WorldPalette.ROOF, 180.0, result, InteriorKinds.BOOTH, Vector3(4.2, 2.6, 3.0))
 	## Snack / food stand east side.
-	StylizedMesh.add_box(hub, Vector3(7, 3.0, 5), Color(0.86, 0.55, 0.2), Vector3(28, 1.5, 10), "SnackShack", true, 1.0, &"brick")
-	StylizedMesh.add_box(hub, Vector3(7.8, 0.35, 5.6), WorldPalette.ROOF_RED, Vector3(28, 3.2, 10), "SnackRoof", false, 1.0, &"roof")
-	StylizedMesh.add_box(hub, Vector3(3.2, 1.4, 0.1), WorldPalette.WINDOW, Vector3(28, 1.6, 12.55), "SnackWindow")
+	RegionPropKit.make_enterable_building(hub, "SnackShack", Vector3(28, 0, 10), Color(0.86, 0.55, 0.2), WorldPalette.ROOF_RED, -90.0, result, InteriorKinds.RESTAURANT, Vector3(6.5, 2.8, 4.5))
 	RegionPropKit.add_discoverable(hub, &"snack_shack", "Snack Shack", Vector3(28, 0.5, 14), 12, "Popcorn ghosts and sticky counters.")
 
-	## Projection booth (enterable) west of screen.
-	RegionPropKit.make_enterable_house(
-		hub, "ProjectionBooth", Vector3(-28, 0, -18), Color(0.35, 0.36, 0.4), WorldPalette.ROOF, 90.0, result
+	## Projection booth west of screen.
+	RegionPropKit.make_enterable_building(
+		hub, "ProjectionBooth", Vector3(-28, 0, -18), Color(0.35, 0.36, 0.4), WorldPalette.ROOF, 90.0, result, InteriorKinds.BOOTH, Vector3(5.0, 2.8, 4.2)
 	)
 
 	## Speaker poles between car rows.
@@ -96,7 +81,7 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 	StylizedMesh.add_box(hub, Vector3(1.0, 0.25, 1.0), WorldPalette.METAL, Vector3(-24, 0.3, -12), "ReelA")
 	StylizedMesh.add_box(hub, Vector3(0.85, 0.25, 0.85), WorldPalette.METAL.darkened(0.1), Vector3(-22.8, 0.3, -11.2), "ReelB")
 	## Electrical shack behind screen.
-	StylizedMesh.add_box(hub, Vector3(4.5, 2.6, 3.5), Color(0.42, 0.4, 0.38), Vector3(0, 1.3, -42), "ElecShack", true, 1.0, &"brick")
+	RegionPropKit.make_enterable_building(hub, "ElecShack", Vector3(0, 0, -42), Color(0.42, 0.4, 0.38), WorldPalette.ROOF, 0.0, result, InteriorKinds.WAREHOUSE, Vector3(4.2, 2.4, 3.2))
 
 	## Entrance marquee arch.
 	StylizedMesh.add_box(hub, Vector3(0.4, 5.0, 0.4), WorldPalette.METAL, Vector3(-6, 2.5, 46), "ArchL", true)

@@ -97,6 +97,7 @@ static func _pixel_tree(parent: Node3D, pos: Vector3, scale_v: float, idx: int) 
 		leaf = WorldPalette.LEAF_LIT
 	StylizedMesh.add_box(tree, Vector3(1.5 * scale_v, 1.1 * scale_v, 1.5 * scale_v), leaf, Vector3(0, 2.0 * scale_v, 0), "C1", false, 1.0, &"leaf")
 	StylizedMesh.add_box(tree, Vector3(0.9 * scale_v, 0.75 * scale_v, 0.9 * scale_v), leaf.lightened(0.06), Vector3(0.35 * scale_v, 2.55 * scale_v, 0.15), "C2", false, 1.0, &"leaf")
+	OcclusionUtil.mark_named_in(tree, PackedStringArray(["C1", "C2"]))
 
 
 static func _build_grass_strips(parent: Node3D) -> void:

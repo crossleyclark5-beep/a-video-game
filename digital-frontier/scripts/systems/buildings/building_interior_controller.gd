@@ -204,9 +204,11 @@ func _clear_camera_floor() -> void:
 
 func _load_interior(building: BuildingVolume) -> void:
 	_unload_interior()
-	if building.interior_scene == null or _interior_container == null:
+	if _interior_container == null:
 		return
-	_loaded_interior = building.interior_scene.instantiate()
+	_loaded_interior = building.resolve_interior()
+	if _loaded_interior == null:
+		return
 	_interior_container.add_child(_loaded_interior)
 	if _loaded_interior is Node3D:
 		(_loaded_interior as Node3D).global_transform = building.global_transform
