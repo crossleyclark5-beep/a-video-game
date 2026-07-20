@@ -6,7 +6,7 @@
 script = ExtResource("1_quest")
 id = &"grassland_call"
 display_name = "Grassland Call"
-description = "The Field Ranger needs help — something dark stirs toward Pine Hollow."
+description = "The Field Ranger needs help — something dark stirs toward Pine Hollow. Answer the call."
 quest_type = 0
 prerequisite_quest_ids = PackedStringArray("first_steps")
 reward_item_ids = PackedStringArray("heal_field_salve")

@@ -370,6 +370,16 @@ func _refresh(_a = null) -> void:
 func _refresh_chrome() -> void:
 	_bits.text = "◆ %d Bits" % InventoryManager.get_bits()
 	_quest_line.text = "Quest · " + QuestManager.get_quest_status_line().split("\n")[0]
+	## Guidance hint — cyan beacon points to MAIN objective.
+	if QuestManager.get_active_quest_ids().size() > 0 and _notice_line:
+		var main_active := false
+		for qid in QuestManager.get_active_quest_ids():
+			var qd: QuestData = ResourceRegistry.get_quest(StringName(str(qid)))
+			if qd and qd.quest_type == QuestData.QuestType.MAIN:
+				main_active = true
+				break
+		if main_active and _notice_line.text.is_empty():
+			_notice_line.text = "Follow the cyan ◆ marker"
 	_companion_line.text = CreatureManager.get_adventure_status_line()
 	var disc := CollectionManager.get_discovery_progress()
 	var idx := CollectionManager.get_creature_index_progress()

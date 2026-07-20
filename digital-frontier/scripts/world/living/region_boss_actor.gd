@@ -126,12 +126,19 @@ func _physics_process(delta: float) -> void:
 	var dist := to_player.length()
 	if dist < 28.0 and not _intro_done:
 		_intro_done = true
-		EventBus.ui_notification_requested.emit("%s awakens — the pines go still." % display_name, 3.0)
+		var msg := "%s awakens — the pines go still." % display_name
+		if bool(WorldManager.get_world_flag(&"hollow_seals_complete", false)):
+			msg = "%s rises fully unbound — both seals burn!" % display_name
+			damage += 2
+			move_speed *= 1.1
+		elif not bool(WorldManager.get_world_flag(&"hollow_root_gate_open", false)):
+			msg = "%s stirs behind the Root Gate…" % display_name
+		EventBus.ui_notification_requested.emit(msg, 3.0)
 		EventBus.sfx_play_requested.emit(&"battle_start", global_position)
 		CollectionManager.record_creature_sighting({
 			&"id": species_id,
 			&"name": display_name,
-			&"blurb": "Ancient pine guardian of Hollow.",
+			&"blurb": "Ancient pine guardian of Hollow — first chapter boss.",
 			&"rarity": EcosystemCatalog.Rarity.LEGENDARY,
 			&"rarity_label": "Legendary",
 			&"temperament": EcosystemCatalog.Temperament.AGGRESSIVE,

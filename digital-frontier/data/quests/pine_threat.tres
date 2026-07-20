@@ -6,13 +6,21 @@
 script = ExtResource("1_quest")
 id = &"pine_threat"
 display_name = "Pine Threat"
-description = "Defeat Glitch Alpha on the trail before facing the Hollow."
+description = "Investigate the ranger trail cache, prepare at the Fuel Stop, then defeat Glitch Alpha."
 quest_type = 0
 prerequisite_quest_ids = PackedStringArray("grassland_call")
 reward_item_ids = PackedStringArray("hex_shard", "heal_field_salve")
 reward_quantities = PackedInt32Array(3, 1)
 reward_bits = 80
 stages = Array[Dictionary]([{
+"type": "discover",
+"target_id": "ranger_trail_cache",
+"count": 1
+}, {
+"type": "talk",
+"target_id": "fuel_clerk",
+"count": 1
+}, {
 "type": "defeat",
 "target_id": "glitch_alpha",
 "count": 1
