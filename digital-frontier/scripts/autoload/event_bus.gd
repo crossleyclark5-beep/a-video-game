@@ -21,6 +21,7 @@ signal region_unloaded(region_id: StringName)
 signal hex_tile_entered(region_id: StringName, hex_coords: Vector3i)
 signal building_enter_requested(building_id: StringName)
 signal building_interior_loaded(building_id: StringName)
+signal building_exited(building_id: StringName)
 signal location_discovered(location_id: StringName)
 signal chest_opened(chest_id: StringName, rarity: StringName)
 

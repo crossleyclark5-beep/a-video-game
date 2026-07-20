@@ -64,7 +64,7 @@ func _on_area_exited(area: Area3D) -> void:
 
 func _refresh_focus() -> void:
 	var best: Interactable = null
-	var best_dist := INF
+	var best_score := INF
 	var origin := global_position
 	for item in _nearby:
 		if item == null or not is_instance_valid(item):
@@ -72,8 +72,15 @@ func _refresh_focus() -> void:
 		if not item.can_interact(_actor):
 			continue
 		var d := origin.distance_squared_to(item.global_position)
-		if d < best_dist:
-			best_dist = d
+		## Prefer loot / talk targets slightly over doors when overlapping.
+		var bias := 0.0
+		if item is ChestInteractable or item is DiscoverableInteractable:
+			bias = -0.85
+		elif String(item.name).begins_with("Door"):
+			bias = 0.55
+		var score := d + bias
+		if score < best_score:
+			best_score = score
 			best = item
 	if best != _focus:
 		_focus = best

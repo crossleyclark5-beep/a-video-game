@@ -363,7 +363,11 @@ static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 
 	## Main body + foundation
 	StylizedMesh.add_box(house, Vector3(7.6, 0.25, 6.3), Color(0.55, 0.52, 0.48), Vector3(0, 0.12, 0), "Foundation", false, 0.85)
-	StylizedMesh.add_box(house, Vector3(7.5, 3.4, 6.2), wall, Vector3(0, 1.7, 0), "Body", true, 0.78)
+	if enterable:
+		## Open-top shell — walls with front doorway so interiors stay visible under a faded roof.
+		_add_enterable_shell(house, wall)
+	else:
+		StylizedMesh.add_box(house, Vector3(7.5, 3.4, 6.2), wall, Vector3(0, 1.7, 0), "Body", true, 0.78)
 
 	## Garage
 	StylizedMesh.add_box(house, Vector3(3.2, 2.4, 4.5), wall.darkened(0.05), Vector3(5.0, 1.2, -0.5), "Garage", true, 0.78)
@@ -418,11 +422,13 @@ static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 	if enterable:
 		var door := Interactable.new()
 		door.name = "DoorInteractable"
-		door.position = Vector3(0, 1.0, 4.2)
+		door.position = Vector3(0, 1.0, 3.55)
+		door.once = false
 		door.prompt_verb = "Enter %s" % house_name
 		var shape := CollisionShape3D.new()
 		var box := BoxShape3D.new()
-		box.size = Vector3(2.8, 2.6, 2.4)
+		## Tight doorway volume — must not swallow nearby outdoor chests.
+		box.size = Vector3(1.5, 2.4, 1.1)
 		shape.shape = box
 		door.add_child(shape)
 		house.add_child(door)
@@ -432,23 +438,44 @@ static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 		house.add_child(exit_m)
 		var entry_m := Marker3D.new()
 		entry_m.name = "InteriorEntry"
-		entry_m.position = Vector3(0, 0.15, 0.4)
+		entry_m.position = Vector3(0, 0.15, 1.2)
 		house.add_child(entry_m)
-		if house_name != "BrickHouse":
-			StylizedMesh.add_box(house, Vector3(6.6, 0.08, 5.4), Color(0.60, 0.46, 0.32), Vector3(0, 0.18, 0), "InteriorFloor", false, 0.8)
-			StylizedMesh.add_box(house, Vector3(1.6, 0.7, 0.8), Color(0.38, 0.24, 0.14), Vector3(-1.8, 0.55, -1.2), "Table", false, 0.7)
-			StylizedMesh.add_box(house, Vector3(1.0, 1.5, 0.45), Color(0.48, 0.34, 0.62), Vector3(2.2, 0.95, -1.5), "Shelf", false, 0.7)
-		var body_node := house.get_node_or_null("Body")
-		if body_node is StaticBody3D:
-			(body_node as StaticBody3D).collision_layer = 0
+		## Apply BuildingVolume before bind so door Enter/Exit works.
 		house.set_script(load("res://scripts/systems/buildings/building_volume.gd"))
 		house.set("building_id", StringName(house_name.to_snake_case()))
 		house.set("display_name", house_name)
-		house.set("roof_paths", [NodePath("Roof")])
-		if house_name == "BrickHouse":
-			house.set("interior_scene", load("res://scenes/world/buildings/interiors/test_house_interior.tscn"))
+		house.set("exterior_zoom", 14.5)
+		house.set("interior_zoom", 9.5)
+		house.set("roof_paths", [
+			NodePath("Roof"),
+			NodePath("RoofPeak"),
+			NodePath("PorchRoof"),
+		])
+		house.set("cutaway_paths", [
+			NodePath("Garage"),
+			NodePath("Chimney"),
+			NodePath("ChimneyCap"),
+		])
+		## Every enterable house gets a real interior room to explore.
+		house.set("interior_scene", load("res://scenes/world/buildings/interiors/test_house_interior.tscn"))
+		if house.has_method("bind_door_now"):
+			house.call("bind_door_now")
 
 	return house
+
+
+static func _add_enterable_shell(house: Node3D, wall: Color) -> void:
+	## Perimeter walls with a front doorway. Open top = camera sees furniture when roof fades.
+	StylizedMesh.add_box(house, Vector3(7.5, 3.2, 0.22), wall, Vector3(0, 1.7, -3.0), "WallBack", true, 0.78)
+	StylizedMesh.add_box(house, Vector3(0.22, 3.2, 6.0), wall, Vector3(-3.65, 1.7, 0), "WallL", true, 0.78)
+	StylizedMesh.add_box(house, Vector3(0.22, 3.2, 6.0), wall, Vector3(3.65, 1.7, 0), "WallR", true, 0.78)
+	StylizedMesh.add_box(house, Vector3(2.7, 3.2, 0.22), wall, Vector3(-2.4, 1.7, 3.0), "WallF1", true, 0.78)
+	StylizedMesh.add_box(house, Vector3(2.7, 3.2, 0.22), wall, Vector3(2.4, 1.7, 3.0), "WallF2", true, 0.78)
+	## Invisible "Body" placeholder for cutaway API compatibility (no solid block).
+	var body_mark := Node3D.new()
+	body_mark.name = "Body"
+	house.add_child(body_mark)
+	StylizedMesh.add_box(house, Vector3(7.0, 0.08, 5.6), Color(0.58, 0.44, 0.30), Vector3(0, 0.16, 0), "ShellFloor", false, 0.82)
 
 
 static func _apply_house_style(house: Node3D, style: StringName, wall: Color, _roof: Color) -> void:
@@ -797,7 +824,8 @@ static func _add_chests(root: Node3D, result: Dictionary) -> void:
 	root.add_child(chests_root)
 	var specs := [
 		{"name": "Chest_0", "pos": Vector3(3.5, 0, 3.5), "rarity": ChestInteractable.Rarity.NORMAL, "respawn": 24.0},
-		{"name": "Chest_1", "pos": Vector3(-12, 0, -22), "rarity": ChestInteractable.Rarity.NORMAL, "respawn": 24.0},
+		## Keep clear of BrickHouse door at (-12, -27) porch.
+		{"name": "Chest_1", "pos": Vector3(-18, 0, -18), "rarity": ChestInteractable.Rarity.NORMAL, "respawn": 24.0},
 		{"name": "Chest_2", "pos": Vector3(27, 0, 12), "rarity": ChestInteractable.Rarity.RARE, "respawn": 0.0},
 		{"name": "Chest_3", "pos": Vector3(0, 0, -40), "rarity": ChestInteractable.Rarity.NORMAL, "respawn": 24.0},
 		{"name": "Chest_4", "pos": Vector3(42, 0, -5), "rarity": ChestInteractable.Rarity.NORMAL, "respawn": 24.0},

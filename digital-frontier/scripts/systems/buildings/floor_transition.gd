@@ -9,6 +9,7 @@ extends Interactable
 
 func _ready() -> void:
 	super._ready()
+	once = false
 	if target_spawn == null:
 		for child in get_children():
 			if child is Marker3D:

@@ -12,10 +12,11 @@ enum State {
 	REACT,
 }
 
-const BASE_SPEED := 5.8
-const ACCEL := 22.0
-const STUCK_TELEPORT_DIST := 14.0
+const BASE_SPEED := 7.2
+const ACCEL := 28.0
+const STUCK_TELEPORT_DIST := 6.5
 const LEAD_TIMEOUT := 6.0
+const STUCK_FRAMES_LIMIT := 18
 
 var _player: Node3D = null
 var _visual: CompanionVisual = null
@@ -30,24 +31,44 @@ var _notice_id: StringName = &""
 var _lead_timer: float = 0.0
 var _react_timer: float = 0.0
 var _follow_distance: float = 1.85
+var _follow_lag: float = 0.32
 var _side_sign: float = 1.0
+var _stuck_frames: int = 0
 
 
 func _ready() -> void:
 	add_to_group(&"adventure_companion")
+	## Float over the world — do not grind into static props or floors.
+	motion_mode = MOTION_MODE_FLOATING
 	collision_layer = 8  ## entities
-	collision_mask = 1   ## world_static
+	collision_mask = 0   ## soft follow; snap/teleport if separated
+	floor_snap_length = 0.0
 	_build_collision()
 	_build_visual()
 	EventBus.location_discovered.connect(_on_location_discovered)
 	EventBus.chest_opened.connect(_on_chest_opened)
+	EventBus.building_interior_loaded.connect(_on_building_changed)
+	EventBus.building_exited.connect(_on_building_changed)
 	_apply_species_tuning()
 
 
 func setup(player: Node3D) -> void:
 	_player = player
 	if _player:
-		global_position = _player.global_position + Vector3(-1.2, 0.05, 1.0)
+		warp_near_player(_player)
+
+
+func warp_near_player(player: Node3D = null) -> void:
+	## Used on spawn and after house enter/exit so the partner stays with you.
+	if player:
+		_player = player
+	if _player == null or not is_instance_valid(_player):
+		return
+	global_position = _desired_follow_pos()
+	velocity = Vector3.ZERO
+	_stuck_frames = 0
+	_state = State.FOLLOW
+	_clear_notice()
 
 
 func get_notice_prompt() -> String:
@@ -97,7 +118,7 @@ func _apply_species_tuning() -> void:
 	var species := CreatureManager.get_species_data()
 	if species:
 		_follow_distance = species.follow_distance
-	## Alternate side based on playful personality.
+		_follow_lag = species.follow_lag
 	_side_sign = 1.0 if CreatureManager.get_behavior_bias() != &"sleep" else -1.0
 	if CreatureManager.get_active_instance():
 		_side_sign = 1.0 if CreatureManager.get_active_instance().get_personality("playful") >= 50.0 else -1.0
@@ -149,9 +170,10 @@ func _desired_follow_pos() -> Vector3:
 	var side := _player.global_transform.basis.x
 	side.y = 0.0
 	side = side.normalized() * _side_sign
-	var offset := back * _follow_distance + side * 0.55
+	var lag_boost := 1.0 + clampf(_follow_lag, 0.0, 0.8)
+	var offset := back * (_follow_distance * lag_boost) + side * 0.55
 	var pos := _player.global_position + offset
-	pos.y = _player.global_position.y
+	pos.y = _player.global_position.y + 0.08
 	return pos
 
 
@@ -163,10 +185,12 @@ func _tick_follow(delta: float) -> void:
 	if dist > STUCK_TELEPORT_DIST:
 		global_position = target
 		velocity = Vector3.ZERO
+		_stuck_frames = 0
 		return
 	if dist < 0.55:
 		velocity = velocity.move_toward(Vector3.ZERO, ACCEL * delta)
 		_idle_timer += delta
+		_stuck_frames = 0
 		if _idle_timer > 1.4:
 			_state = State.IDLE
 			_idle_timer = 0.0
@@ -175,16 +199,36 @@ func _tick_follow(delta: float) -> void:
 		move_and_slide()
 		return
 	_idle_timer = 0.0
-	var speed := BASE_SPEED * CreatureManager.get_walk_speed_multiplier()
+	var player_speed := 0.0
+	if _player is CharacterBody3D:
+		var pv := (_player as CharacterBody3D).velocity
+		player_speed = Vector2(pv.x, pv.z).length()
+	var speed := maxf(BASE_SPEED, player_speed * 1.05) * CreatureManager.get_walk_speed_multiplier()
+	speed = maxf(speed, 4.5)
 	## Catch up when far.
-	if dist > 4.5:
-		speed *= 1.35
+	if dist > 3.2:
+		speed *= 1.45
 	var dir := to_target.normalized()
 	velocity.x = move_toward(velocity.x, dir.x * speed, ACCEL * delta)
 	velocity.z = move_toward(velocity.z, dir.z * speed, ACCEL * delta)
 	velocity.y = 0.0
 	_face_direction(dir, delta)
+	var before := global_position
 	move_and_slide()
+	## If barely moving while needing to catch up, count stuck frames then snap.
+	if dist > 2.0 and before.distance_to(global_position) < 0.02:
+		_stuck_frames += 1
+		if _stuck_frames >= STUCK_FRAMES_LIMIT:
+			global_position = target
+			velocity = Vector3.ZERO
+			_stuck_frames = 0
+	else:
+		_stuck_frames = 0
+
+
+func _on_building_changed(_building_id: StringName = &"") -> void:
+	if _player:
+		warp_near_player(_player)
 
 
 func _tick_idle(delta: float) -> void:
@@ -207,18 +251,37 @@ func _tick_idle(delta: float) -> void:
 
 
 func _tick_notice(delta: float) -> void:
-	velocity = velocity.move_toward(Vector3.ZERO, ACCEL * delta)
+	## Soft orbit toward player while noticing — don't freeze into a statue.
+	var soft := _desired_follow_pos()
+	var to_soft := soft - global_position
+	to_soft.y = 0.0
+	if to_soft.length() > 1.8:
+		var dir_soft := to_soft.normalized()
+		velocity.x = move_toward(velocity.x, dir_soft.x * 2.2, ACCEL * delta)
+		velocity.z = move_toward(velocity.z, dir_soft.z * 2.2, ACCEL * delta)
+	else:
+		velocity = velocity.move_toward(Vector3.ZERO, ACCEL * delta)
+	velocity.y = 0.0
 	move_and_slide()
 	if not is_instance_valid(_notice_target):
 		_clear_notice()
+		_state = State.FOLLOW
 		return
 	var dir := _notice_target.global_position - global_position
 	dir.y = 0.0
 	if dir.length_squared() > 0.01:
 		_face_direction(dir.normalized(), delta)
-	## Auto-expire notice if player walks away too far from both.
 	if global_position.distance_to(_player.global_position) > 10.0:
 		_clear_notice()
+		_state = State.FOLLOW
+
+
+func _play_react(anim: CompanionVisual.Anim) -> void:
+	_state = State.REACT
+	_react_timer = 0.55
+	if _visual:
+		_visual.set_anim(anim)
+		_visual.play_feedback_burst(&"heart")
 
 
 func _tick_lead(delta: float) -> void:
@@ -411,14 +474,6 @@ func _on_chest_opened(_chest_id: StringName, rarity: StringName) -> void:
 	if rarity == &"rare" or rarity == &"legendary":
 		bond *= 1.4
 	CreatureManager.grant_adventure_bond(bond, "")
-
-
-func _play_react(anim: CompanionVisual.Anim) -> void:
-	_state = State.REACT
-	_react_timer = 0.9
-	if _visual:
-		_visual.set_anim(anim)
-		_visual.play_feedback_burst(&"heart")
 
 
 func _face_direction(dir: Vector3, delta: float) -> void:

@@ -1,11 +1,17 @@
 class_name ChestInteractable
 extends Interactable
-## Loot chest with rarity tiers, open animation framework, SFX, and respawn rules.
+## Loot chest — opens in place. Never changes scenes or kicks the player out.
 
 enum Rarity {
 	NORMAL,
 	RARE,
 	LEGENDARY,
+}
+
+enum ChestState {
+	CLOSED,
+	OPENING,
+	OPENED,
 }
 
 @export var chest_id: StringName = &""
@@ -18,26 +24,35 @@ enum Rarity {
 @export var creature_xp_on_open: int = 6
 
 var _lid: MeshInstance3D = null
-var _opening: bool = false
+var _chest_state: ChestState = ChestState.CLOSED
+var _rest_y: float = 0.0
 
 
 func _ready() -> void:
 	super._ready()
-	once = respawn_hours <= 0.0
+	once = false
 	if chest_id == &"":
 		chest_id = StringName("chest_%s" % String(interaction_id))
+	_rest_y = position.y
 	_cache_lid()
 	_apply_rarity_prompt()
 	WorldManager.refresh_chest_respawn(chest_id, respawn_hours)
 	if WorldManager.is_chest_opened(chest_id):
-		_mark_opened(false)
+		_apply_opened_visual(false)
+		_chest_state = ChestState.OPENED
+		enabled = respawn_hours > 0.0
+		if not enabled:
+			prompt_verb = "Empty"
+
+
+func get_chest_state() -> ChestState:
+	return _chest_state
 
 
 func _cache_lid() -> void:
 	_lid = get_node_or_null("Lid") as MeshInstance3D
 	if _lid:
 		return
-	## Builder chests add lid as second MeshInstance3D child.
 	var meshes: Array[MeshInstance3D] = []
 	for child in get_children():
 		if child is MeshInstance3D:
@@ -54,36 +69,42 @@ func _apply_rarity_prompt() -> void:
 			prompt_verb = "Open legendary chest"
 		_:
 			prompt_verb = "Open chest"
-	if WorldManager.is_chest_opened(chest_id):
-		prompt_verb = "Empty"
 
 
 func can_interact(actor: Node) -> bool:
-	if _opening:
+	if _chest_state == ChestState.OPENING:
 		return false
 	var available := WorldManager.refresh_chest_respawn(chest_id, respawn_hours)
-	if available and (not enabled or _used):
+	if available and _chest_state == ChestState.OPENED:
 		_reset_for_respawn()
-	if not available:
+	if not available or _chest_state == ChestState.OPENED:
 		return false
 	return super.can_interact(actor)
 
 
 func _reset_for_respawn() -> void:
+	_chest_state = ChestState.CLOSED
 	_used = false
 	enabled = true
 	_apply_rarity_prompt()
+	position.y = _rest_y
 	if _lid:
 		_lid.rotation_degrees.x = 0.0
 	for child in get_children():
 		if child is MeshInstance3D:
-			(child as MeshInstance3D).modulate = Color.WHITE
+			var mesh := child as MeshInstance3D
+			if mesh.material_override is StandardMaterial3D:
+				var mat := (mesh.material_override as StandardMaterial3D).duplicate()
+				mat.albedo_color = Color.WHITE
+				mesh.material_override = mat
 
 
 func _on_interact(_actor: Node) -> void:
-	if _opening or WorldManager.is_chest_opened(chest_id):
+	if _chest_state != ChestState.CLOSED:
 		return
-	_opening = true
+	if WorldManager.is_chest_opened(chest_id) and respawn_hours <= 0.0:
+		return
+	_chest_state = ChestState.OPENING
 	_play_open_feedback()
 	var table_id := loot_table_id
 	if table_id == &"":
@@ -107,16 +128,19 @@ func _on_interact(_actor: Node) -> void:
 	EventBus.chest_opened.emit(chest_id, StringName(_rarity_key()))
 	EventBus.sfx_play_requested.emit(&"chest_open", global_position)
 	DeviceService.notify_event(&"chest_open")
+	DeviceService.play_haptic(&"loot", 0.45)
 	if creature_xp_on_open > 0:
 		CreatureManager.grant_adventure_experience(creature_xp_on_open)
-	_mark_opened(true)
-	_opening = false
+	_apply_opened_visual(true)
+	_chest_state = ChestState.OPENED
+	enabled = respawn_hours > 0.0
+	if not enabled:
+		prompt_verb = "Empty"
 	if summary.is_empty():
-		pass
+		EventBus.ui_notification_requested.emit("%s opened" % _rarity_label(), 2.0)
 
 
 func _play_open_feedback() -> void:
-	## Animation framework — tween lid / pulse body. Works without custom assets.
 	var body: MeshInstance3D = null
 	for child in get_children():
 		if child is MeshInstance3D and child != _lid:
@@ -127,10 +151,11 @@ func _play_open_feedback() -> void:
 		tween.set_parallel(true)
 		tween.tween_property(_lid, "rotation_degrees:x", -70.0, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		tween.tween_property(_lid, "position:y", _lid.position.y + 0.15, 0.28)
-	if body:
-		var flash := create_tween()
-		flash.tween_property(body, "modulate", Color(1.4, 1.3, 0.9), 0.12)
-		flash.tween_property(body, "modulate", Color.WHITE, 0.2)
+	elif body:
+		var base_y := body.position.y
+		var hop := create_tween()
+		hop.tween_property(body, "position:y", base_y + 0.18, 0.12)
+		hop.tween_property(body, "position:y", base_y, 0.18)
 
 
 func _default_table_for_rarity() -> StringName:
@@ -173,23 +198,22 @@ func _rarity_key() -> String:
 			return "normal"
 
 
-func _mark_opened(just_opened: bool) -> void:
+func _apply_opened_visual(just_opened: bool) -> void:
 	_used = true
-	enabled = respawn_hours > 0.0  ## Respawnable chests stay in the interact system.
-	if WorldManager.is_chest_opened(chest_id):
-		enabled = false
-		prompt_verb = "Empty"
 	for child in get_children():
 		if child is MeshInstance3D:
+			var mesh := child as MeshInstance3D
 			var shade := Color(0.45, 0.45, 0.45)
 			match rarity:
 				Rarity.RARE:
 					shade = Color(0.4, 0.45, 0.55) if just_opened else Color(0.35, 0.35, 0.4)
 				Rarity.LEGENDARY:
 					shade = Color(0.55, 0.45, 0.25) if just_opened else Color(0.4, 0.35, 0.25)
-			(child as MeshInstance3D).modulate = shade
-	if just_opened and _lid == null:
-		## Soft hop when no separate lid mesh.
-		var hop := create_tween()
-		hop.tween_property(self, "position:y", position.y + 0.2, 0.12)
-		hop.tween_property(self, "position:y", position.y, 0.18)
+			if mesh.material_override is StandardMaterial3D:
+				var mat := (mesh.material_override as StandardMaterial3D).duplicate()
+				mat.albedo_color = shade
+				mesh.material_override = mat
+			else:
+				mesh.material_override = StylizedMesh.make_material(shade, 0.75)
+	if _lid and just_opened == false:
+		_lid.rotation_degrees.x = -70.0
