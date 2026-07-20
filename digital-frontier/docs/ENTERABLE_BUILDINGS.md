@@ -6,12 +6,13 @@
 
 ## Enterable buildings
 
-- **`BuildingVolume`** — door contract, roof fade, shell cutaway, `interior_kind`
-- **`ModularInteriorBuilder`** — runtime furnished interiors by kind (house, shop, restaurant, office, apartment, warehouse, tower, barn, booth, cabin, landmark, farmhouse)
+- **`BuildingVolume`** — door contract, roof fade, shell cutaway, `interior_kind`, `interior_personality`
+- **`InteriorPersonality`** — Modest / Wealthy / Rustic / Modern / Garden / Abandoned home stories
+- **`ModularInteriorBuilder`** — runtime furnished interiors by kind; homes use room zones (living / kitchen / dining / bedroom / bath)
 - **`RegionPropKit.make_enterable_building`** — universal open-top shell + modular interior
 - Handcrafted `PackedScene` still overrides via `interior_scene` (e.g. `test_house_interior.tscn`)
 
-Every grassland POI building (houses, shops, barns, booths, sheds, gas shops) uses this path. Interiors include furniture, chests, and lore notes.
+Every grassland POI building (houses, shops, barns, booths, sheds, gas shops) uses this path. Interiors include furniture, chests, and lore notes. Pleasant Park exterior styles drive personality so neighboring homes don’t feel identical.
 
 ## Multi-floor
 

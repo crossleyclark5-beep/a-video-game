@@ -8,20 +8,22 @@ const FLOOR_RISE := 3.2
 const ROOM := Vector3(7.0, 0.12, 6.0)
 
 
-static func build(kind: StringName, building_id: StringName, seed_extra: int = 0) -> Node3D:
+static func build(kind: StringName, building_id: StringName, seed_extra: int = 0, personality: int = -1) -> Node3D:
 	var root := Node3D.new()
 	root.name = "ModularInterior_%s" % String(kind)
 	var stories := InteriorKinds.stories_for(kind)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(String(building_id)) * 7919 + seed_extra * 97 + hash(String(kind))
+	if personality < 0:
+		personality = InteriorPersonality.from_building_id(building_id, kind)
 	var floors: Array[BuildingFloor] = []
 	for i in stories:
 		var fl := _make_floor(i, InteriorKinds.floor_name(kind, i))
 		fl.position = Vector3(0, float(i) * FLOOR_RISE, 0)
 		root.add_child(fl)
 		floors.append(fl)
-		_shell_walls(fl, kind, i == stories - 1)
-		_furnish_floor(fl, kind, i, rng, building_id)
+		_shell_walls(fl, kind, i == stories - 1, personality)
+		_furnish_floor(fl, kind, i, rng, building_id, personality)
 		if i > 0:
 			_link_stairs(floors[i - 1], fl, i - 1, i)
 	## Always leave at least one curiosity reward on the top story.
@@ -44,20 +46,27 @@ static func _make_floor(index: int, fname: String) -> BuildingFloor:
 	return fl
 
 
-static func _shell_walls(fl: BuildingFloor, kind: StringName, is_top: bool) -> void:
-	var wall_c := _wall_color(kind)
-	var floor_c := _floor_color(kind)
+static func _shell_walls(fl: BuildingFloor, kind: StringName, is_top: bool, personality: int = InteriorPersonality.Style.MODEST) -> void:
+	var wall_c := InteriorPersonality.wall_tint(personality, _wall_color(kind))
+	var floor_c := InteriorPersonality.floor_tint(personality, _floor_color(kind))
 	StylizedMesh.add_box(fl, ROOM, floor_c, Vector3(0, 0.06, 0), "Floor", true, 1.0, &"wood")
 	var wall_h := 1.7 if is_top and kind != InteriorKinds.TOWER else 2.8
 	StylizedMesh.add_box(fl, Vector3(ROOM.x, wall_h, 0.2), wall_c, Vector3(0, wall_h * 0.5, -ROOM.z * 0.5), "WallBack", true)
 	StylizedMesh.add_box(fl, Vector3(0.2, wall_h, ROOM.z), wall_c, Vector3(-ROOM.x * 0.5, wall_h * 0.5, 0), "WallL", true)
 	StylizedMesh.add_box(fl, Vector3(0.2, wall_h, ROOM.z), wall_c, Vector3(ROOM.x * 0.5, wall_h * 0.5, 0), "WallR", true)
-	## Front doorway gap.
+	## Front doorway gap — keep center clear for walking.
 	StylizedMesh.add_box(fl, Vector3(2.4, wall_h, 0.2), wall_c, Vector3(-2.2, wall_h * 0.5, ROOM.z * 0.5), "WallF1", true)
 	StylizedMesh.add_box(fl, Vector3(2.4, wall_h, 0.2), wall_c, Vector3(2.2, wall_h * 0.5, ROOM.z * 0.5), "WallF2", true)
 
 
-static func _furnish_floor(fl: BuildingFloor, kind: StringName, index: int, rng: RandomNumberGenerator, building_id: StringName) -> void:
+static func _furnish_floor(
+	fl: BuildingFloor,
+	kind: StringName,
+	index: int,
+	rng: RandomNumberGenerator,
+	building_id: StringName,
+	personality: int = InteriorPersonality.Style.MODEST,
+) -> void:
 	match kind:
 		InteriorKinds.SHOP:
 			_furnish_shop(fl, index, rng)
@@ -70,35 +79,132 @@ static func _furnish_floor(fl: BuildingFloor, kind: StringName, index: int, rng:
 		InteriorKinds.BOOTH:
 			_furnish_booth(fl, rng)
 		InteriorKinds.APARTMENT, InteriorKinds.TOWER:
-			_furnish_apartment(fl, index, rng)
+			_furnish_apartment(fl, index, rng, personality)
 		InteriorKinds.LANDMARK:
 			_furnish_landmark(fl, index, rng)
 		InteriorKinds.CABIN, InteriorKinds.FARMHOUSE:
-			_furnish_house(fl, index, rng, true)
+			_furnish_house(fl, index, rng, personality)
 		_:
-			_furnish_house(fl, index, rng, false)
-	## Small chance of a side chest on lower floors.
+			_furnish_house(fl, index, rng, personality)
+	## Chest against a wall — never mid-path near door (z > 0 toward door).
 	if index == 0 and rng.randf() < 0.55:
-		_add_chest(fl, Vector3(rng.randf_range(-2.4, -1.6), 0.4, rng.randf_range(-2.2, -1.4)), building_id, index, ChestInteractable.Rarity.NORMAL)
+		_add_chest(fl, Vector3(rng.randf_range(-2.6, -2.0), 0.4, rng.randf_range(-2.4, -1.8)), building_id, index, ChestInteractable.Rarity.NORMAL)
 
 
-static func _furnish_house(fl: BuildingFloor, index: int, rng: RandomNumberGenerator, rustic: bool) -> void:
+static func _furnish_house(fl: BuildingFloor, index: int, rng: RandomNumberGenerator, personality: int) -> void:
+	## One open floor, zoned like a real home. Door at +Z — keep a clear walk lane down the center.
 	if index == 0:
-		StylizedMesh.add_box(fl, Vector3(2.0, 0.5, 0.9), Color(0.55, 0.22, 0.2), Vector3(-1.5, 0.4, -1.5), "Couch")
-		StylizedMesh.add_box(fl, Vector3(1.2, 0.55, 0.8), Color(0.4, 0.25, 0.15), Vector3(1.2, 0.4, -1.2), "Table", false, 1.0, &"wood")
-		StylizedMesh.add_box(fl, Vector3(0.9, 1.6, 0.4), Color(0.45, 0.35, 0.55), Vector3(2.4, 0.95, -2.0), "Shelf", false, 1.0, &"wood")
-		StylizedMesh.add_box(fl, Vector3(1.1, 0.15, 0.7), Color(0.7, 0.7, 0.75), Vector3(-2.2, 1.05, 1.4), "Counter")
-		StylizedMesh.add_box(fl, Vector3(2.0, 0.04, 1.3), Color(0.55, 0.2, 0.25) if not rustic else Color(0.45, 0.35, 0.22), Vector3(0, 0.14, 0.4), "Rug")
-		StylizedMesh.add_box(fl, Vector3(0.35, 0.9, 0.35), WorldPalette.BUSH, Vector3(2.6, 0.55, 1.8), "Plant")
+		_furnish_living_zone(fl, personality, rng)
+		_furnish_kitchen_zone(fl, personality, rng)
+		_furnish_dining_zone(fl, personality, rng)
+		## Entry mat near door — not furniture blocking the doorway.
+		StylizedMesh.add_box(fl, Vector3(1.2, 0.03, 0.7), Color(0.45, 0.35, 0.28), Vector3(0, 0.13, 2.2), "EntryMat")
 	else:
-		StylizedMesh.add_box(fl, Vector3(1.9, 0.4, 1.3), Color(0.35, 0.45, 0.7), Vector3(-1.6, 0.35, 0.3), "Bed")
-		StylizedMesh.add_box(fl, Vector3(0.85, 1.05, 0.45), Color(0.5, 0.35, 0.25), Vector3(1.6, 0.6, -1.6), "Dresser", false, 1.0, &"wood")
-		StylizedMesh.add_box(fl, Vector3(0.7, 0.7, 0.15), Color(0.85, 0.8, 0.7), Vector3(2.4, 1.2, -2.4), "Picture")
-		if rng.randf() < 0.5:
-			StylizedMesh.add_box(fl, Vector3(0.5, 0.5, 0.5), Color(0.6, 0.45, 0.3), Vector3(-2.4, 0.4, -2.0), "Trunk", false, 1.0, &"wood")
+		_furnish_bedroom_zone(fl, personality, rng)
+		_furnish_bath_zone(fl, personality, rng)
+
+
+static func _furnish_living_zone(fl: BuildingFloor, personality: int, rng: RandomNumberGenerator) -> void:
+	## Left / back — couch faces the room, coffee table, TV on back wall.
+	var couch_c := Color(0.45, 0.22, 0.2)
+	match personality:
+		InteriorPersonality.Style.WEALTHY:
+			couch_c = Color(0.35, 0.28, 0.42)
+		InteriorPersonality.Style.MODERN:
+			couch_c = Color(0.55, 0.55, 0.58)
+		InteriorPersonality.Style.RUSTIC:
+			couch_c = Color(0.5, 0.32, 0.2)
+		InteriorPersonality.Style.GARDEN:
+			couch_c = Color(0.4, 0.5, 0.35)
+		InteriorPersonality.Style.ABANDONED:
+			couch_c = Color(0.4, 0.38, 0.32)
+	StylizedMesh.add_box(fl, Vector3(2.2, 0.55, 0.85), couch_c, Vector3(-1.8, 0.4, -1.8), "Couch")
+	StylizedMesh.add_box(fl, Vector3(0.55, 0.55, 0.55), couch_c.darkened(0.08), Vector3(-0.5, 0.4, -1.9), "Armchair")
+	StylizedMesh.add_box(fl, Vector3(1.0, 0.28, 0.55), WorldPalette.WOOD, Vector3(-1.5, 0.28, -0.85), "CoffeeTable", false, 1.0, &"wood")
+	## TV / entertainment against back wall — not kitchen appliances.
+	StylizedMesh.add_box(fl, Vector3(1.3, 0.75, 0.2), Color(0.15, 0.15, 0.18), Vector3(-1.6, 1.15, -2.75), "Television")
+	StylizedMesh.add_box(fl, Vector3(1.5, 0.45, 0.4), WorldPalette.WOOD.darkened(0.1), Vector3(-1.6, 0.45, -2.55), "TVStand", false, 1.0, &"wood")
+	StylizedMesh.add_box(fl, Vector3(1.8, 0.04, 1.2), Color(0.55, 0.2, 0.25) if personality != InteriorPersonality.Style.MODERN else Color(0.35, 0.4, 0.45), Vector3(-1.4, 0.14, -1.2), "LivingRug")
+	if personality == InteriorPersonality.Style.WEALTHY or personality == InteriorPersonality.Style.MODEST:
+		StylizedMesh.add_box(fl, Vector3(0.7, 0.7, 0.12), Color(0.85, 0.8, 0.7), Vector3(-2.8, 1.4, -2.5), "FamilyPhoto")
+	if personality == InteriorPersonality.Style.GARDEN or rng.randf() < 0.6:
+		StylizedMesh.add_box(fl, Vector3(0.35, 0.9, 0.35), WorldPalette.BUSH, Vector3(-2.7, 0.55, -0.6), "LivingPlant")
+	if personality == InteriorPersonality.Style.ABANDONED:
+		StylizedMesh.add_box(fl, Vector3(0.4, 0.25, 0.5), Color(0.5, 0.45, 0.35), Vector3(-0.8, 0.25, -1.0), "FallenBook")
+
+
+static func _furnish_kitchen_zone(fl: BuildingFloor, personality: int, _rng: RandomNumberGenerator) -> void:
+	## Right / back — counters, fridge, stove. Never beds or couches here.
+	if personality == InteriorPersonality.Style.ABANDONED:
+		StylizedMesh.add_box(fl, Vector3(1.4, 0.7, 0.55), Color(0.55, 0.5, 0.42), Vector3(2.0, 0.5, -2.0), "BrokenCounter")
+		StylizedMesh.add_box(fl, Vector3(0.7, 1.4, 0.6), Color(0.5, 0.5, 0.48), Vector3(2.7, 0.85, -0.8), "DustyFridge")
+		return
+	StylizedMesh.add_box(fl, Vector3(2.2, 0.7, 0.55), Color(0.75, 0.75, 0.78), Vector3(1.9, 0.5, -2.2), "KitchenCounter")
+	StylizedMesh.add_box(fl, Vector3(2.0, 0.08, 0.5), Color(0.85, 0.85, 0.88), Vector3(1.9, 0.88, -2.2), "CounterTop")
+	StylizedMesh.add_box(fl, Vector3(0.7, 1.5, 0.65), Color(0.7, 0.72, 0.75), Vector3(2.7, 0.9, -0.9), "Refrigerator")
+	StylizedMesh.add_box(fl, Vector3(0.7, 0.55, 0.55), Color(0.35, 0.35, 0.38), Vector3(1.1, 0.45, -2.2), "Stove")
+	StylizedMesh.add_box(fl, Vector3(0.55, 0.08, 0.45), Color(0.2, 0.2, 0.22), Vector3(1.1, 0.78, -2.2), "Burners")
+	StylizedMesh.add_box(fl, Vector3(0.9, 1.2, 0.4), WorldPalette.WOOD, Vector3(2.7, 1.5, -2.3), "Cabinets", false, 1.0, &"wood")
+	if personality == InteriorPersonality.Style.WEALTHY:
+		StylizedMesh.add_box(fl, Vector3(0.45, 0.35, 0.45), Color(0.9, 0.9, 0.92), Vector3(2.0, 1.1, -2.15), "Mixer")
+	if personality == InteriorPersonality.Style.RUSTIC:
+		StylizedMesh.add_box(fl, Vector3(0.5, 0.4, 0.4), Color(0.55, 0.35, 0.2), Vector3(1.5, 1.15, -2.0), "BreadBox", false, 1.0, &"wood")
+
+
+static func _furnish_dining_zone(fl: BuildingFloor, personality: int, rng: RandomNumberGenerator) -> void:
+	## Center-right — table + chairs, clear of the entry lane (x≈0).
+	var table_c := WorldPalette.WOOD
+	if personality == InteriorPersonality.Style.MODERN:
+		table_c = Color(0.55, 0.55, 0.58)
+	StylizedMesh.add_box(fl, Vector3(1.3, 0.5, 0.9), table_c, Vector3(1.3, 0.4, 0.5), "DiningTable", false, 1.0, &"wood")
+	StylizedMesh.add_box(fl, Vector3(0.4, 0.55, 0.4), table_c.darkened(0.1), Vector3(0.55, 0.35, 0.5), "ChairL")
+	StylizedMesh.add_box(fl, Vector3(0.4, 0.55, 0.4), table_c.darkened(0.1), Vector3(2.05, 0.35, 0.5), "ChairR")
+	if personality != InteriorPersonality.Style.ABANDONED and rng.randf() < 0.7:
+		StylizedMesh.add_box(fl, Vector3(0.35, 0.12, 0.35), Color(0.9, 0.85, 0.7), Vector3(1.3, 0.72, 0.5), "PlaceSetting")
+	if personality == InteriorPersonality.Style.WEALTHY:
+		StylizedMesh.add_box(fl, Vector3(0.9, 1.5, 0.35), Color(0.4, 0.3, 0.45), Vector3(2.7, 0.95, 1.6), "ChinaCabinet", false, 1.0, &"wood")
+
+
+static func _furnish_bedroom_zone(fl: BuildingFloor, personality: int, rng: RandomNumberGenerator) -> void:
+	## Bed against back/left — nightstand, dresser, closet. No kitchen gear upstairs.
+	var bed_c := Color(0.35, 0.45, 0.7)
+	match personality:
+		InteriorPersonality.Style.WEALTHY:
+			bed_c = Color(0.45, 0.35, 0.55)
+		InteriorPersonality.Style.RUSTIC:
+			bed_c = Color(0.55, 0.4, 0.28)
+		InteriorPersonality.Style.MODERN:
+			bed_c = Color(0.5, 0.55, 0.6)
+		InteriorPersonality.Style.ABANDONED:
+			bed_c = Color(0.4, 0.4, 0.38)
+	StylizedMesh.add_box(fl, Vector3(2.0, 0.4, 1.4), bed_c, Vector3(-1.7, 0.35, -0.4), "Bed")
+	StylizedMesh.add_box(fl, Vector3(1.8, 0.18, 0.5), Color(0.9, 0.9, 0.92), Vector3(-1.7, 0.65, -0.85), "Pillow")
+	StylizedMesh.add_box(fl, Vector3(0.5, 0.45, 0.45), WorldPalette.WOOD, Vector3(-0.35, 0.35, -1.6), "Nightstand", false, 1.0, &"wood")
+	StylizedMesh.add_box(fl, Vector3(0.2, 0.35, 0.2), Color(0.95, 0.9, 0.7), Vector3(-0.35, 0.75, -1.6), "Lamp")
+	StylizedMesh.add_box(fl, Vector3(1.0, 1.15, 0.45), WorldPalette.WOOD, Vector3(1.8, 0.7, -1.8), "Dresser", false, 1.0, &"wood")
+	StylizedMesh.add_box(fl, Vector3(0.9, 1.7, 0.4), Color(0.55, 0.45, 0.35), Vector3(2.5, 1.0, 0.8), "Closet", false, 1.0, &"wood")
+	StylizedMesh.add_box(fl, Vector3(0.7, 0.7, 0.12), Color(0.85, 0.8, 0.7), Vector3(-2.6, 1.35, -2.4), "WallArt")
+	if personality == InteriorPersonality.Style.WEALTHY:
+		StylizedMesh.add_box(fl, Vector3(0.55, 0.9, 0.4), Color(0.6, 0.45, 0.3), Vector3(0.8, 0.55, 1.5), "Vanity", false, 1.0, &"wood")
+	if personality == InteriorPersonality.Style.GARDEN:
+		StylizedMesh.add_box(fl, Vector3(0.3, 0.7, 0.3), WorldPalette.BUSH, Vector3(2.5, 0.45, -0.5), "RoomPlant")
+	if rng.randf() < 0.45 and personality != InteriorPersonality.Style.ABANDONED:
+		StylizedMesh.add_box(fl, Vector3(0.45, 0.35, 0.55), Color(0.55, 0.4, 0.28), Vector3(-2.5, 0.3, 1.2), "ToyChest", false, 1.0, &"wood")
+
+
+static func _furnish_bath_zone(fl: BuildingFloor, personality: int, _rng: RandomNumberGenerator) -> void:
+	## Compact bath corner — sink, toilet, tub. Only upstairs.
+	if personality == InteriorPersonality.Style.ABANDONED:
+		StylizedMesh.add_box(fl, Vector3(0.7, 0.55, 0.45), Color(0.65, 0.65, 0.6), Vector3(1.2, 0.4, 2.0), "CrackedSink")
+		return
+	StylizedMesh.add_box(fl, Vector3(0.7, 0.55, 0.45), Color(0.9, 0.9, 0.92), Vector3(0.9, 0.4, 2.0), "Sink")
+	StylizedMesh.add_box(fl, Vector3(0.45, 0.45, 0.55), Color(0.88, 0.88, 0.9), Vector3(1.8, 0.35, 2.0), "Toilet")
+	StylizedMesh.add_box(fl, Vector3(1.3, 0.55, 0.7), Color(0.85, 0.88, 0.92), Vector3(-0.5, 0.4, 2.0), "Bathtub")
+	StylizedMesh.add_box(fl, Vector3(0.5, 0.7, 0.12), Color(0.7, 0.75, 0.8), Vector3(0.9, 1.15, 2.35), "Mirror")
 
 
 static func _furnish_shop(fl: BuildingFloor, index: int, rng: RandomNumberGenerator) -> void:
+	## Sales floor vs stock room — aisle clear from door (+Z) to counter (−Z).
 	if index == 0:
 		StylizedMesh.add_box(fl, Vector3(5.5, 0.9, 0.7), WorldPalette.WOOD, Vector3(0, 0.55, -2.0), "Counter", true, 1.0, &"wood")
 		StylizedMesh.add_box(fl, Vector3(0.6, 0.35, 0.45), WorldPalette.UI_ACCENT, Vector3(1.5, 1.15, -2.0), "Till")
@@ -107,11 +213,13 @@ static func _furnish_shop(fl: BuildingFloor, index: int, rng: RandomNumberGenera
 			StylizedMesh.add_box(fl, Vector3(1.1, 1.8, 0.35), Color(0.55, 0.4, 0.3), Vector3(x, 1.0, 2.2), "Shelf_%d" % i, false, 1.0, &"wood")
 			StylizedMesh.add_box(fl, Vector3(0.9, 0.15, 0.25), Color(0.85, 0.55, 0.35), Vector3(x, 1.35, 2.15), "Goods_%d" % i)
 		StylizedMesh.add_box(fl, Vector3(1.2, 0.8, 0.8), Color(0.7, 0.65, 0.5), Vector3(2.3, 0.5, 0.2), "Crate", false, 1.0, &"wood")
+		StylizedMesh.add_box(fl, Vector3(0.9, 1.1, 0.08), Color(0.9, 0.55, 0.25), Vector3(-2.6, 1.4, -1.0), "SaleSign")
 		if rng.randf() < 0.7:
 			StylizedMesh.add_box(fl, Vector3(0.8, 1.4, 0.4), Color(0.4, 0.5, 0.65), Vector3(-2.5, 0.85, -0.5), "Mannequin")
 	else:
 		StylizedMesh.add_box(fl, Vector3(2.5, 0.9, 1.2), WorldPalette.WOOD, Vector3(-1.2, 0.55, -1.0), "StockTable", false, 1.0, &"wood")
 		StylizedMesh.add_box(fl, Vector3(1.5, 1.2, 0.8), Color(0.5, 0.4, 0.3), Vector3(1.8, 0.7, 1.0), "Cartons", false, 1.0, &"wood")
+		StylizedMesh.add_box(fl, Vector3(1.0, 0.7, 0.7), Color(0.45, 0.4, 0.35), Vector3(2.2, 0.45, -1.8), "SpareCrate", false, 1.0, &"wood")
 
 
 static func _furnish_restaurant(fl: BuildingFloor, index: int, _rng: RandomNumberGenerator) -> void:
@@ -122,7 +230,9 @@ static func _furnish_restaurant(fl: BuildingFloor, index: int, _rng: RandomNumbe
 			StylizedMesh.add_box(fl, Vector3(1.1, 0.45, 1.1), Color(0.55, 0.35, 0.22), Vector3(-2.0, 0.35, z), "Table_%d" % i, false, 1.0, &"wood")
 			StylizedMesh.add_box(fl, Vector3(0.4, 0.55, 0.4), Color(0.4, 0.25, 0.18), Vector3(-2.7, 0.35, z), "ChairA_%d" % i)
 			StylizedMesh.add_box(fl, Vector3(0.4, 0.55, 0.4), Color(0.4, 0.25, 0.18), Vector3(-1.3, 0.35, z), "ChairB_%d" % i)
-		StylizedMesh.add_box(fl, Vector3(1.4, 1.5, 0.5), Color(0.7, 0.7, 0.75), Vector3(2.4, 0.9, -2.0), "Kitchen")
+		## Kitchen pass is against the right wall — not mixed into seating.
+		StylizedMesh.add_box(fl, Vector3(1.4, 1.5, 0.5), Color(0.7, 0.7, 0.75), Vector3(2.4, 0.9, -2.0), "KitchenPass")
+		StylizedMesh.add_box(fl, Vector3(0.8, 0.9, 0.6), Color(0.55, 0.55, 0.58), Vector3(2.5, 0.55, -0.6), "PrepFridge")
 		StylizedMesh.add_box(fl, Vector3(0.5, 0.08, 0.5), Color(0.95, 0.85, 0.4), Vector3(0, 1.05, -2.1), "Lamp")
 	else:
 		StylizedMesh.add_box(fl, Vector3(2.0, 0.5, 1.0), Color(0.5, 0.3, 0.25), Vector3(0, 0.4, 0), "PrivateTable", false, 1.0, &"wood")
@@ -130,20 +240,26 @@ static func _furnish_restaurant(fl: BuildingFloor, index: int, _rng: RandomNumbe
 
 
 static func _furnish_office(fl: BuildingFloor, index: int, _rng: RandomNumberGenerator) -> void:
+	## Desk + terminal face the room; filing and shelves along walls — clear center aisle.
 	StylizedMesh.add_box(fl, Vector3(1.6, 0.7, 0.9), WorldPalette.WOOD, Vector3(-1.5, 0.45, -1.2), "Desk", true, 1.0, &"wood")
-	StylizedMesh.add_box(fl, Vector3(0.5, 0.7, 0.5), Color(0.25, 0.25, 0.28), Vector3(-1.5, 0.45, -0.3), "Chair")
+	StylizedMesh.add_box(fl, Vector3(0.5, 0.7, 0.5), Color(0.25, 0.25, 0.28), Vector3(-1.5, 0.45, -0.3), "OfficeChair")
 	StylizedMesh.add_box(fl, Vector3(0.7, 0.08, 0.5), Color(0.2, 0.45, 0.7), Vector3(-1.5, 0.9, -1.2), "Terminal")
+	StylizedMesh.add_box(fl, Vector3(0.35, 0.08, 0.25), Color(0.9, 0.9, 0.85), Vector3(-1.1, 0.85, -0.95), "Papers")
 	StylizedMesh.add_box(fl, Vector3(2.2, 1.8, 0.3), Color(0.55, 0.5, 0.45), Vector3(2.4, 1.0, -2.2), "FileCabinet", false, 1.0, &"brick")
+	StylizedMesh.add_box(fl, Vector3(1.4, 1.5, 0.35), Color(0.5, 0.45, 0.4), Vector3(2.5, 0.9, 0.5), "Bookshelves", false, 1.0, &"wood")
 	if index > 0:
 		StylizedMesh.add_box(fl, Vector3(2.5, 0.9, 1.4), Color(0.4, 0.45, 0.55), Vector3(0, 0.55, 1.0), "MeetingTable", false, 1.0, &"wood")
+		StylizedMesh.add_box(fl, Vector3(0.9, 1.2, 0.08), Color(0.85, 0.88, 0.9), Vector3(-2.6, 1.3, -2.4), "Whiteboard")
 
 
 static func _furnish_warehouse(fl: BuildingFloor, kind: StringName, rng: RandomNumberGenerator) -> void:
+	## Crates along the back wall — keep a forklift lane down the middle.
 	for i in 5:
 		var x := -2.5 + float(i) * 1.2
 		var h := 1.0 + rng.randf() * 0.8
 		StylizedMesh.add_box(fl, Vector3(0.9, h, 0.9), Color(0.55, 0.4, 0.28), Vector3(x, h * 0.5, -1.8), "Crate_%d" % i, true, 1.0, &"wood")
 	StylizedMesh.add_box(fl, Vector3(2.5, 0.15, 4.0), Color(0.35, 0.35, 0.38), Vector3(1.5, 0.12, 0.5), "Pallet")
+	StylizedMesh.add_box(fl, Vector3(0.8, 1.6, 0.5), Color(0.4, 0.4, 0.42), Vector3(2.6, 0.95, 1.8), "Rack")
 	if kind == InteriorKinds.BARN:
 		StylizedMesh.add_box(fl, Vector3(1.5, 1.2, 2.0), Color(0.45, 0.35, 0.22), Vector3(-2.0, 0.7, 1.5), "Hay", false, 1.0, &"wood")
 		StylizedMesh.add_box(fl, Vector3(0.8, 1.0, 0.6), Color(0.5, 0.45, 0.35), Vector3(2.2, 0.6, 1.8), "Trough")
@@ -154,15 +270,17 @@ static func _furnish_booth(fl: BuildingFloor, _rng: RandomNumberGenerator) -> vo
 	StylizedMesh.add_box(fl, Vector3(1.2, 0.8, 0.8), Color(0.85, 0.55, 0.25), Vector3(-2.0, 0.5, 1.0), "Popcorn")
 	StylizedMesh.add_box(fl, Vector3(0.8, 1.1, 0.5), Color(0.3, 0.35, 0.55), Vector3(2.0, 0.7, 1.2), "Projector")
 	StylizedMesh.add_box(fl, Vector3(1.0, 0.15, 0.7), Color(0.9, 0.85, 0.5), Vector3(0, 1.1, -1.5), "TicketLamp")
+	StylizedMesh.add_box(fl, Vector3(0.9, 0.7, 0.08), Color(0.9, 0.3, 0.35), Vector3(-2.5, 1.3, -1.5), "NowShowing")
 
 
-static func _furnish_apartment(fl: BuildingFloor, index: int, rng: RandomNumberGenerator) -> void:
+static func _furnish_apartment(fl: BuildingFloor, index: int, rng: RandomNumberGenerator, personality: int) -> void:
 	if index == 0:
 		StylizedMesh.add_box(fl, Vector3(1.4, 0.9, 0.5), WorldPalette.WOOD, Vector3(-2.0, 0.55, -2.0), "Mailboxes", false, 1.0, &"wood")
 		StylizedMesh.add_box(fl, Vector3(1.0, 1.8, 0.15), Color(0.6, 0.6, 0.65), Vector3(2.5, 1.0, 0), "LobbyArt")
 		StylizedMesh.add_box(fl, Vector3(1.5, 0.45, 1.5), Color(0.45, 0.35, 0.3), Vector3(0, 0.35, 0.5), "LobbyCouch")
+		StylizedMesh.add_box(fl, Vector3(0.8, 0.9, 0.4), Color(0.5, 0.45, 0.4), Vector3(2.2, 0.55, -1.8), "Directory")
 	else:
-		_furnish_house(fl, 1 if index > 0 else 0, rng, false)
+		_furnish_house(fl, 1, rng, personality)
 
 
 static func _furnish_landmark(fl: BuildingFloor, index: int, rng: RandomNumberGenerator) -> void:
@@ -170,6 +288,7 @@ static func _furnish_landmark(fl: BuildingFloor, index: int, rng: RandomNumberGe
 	StylizedMesh.add_box(fl, Vector3(0.15, 1.4, 0.8), Color(0.9, 0.88, 0.8), Vector3(-2.4, 1.0, 0.5), "Plaque")
 	if index == 0:
 		StylizedMesh.add_box(fl, Vector3(1.5, 0.5, 1.5), Color(0.4, 0.5, 0.65), Vector3(1.8, 0.4, 1.2), "Bench")
+		StylizedMesh.add_box(fl, Vector3(0.6, 0.9, 0.08), Color(0.85, 0.8, 0.65), Vector3(2.5, 1.2, -2.0), "TourPoster")
 	else:
 		_furnish_office(fl, index, rng)
 
