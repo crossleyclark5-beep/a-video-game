@@ -11,6 +11,7 @@ extends Node3D
 
 var _region_data: Dictionary = {}
 var _player: Node3D = null
+var _companion: AdventureCompanionActor = null
 var _interior_controller: BuildingInteriorController = null
 var _interaction_prompt: Control = null
 var _device_hud: CanvasLayer = null
@@ -26,6 +27,7 @@ func _ready() -> void:
 	_region_data = PleasantParkBuilder.build(hex_grid_layer)
 	EventBus.region_load_requested.emit(&"pleasant_park")
 	_spawn_player()
+	_spawn_companion()
 	_bind_prompt()
 	_spawn_ambient_fx()
 	QuestManager.ensure_starter_quest()
@@ -103,6 +105,17 @@ func _spawn_player() -> void:
 	_player.global_position = spawn
 	if camera_rig.has_method("set_target"):
 		camera_rig.call("set_target", _player)
+
+
+func _spawn_companion() -> void:
+	if _player == null:
+		return
+	_companion = AdventureCompanionActor.new()
+	_companion.name = "AdventureCompanion"
+	entity_layer.add_child(_companion)
+	_companion.setup(_player)
+	if _device_hud and _device_hud.has_method("bind_companion"):
+		_device_hud.call("bind_companion", _companion)
 
 
 func _save_checkpoint() -> void:

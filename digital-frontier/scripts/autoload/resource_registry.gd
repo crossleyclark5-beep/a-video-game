@@ -15,6 +15,7 @@ var _bosses: Dictionary = {}
 var _loot_tables: Dictionary = {}
 var _discoverables: Dictionary = {}
 var _achievements: Dictionary = {}
+var _abilities: Dictionary = {}
 
 
 func _initialize_manager() -> void:
@@ -29,11 +30,12 @@ func _initialize_manager() -> void:
 	_scan_directory(GameConstants.DATA_LOOT, _loot_tables)
 	_scan_directory(GameConstants.DATA_DISCOVERABLES, _discoverables)
 	_scan_directory(GameConstants.DATA_ACHIEVEMENTS, _achievements)
+	_scan_directory(GameConstants.DATA_ABILITIES, _abilities)
 	_log(
-		"Indexed %d regions, %d creatures, %d items, %d quests, %d loot, %d discoverables, %d achievements"
+		"Indexed %d regions, %d creatures, %d items, %d quests, %d loot, %d discoverables, %d achievements, %d abilities"
 		% [
 			_regions.size(), _creatures.size(), _items.size(), _quests.size(),
-			_loot_tables.size(), _discoverables.size(), _achievements.size(),
+			_loot_tables.size(), _discoverables.size(), _achievements.size(), _abilities.size(),
 		]
 	)
 
@@ -99,6 +101,10 @@ func get_achievement(id: StringName) -> AchievementData:
 	return _achievements.get(id)
 
 
+func get_ability(id: StringName) -> CreatureAbilityData:
+	return _abilities.get(id)
+
+
 func get_all_regions() -> Array:
 	return _regions.values()
 
@@ -119,6 +125,10 @@ func get_all_achievements() -> Array:
 	return _achievements.values()
 
 
+func get_all_abilities() -> Array:
+	return _abilities.values()
+
+
 func get_all_items() -> Array:
 	return _items.values()
 
@@ -136,4 +146,5 @@ func has_id(category: StringName, id: StringName) -> bool:
 		&"loot": return _loot_tables.has(id)
 		&"discoverable": return _discoverables.has(id)
 		&"achievement": return _achievements.has(id)
+		&"ability": return _abilities.has(id)
 		_: return false

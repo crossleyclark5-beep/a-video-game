@@ -5,7 +5,7 @@ Digital Frontier companions are living friends — data-driven instances with pe
 ## Architecture
 
 ```
-CreatureData (.tres)          species template (stats, personality, skins, colors)
+CreatureData (.tres)          species template (stats, personality, skins, abilities)
         │
         ▼
 CreatureInstance              runtime owned creature (needs, XP, skin, evolution)
@@ -13,20 +13,25 @@ CreatureInstance              runtime owned creature (needs, XP, skin, evolution
         ▼
 CreatureManager (autoload)    owns active instance + collection dict
         │
-   ┌────┴────┐
-   ▼         ▼
-Home Actor   Adventure hooks (grant_adventure_experience)
+   ┌────┴────────────────────┐
+   ▼                         ▼
+Home CompanionActor     AdventureCompanionActor (follow / sense / Y)
+   + CompanionVisual          + CompanionVisual (shared look)
 ```
 
 | Module | Path |
 |--------|------|
 | Species template | `resources/definitions/creature_data.gd` |
+| Abilities | `resources/definitions/creature_ability_data.gd` + `data/abilities/` |
 | Runtime instance | `scripts/creatures/creature_instance.gd` |
 | Ownership / care | `scripts/autoload/creature_manager.gd` |
 | Visual + anims | `scripts/home/companion_visual.gd` |
 | Home AI | `scripts/home/companion_actor.gd` |
+| Adventure partner | `scripts/adventure/adventure_companion_actor.gd` |
 
-Starter species: **Sparkbit** (`data/creatures/sparkbit.tres`) — digital fantasy spirit, not a realistic animal.
+Starter species: **Sparkbit** (`data/creatures/sparkbit.tres`) — digital fantasy spirit, not a realistic animal. Ability: **Secret Sense**.
+
+See `docs/CREATURE_ADVENTURE.md` for overworld partner behavior.
 
 ## Tracked instance fields
 
@@ -80,13 +85,13 @@ Driven by `CreatureInstance.get_behavior_bias()` + personality:
 ## Persistence (home ↔ adventure)
 
 `CreatureManager.export_state()` saves the full `captured` instance map + active id.
-Adventure calls `grant_adventure_experience()` so the same friend grows outdoors.
-Returning home loads the same needs / level / personality.
+Adventure grants XP + bond, and spawns `AdventureCompanionActor` so the same friend walks beside you outdoors.
+Returning home loads the same needs / level / personality / friendship.
 
 ## Future hooks (ready, not built)
 
 - Multiple creatures in `_captured` / `_party`
 - Trading (serialize `CreatureInstance.to_dict()`)
-- Collection UI (count already exposed)
 - Evolution (`evolution_stage` + `evolution_chain_id` on species)
 - Skins (`skin_id` / `available_skin_ids` / visual profile id)
+- Water / flight abilities (data kinds exist; runtime later)

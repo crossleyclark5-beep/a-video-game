@@ -24,6 +24,13 @@ enum Rarity {
 @export var icon_path: String = ""
 @export var capture_rate: float = 0.5
 
+## Adventure partner defaults (overworld follower).
+@export var follow_distance: float = 1.85
+@export var follow_lag: float = 0.35
+@export var sense_radius_bonus: float = 0.0
+@export var adventure_bond_on_discover: float = 1.5
+@export var adventure_bond_on_chest: float = 2.0
+
 @export var habitat_region_ids: PackedStringArray = PackedStringArray()
 
 ## Visual / animation profile ids — resolve to skins & anim sets later.

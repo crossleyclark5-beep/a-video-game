@@ -18,12 +18,15 @@ var _root: PanelContainer
 var _title: Label
 var _bits: Label
 var _quest_line: Label
+var _companion_line: Label
+var _notice_line: Label
 var _body: RichTextLabel
 var _toast: Label
 var _hint: Label
 var _tab_label: Label
 var _toast_timer: float = 0.0
 var _refresh_timer: float = 0.0
+var _companion: AdventureCompanionActor = null
 
 
 func _ready() -> void:
@@ -35,7 +38,14 @@ func _ready() -> void:
 	EventBus.quest_completed.connect(_on_quest_pulse)
 	EventBus.bits_changed.connect(_on_bits)
 	EventBus.location_discovered.connect(_on_world_pulse)
+	EventBus.companion_state_changed.connect(_refresh_chrome)
+	EventBus.companion_noticed.connect(_on_companion_notice)
 	_refresh()
+
+
+func bind_companion(companion: AdventureCompanionActor) -> void:
+	_companion = companion
+	_refresh_chrome()
 
 
 func _process(delta: float) -> void:
@@ -114,6 +124,17 @@ func _build_ui() -> void:
 	_quest_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_quest_line.add_theme_font_size_override("font_size", 16)
 	vbox.add_child(_quest_line)
+
+	_companion_line = Label.new()
+	_companion_line.add_theme_font_size_override("font_size", 16)
+	_companion_line.add_theme_color_override("font_color", Color(0.7, 0.92, 0.95))
+	vbox.add_child(_companion_line)
+
+	_notice_line = Label.new()
+	_notice_line.visible = false
+	_notice_line.add_theme_font_size_override("font_size", 17)
+	_notice_line.add_theme_color_override("font_color", Color(1.0, 0.92, 0.55))
+	vbox.add_child(_notice_line)
 
 	_tab_label = Label.new()
 	_tab_label.add_theme_font_size_override("font_size", 18)
@@ -250,7 +271,19 @@ func _refresh(_a = null) -> void:
 func _refresh_chrome() -> void:
 	_bits.text = "%d Bits" % InventoryManager.get_bits()
 	_quest_line.text = QuestManager.get_quest_status_line()
-	_hint.text = InputManager.get_control_legend()
+	_companion_line.text = CreatureManager.get_adventure_status_line()
+	var disc := CollectionManager.get_discovery_progress()
+	_companion_line.text += "  ·  Map %d/%d" % [disc.x, disc.y]
+	if _companion and _companion.has_active_notice():
+		_notice_line.visible = true
+		_notice_line.text = _companion.get_notice_prompt()
+	else:
+		_notice_line.visible = false
+	_hint.text = InputManager.get_control_legend() + "  ·  %s companion" % InputManager.get_action_glyph(&"creature_action")
+
+
+func _on_companion_notice(_id: StringName = &"", _kind: StringName = &"") -> void:
+	_refresh_chrome()
 
 
 func _on_notification(message: String, duration: float) -> void:
