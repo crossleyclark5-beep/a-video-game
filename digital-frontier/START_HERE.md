@@ -1,18 +1,17 @@
 # START HERE — Cooper Game
 
-Your game folder on this PC (keep this name):
+**Your working project on this PC:**
 
-`C:/Users/Martin/OneDrive/Dokumenty/a-video-game-master`
+`C:/Users/Martin/OneDrive/Dokumenty/a-video-game-master/digital-frontier/project.godot`
+
+Keep that folder. Spelling is `digital-frontier` (not `digital-fronteir`).
 
 ---
 
 ## Open the game (3 steps)
 
 1. Start **Godot 4.7.1**
-2. Open the **existing** project (Edit), not a new Import:
-
-   `C:/Users/Martin/OneDrive/Dokumenty/a-video-game-master/digital-frontier/project.godot`
-
+2. Open the **existing** project (Edit), not a new Import — the path above
 3. Press **F5**
 
 There is only **one** Godot project: `digital-frontier/project.godot`.
