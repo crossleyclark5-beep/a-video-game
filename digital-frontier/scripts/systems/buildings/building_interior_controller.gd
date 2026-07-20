@@ -269,6 +269,7 @@ func _ensure_interior_light(on: bool) -> void:
 		_interior_light = null
 		return
 	if _interior_light and is_instance_valid(_interior_light):
+		_place_interior_light(_find_floor(_current_floor_index))
 		return
 	if _loaded_interior == null:
 		return
