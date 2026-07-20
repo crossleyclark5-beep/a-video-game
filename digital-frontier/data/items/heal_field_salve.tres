@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/item_data.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"heal_field_salve"
+display_name = "Field Salve"
+description = "Soothing salve. Restores health and energy."
+item_type = 0
+shop_category = 1
+max_stack = 12
+sell_value = 44
+buy_value = 110
+shop_blurb = "Creature / Healing"
+use_effect_id = &"heal_boost"

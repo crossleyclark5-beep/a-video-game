@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/item_data.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"train_focus_whistle"
+display_name = "Focus Whistle"
+description = "A training aid that sharpens focus."
+item_type = 4
+shop_category = 1
+max_stack = 8
+sell_value = 72
+buy_value = 180
+shop_blurb = "Creature / Training"
+use_effect_id = &"train_boost"

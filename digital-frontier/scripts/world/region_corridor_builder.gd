@@ -133,21 +133,37 @@ static func _meadow_patch(parent: Node3D, pos: Vector3, idx: int) -> void:
 
 
 static func _add_journey_landmarks(parent: Node3D, result: Dictionary) -> void:
-	## Creek bridge on the NE Reels road.
-	var bridge_pos := Vector3(1280.0, 0.0, -1200.0)
-	var bridge := Node3D.new()
-	bridge.name = "CreekBridge"
-	bridge.position = bridge_pos
-	parent.add_child(bridge)
-	StylizedMesh.add_box(bridge, Vector3(18, 0.2, 8), WorldPalette.WATER, Vector3(0, -0.15, 0), "Creek", false, 1.0, &"dirt")
+	## Stream crossing on the Mere road.
+	var stream := Node3D.new()
+	stream.name = "StreamCrossing"
+	stream.position = GrasslandLayout.LANDMARK_STREAM_CROSSING
+	parent.add_child(stream)
+	StylizedMesh.add_box(stream, Vector3(22, 0.15, 10), WorldPalette.WATER, Vector3(0, -0.12, 0), "Bed", false, 1.0, &"dirt")
 	var water := MeshInstance3D.new()
 	water.name = "Water"
 	var wm := BoxMesh.new()
-	wm.size = Vector3(16, 0.08, 6.5)
+	wm.size = Vector3(20, 0.08, 8)
 	water.mesh = wm
 	water.material_override = StylizedMesh.make_water_material(WorldPalette.WATER)
 	water.position = Vector3(0, 0.02, 0)
-	bridge.add_child(water)
+	stream.add_child(water)
+	StylizedMesh.add_box(stream, Vector3(7, 0.22, 9), WorldPalette.WOOD, Vector3(0, 0.18, 0), "Planks", true, 1.0, &"wood")
+	RegionPropKit.add_discoverable(stream, &"stream_crossing", "Stream Crossing", Vector3(0, 0.6, 0), 12, "Clear water over stones — a shortcut toward the Mere.")
+
+	## Creek bridge further NE.
+	var bridge := Node3D.new()
+	bridge.name = "CreekBridge"
+	bridge.position = GrasslandLayout.LANDMARK_CREEK_BRIDGE
+	parent.add_child(bridge)
+	StylizedMesh.add_box(bridge, Vector3(18, 0.2, 8), WorldPalette.WATER, Vector3(0, -0.15, 0), "Creek", false, 1.0, &"dirt")
+	var water2 := MeshInstance3D.new()
+	water2.name = "Water"
+	var wm2 := BoxMesh.new()
+	wm2.size = Vector3(16, 0.08, 6.5)
+	water2.mesh = wm2
+	water2.material_override = StylizedMesh.make_water_material(WorldPalette.WATER)
+	water2.position = Vector3(0, 0.02, 0)
+	bridge.add_child(water2)
 	StylizedMesh.add_box(bridge, Vector3(8, 0.25, 10), WorldPalette.WOOD, Vector3(0, 0.2, 0), "Deck", true, 1.0, &"wood")
 	StylizedMesh.add_box(bridge, Vector3(8, 0.7, 0.15), WorldPalette.WOOD.darkened(0.1), Vector3(0, 0.55, 4.8), "RailA", false, 1.0, &"wood")
 	StylizedMesh.add_box(bridge, Vector3(8, 0.7, 0.15), WorldPalette.WOOD.darkened(0.1), Vector3(0, 0.55, -4.8), "RailB", false, 1.0, &"wood")
@@ -156,7 +172,7 @@ static func _add_journey_landmarks(parent: Node3D, result: Dictionary) -> void:
 	## Hidden hillside cave on the road down to Salty Springs.
 	var cave := Node3D.new()
 	cave.name = "HillsideCave"
-	cave.position = Vector3(650.0, 0.0, 820.0) + Vector3(18, 0, -16)
+	cave.position = GrasslandLayout.LANDMARK_HILLSIDE_CAVE
 	parent.add_child(cave)
 	StylizedMesh.add_box(cave, Vector3(8, 4, 6), WorldPalette.ROCK, Vector3(0, 1.5, 0), "Hill", true)
 	StylizedMesh.add_box(cave, Vector3(2.4, 2.2, 2.0), Color(0.08, 0.08, 0.1), Vector3(0, 1.0, 2.2), "Mouth")
@@ -165,19 +181,19 @@ static func _add_journey_landmarks(parent: Node3D, result: Dictionary) -> void:
 		RegionPropKit.build_chest(cave, "CaveChest", Vector3(0, 0, 0.5), ChestInteractable.Rarity.RARE, 0.0, "Search the cave")
 	)
 
-	## Scenic overlook on the south road toward Fatal Fields.
+	## Scenic overlook on the SE road toward Fatal Fields.
 	var view := Node3D.new()
 	view.name = "PrairieOverlook"
-	view.position = Vector3(680.0, 0.0, 3100.0) + Vector3(25, 0, 0)
+	view.position = GrasslandLayout.LANDMARK_PRAIRIE_OVERLOOK
 	parent.add_child(view)
 	StylizedMesh.add_box(view, Vector3(10, 1.2, 6), WorldPalette.ROCK, Vector3(0, 0.4, 0), "Bluff", true)
 	StylizedMesh.add_box(view, Vector3(3.5, 0.15, 1.2), WorldPalette.WOOD, Vector3(0, 1.15, 1.5), "Bench", false, 1.0, &"wood")
-	RegionPropKit.add_discoverable(view, &"prairie_overlook", "Prairie Overlook", Vector3(0, 1.0, 0), 16, "Fatal Fields stretch south — corn and red barns under a wide sky.")
+	RegionPropKit.add_discoverable(view, &"prairie_overlook", "Prairie Overlook", Vector3(0, 1.0, 0), 16, "Fatal Fields stretch southeast — corn and red barns under a wide sky.")
 
-	## Abandoned billboard before Risky Reels (NE approach).
+	## Abandoned billboard before Risky Reels (north approach).
 	var bill := Node3D.new()
 	bill.name = "MovieBillboard"
-	bill.position = Vector3(2280.0, 0.0, -2200.0)
+	bill.position = GrasslandLayout.LANDMARK_MOVIE_BILLBOARD
 	parent.add_child(bill)
 	StylizedMesh.add_box(bill, Vector3(0.3, 5.5, 0.3), WorldPalette.METAL, Vector3(0, 2.7, 0), "Pole", true)
 	StylizedMesh.add_box(bill, Vector3(6.5, 3.2, 0.2), WorldPalette.UI_INK, Vector3(0, 4.5, 0), "Board")
@@ -190,16 +206,29 @@ static func _add_journey_landmarks(parent: Node3D, result: Dictionary) -> void:
 	bill.add_child(label)
 	RegionPropKit.add_discoverable(bill, &"movie_billboard", "Faded Billboard", Vector3(0, 1.0, 1.0), 12, "Tonight's feature never ended — the reels still wait.")
 
-	## Secret path shack south of Park (short side trail).
+	## Secret path shack southwest of Park.
 	var shack := Node3D.new()
 	shack.name = "SecretShack"
-	shack.position = Vector3(-90.0, 0.0, 220.0)
+	shack.position = GrasslandLayout.LANDMARK_SECRET_SHACK
 	parent.add_child(shack)
 	StylizedMesh.add_box(shack, Vector3(3.2, 2.4, 3.0), WorldPalette.WOOD, Vector3(0, 1.2, 0), "Shack", true, 1.0, &"wood")
 	StylizedMesh.add_box(shack, Vector3(3.6, 0.25, 3.4), WorldPalette.ROOF_RED, Vector3(0, 2.5, 0), "Roof", false, 1.0, &"wood")
 	RegionPropKit.add_discoverable(shack, &"secret_shack", "Hidden Shack", Vector3(0, 0.6, 2.0), 20, "Off the map. On purpose.")
 	result[&"chests"].append(
 		RegionPropKit.build_chest(shack, "ShackChest", Vector3(1.2, 0, -0.5), ChestInteractable.Rarity.LEGENDARY, 0.0, "Pry open the crate")
+	)
+
+	## Creature den / habitat pocket on the Mile road.
+	var den := Node3D.new()
+	den.name = "CreatureDen"
+	den.position = GrasslandLayout.LANDMARK_CREATURE_DEN
+	parent.add_child(den)
+	StylizedMesh.add_box(den, Vector3(12, 0.05, 10), WorldPalette.GRASS_LIGHT, Vector3(0, 0.03, 0), "NestPad", false, 1.0, &"grass")
+	StylizedMesh.add_box(den, Vector3(3.5, 1.4, 3.2), WorldPalette.ROCK, Vector3(-1, 0.7, -1), "RockNest", true, 1.0, &"dirt")
+	StylizedMesh.add_box(den, Vector3(2.2, 0.35, 2.0), WorldPalette.LEAF_DARK, Vector3(-1, 1.5, -1), "Moss", false, 1.0, &"leaf")
+	RegionPropKit.add_discoverable(den, &"creature_den", "Creature Den", Vector3(0, 0.6, 2.0), 14, "Soft moss and scratched stone — something small nests here between trips.")
+	result[&"chests"].append(
+		RegionPropKit.build_chest(den, "DenChest", Vector3(2.5, 0.1, 1.0), ChestInteractable.Rarity.NORMAL, 24.0, "Search the den")
 	)
 
 

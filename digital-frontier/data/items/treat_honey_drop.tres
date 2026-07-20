@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/item_data.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"treat_honey_drop"
+display_name = "Honey Drop"
+description = "A sticky treat. Big happiness bump."
+item_type = 4
+shop_category = 1
+max_stack = 15
+sell_value = 38
+buy_value = 95
+shop_blurb = "Creature / Treat"
+use_effect_id = &"play_boost"

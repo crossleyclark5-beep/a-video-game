@@ -114,9 +114,7 @@ func _build_hud() -> void:
 	add_child(_hud)
 	_hud.adventure_pressed.connect(_on_adventure)
 	_hud.care_requested.connect(_on_care_requested)
-	_hud.shop_pressed.connect(func() -> void:
-		_hud.show_status_message("Shop soon — Bits ready for skins, homes, and gear.")
-	)
+	_hud.shop_pressed.connect(_on_shop)
 	_hud.collection_pressed.connect(_on_collection)
 
 
@@ -167,3 +165,9 @@ func _on_collection() -> void:
 	elif _hud:
 		_hud.show_status_message(CollectionManager.get_summary_line())
 	EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
+
+
+func _on_shop() -> void:
+	FieldUnitShop.present(self, ShopManager.SHOP_ID_HOME)
+	if _hud:
+		_hud.show_status_message("Shop open — L/R category · A buy · X pack · B close")

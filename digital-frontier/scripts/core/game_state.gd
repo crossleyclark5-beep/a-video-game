@@ -21,4 +21,5 @@ extends Resource
 @export var vehicle_data: Dictionary = {}
 @export var world_flags: Dictionary = {}
 @export var collection_data: Dictionary = {}
+@export var shop_data: Dictionary = {}
 @export var settings_data: Dictionary = {}

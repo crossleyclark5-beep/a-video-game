@@ -349,7 +349,7 @@ func _on_adventure_pressed() -> void:
 
 func _on_shop_pressed() -> void:
 	shop_pressed.emit()
-	_status_label.text = "Shop soon — Bits ledger is ready."
+	_status_label.text = "Opening Field Unit Shop…"
 
 
 func _on_collection_pressed() -> void:

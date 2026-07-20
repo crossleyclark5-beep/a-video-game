@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/item_data.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"decor_lantern_post"
+display_name = "Lantern Post"
+description = "Warm light for the habitat corner."
+item_type = 1
+shop_category = 3
+max_stack = 5
+sell_value = 55
+buy_value = 160
+shop_blurb = "Home / Decoration"

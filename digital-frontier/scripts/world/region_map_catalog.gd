@@ -93,16 +93,25 @@ static func landmark_markers() -> Array[Dictionary]:
 		{
 			"id": &"creek_bridge",
 			"discovery_id": &"creek_bridge",
-			"pos": Vector3(1280.0, 0.0, -1200.0),
+			"pos": GrasslandLayout.LANDMARK_CREEK_BRIDGE,
 			"kind": IconKind.WATER,
 			"label": "Creek Bridge",
 			"mystery_label": "Water",
 			"secret": false,
 		},
 		{
+			"id": &"stream_crossing",
+			"discovery_id": &"stream_crossing",
+			"pos": GrasslandLayout.LANDMARK_STREAM_CROSSING,
+			"kind": IconKind.WATER,
+			"label": "Stream Crossing",
+			"mystery_label": "Stream",
+			"secret": false,
+		},
+		{
 			"id": &"hillside_cave",
 			"discovery_id": &"hillside_cave",
-			"pos": Vector3(668.0, 0.0, 804.0),
+			"pos": GrasslandLayout.LANDMARK_HILLSIDE_CAVE,
 			"kind": IconKind.CAVE,
 			"label": "Hillside Cave",
 			"mystery_label": "Cave",
@@ -111,7 +120,7 @@ static func landmark_markers() -> Array[Dictionary]:
 		{
 			"id": &"prairie_overlook",
 			"discovery_id": &"prairie_overlook",
-			"pos": Vector3(705.0, 0.0, 3100.0),
+			"pos": GrasslandLayout.LANDMARK_PRAIRIE_OVERLOOK,
 			"kind": IconKind.VIEWPOINT,
 			"label": "Prairie Overlook",
 			"mystery_label": "Overlook",
@@ -120,7 +129,7 @@ static func landmark_markers() -> Array[Dictionary]:
 		{
 			"id": &"movie_billboard",
 			"discovery_id": &"movie_billboard",
-			"pos": Vector3(2280.0, 0.0, -2200.0),
+			"pos": GrasslandLayout.LANDMARK_MOVIE_BILLBOARD,
 			"kind": IconKind.LANDMARK,
 			"label": "Faded Billboard",
 			"mystery_label": "Sign",
@@ -129,16 +138,25 @@ static func landmark_markers() -> Array[Dictionary]:
 		{
 			"id": &"secret_shack",
 			"discovery_id": &"secret_shack",
-			"pos": Vector3(-90.0, 0.0, 220.0),
+			"pos": GrasslandLayout.LANDMARK_SECRET_SHACK,
 			"kind": IconKind.SECRET,
 			"label": "Hidden Shack",
 			"mystery_label": "???",
 			"secret": true,
 		},
 		{
+			"id": &"creature_den",
+			"discovery_id": &"creature_den",
+			"pos": GrasslandLayout.LANDMARK_CREATURE_DEN,
+			"kind": IconKind.LANDMARK,
+			"label": "Creature Den",
+			"mystery_label": "Nest",
+			"secret": false,
+		},
+		{
 			"id": &"west_ridge",
 			"discovery_id": &"west_ridge",
-			"pos": Vector3(-420.0, 0.0, 80.0),
+			"pos": GrasslandLayout.LANDMARK_WEST_RIDGE,
 			"kind": IconKind.MOUNTAIN,
 			"label": "West Ridge",
 			"mystery_label": "Ridge",
@@ -147,7 +165,7 @@ static func landmark_markers() -> Array[Dictionary]:
 		{
 			"id": &"north_pass",
 			"discovery_id": &"north_pass",
-			"pos": Vector3(900.0, 0.0, -900.0),
+			"pos": GrasslandLayout.LANDMARK_NORTH_PASS,
 			"kind": IconKind.MOUNTAIN,
 			"label": "North Pass",
 			"mystery_label": "Pass",
@@ -156,7 +174,7 @@ static func landmark_markers() -> Array[Dictionary]:
 		{
 			"id": &"south_bluffs",
 			"discovery_id": &"south_bluffs",
-			"pos": Vector3(520.0, 0.0, 4900.0),
+			"pos": GrasslandLayout.LANDMARK_SOUTH_BLUFFS,
 			"kind": IconKind.MOUNTAIN,
 			"label": "South Bluffs",
 			"mystery_label": "Bluffs",
@@ -165,7 +183,7 @@ static func landmark_markers() -> Array[Dictionary]:
 		{
 			"id": &"pine_hollow",
 			"discovery_id": &"pine_hollow",
-			"pos": Vector3(420.0, 0.0, 520.0),
+			"pos": GrasslandLayout.LANDMARK_PINE_HOLLOW,
 			"kind": IconKind.LANDMARK,
 			"label": "Pine Hollow",
 			"mystery_label": "Woods",
@@ -174,7 +192,7 @@ static func landmark_markers() -> Array[Dictionary]:
 		{
 			"id": &"meadow_clearing",
 			"discovery_id": &"meadow_clearing",
-			"pos": Vector3(1780.0, 0.0, -1680.0),
+			"pos": GrasslandLayout.LANDMARK_MEADOW_CLEARING,
 			"kind": IconKind.VIEWPOINT,
 			"label": "Meadow Clearing",
 			"mystery_label": "Clearing",
@@ -187,11 +205,12 @@ static func terrain_features() -> Array[Dictionary]:
 	## Static map paint (not discovery-gated).
 	return [
 		{"kind": IconKind.WATER, "pos": GrasslandLayout.MIRROR_MERE, "radius": 48.0},
-		{"kind": IconKind.WATER, "pos": Vector3(1280.0, 0.0, -1200.0), "radius": 28.0},
-		{"kind": IconKind.WATER, "pos": Vector3(490.0, 0.0, 4552.0), "radius": 36.0},
-		{"kind": IconKind.MOUNTAIN, "pos": Vector3(-420.0, 0.0, 80.0), "radius": 55.0},
-		{"kind": IconKind.MOUNTAIN, "pos": Vector3(900.0, 0.0, -900.0), "radius": 70.0},
-		{"kind": IconKind.MOUNTAIN, "pos": Vector3(520.0, 0.0, 4900.0), "radius": 80.0},
+		{"kind": IconKind.WATER, "pos": GrasslandLayout.LANDMARK_CREEK_BRIDGE, "radius": 28.0},
+		{"kind": IconKind.WATER, "pos": GrasslandLayout.LANDMARK_STREAM_CROSSING, "radius": 22.0},
+		{"kind": IconKind.WATER, "pos": GrasslandLayout.FATAL_FIELDS + Vector3(-10, 0, -48), "radius": 36.0},
+		{"kind": IconKind.MOUNTAIN, "pos": GrasslandLayout.LANDMARK_WEST_RIDGE, "radius": 55.0},
+		{"kind": IconKind.MOUNTAIN, "pos": GrasslandLayout.LANDMARK_NORTH_PASS, "radius": 70.0},
+		{"kind": IconKind.MOUNTAIN, "pos": GrasslandLayout.LANDMARK_SOUTH_BLUFFS, "radius": 80.0},
 	]
 
 

@@ -28,6 +28,8 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 	## East shops.
 	_shop(hub, "ClothLoop", Vector3(14, 0, -28), Color(0.45, 0.4, 0.7), "CLOTH", Color(0.8, 0.75, 0.95))
 	_shop(hub, "HexHardware", Vector3(14, 0, -8), Color(0.55, 0.5, 0.45), "TOOLS", Color(0.75, 0.7, 0.55))
+	## Playable shop counter at Bit Grocer doorway.
+	_add_shop_counter(hub, Vector3(-9.5, 0.0, -4.0))
 	## Anchor department store (enterable).
 	_anchor_store(hub, result)
 
@@ -95,6 +97,30 @@ static func _shop(parent: Node3D, shop_name: String, pos: Vector3, wall: Color, 
 	label.position = Vector3(0, 3.7, 4.3 * face_sign)
 	label.modulate = WorldPalette.UI_INK
 	s.add_child(label)
+
+
+static func _add_shop_counter(parent: Node3D, pos: Vector3) -> void:
+	var counter := ShopInteractable.new()
+	counter.name = "MileShopCounter"
+	counter.position = pos
+	counter.shop_id = ShopManager.SHOP_ID_MILE
+	counter.shopkeeper_name = "Bit Grocer"
+	counter.prompt_verb = "Browse shop"
+	parent.add_child(counter)
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(2.4, 2.0, 2.4)
+	shape.shape = box
+	shape.position = Vector3(0, 1.0, 0)
+	counter.add_child(shape)
+	StylizedMesh.add_box(counter, Vector3(1.6, 1.0, 0.9), WorldPalette.WOOD, Vector3(0, 0.55, 0), "Counter", true, 1.0, &"wood")
+	StylizedMesh.add_box(counter, Vector3(0.7, 0.35, 0.5), WorldPalette.UI_ACCENT, Vector3(0, 1.2, 0), "Till")
+	var tag := Label3D.new()
+	tag.text = "OPEN"
+	tag.font_size = 48
+	tag.position = Vector3(0, 1.8, 0.6)
+	tag.modulate = WorldPalette.UI_PAPER
+	counter.add_child(tag)
 
 
 static func _anchor_store(parent: Node3D, result: Dictionary) -> void:

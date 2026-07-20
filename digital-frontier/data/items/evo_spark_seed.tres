@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/item_data.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"evo_spark_seed"
+display_name = "Spark Seed"
+description = "A rare seed that whispers of change. Save it."
+item_type = 4
+shop_category = 1
+max_stack = 3
+sell_value = 220
+buy_value = 650
+shop_blurb = "Creature / Evolution"
+use_effect_id = &"train_boost"

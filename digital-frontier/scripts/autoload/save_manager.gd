@@ -112,6 +112,7 @@ func _collect_state_from_managers() -> void:
 	_current_state.npc_data = NPCManager.export_state()
 	_current_state.vehicle_data = VehicleManager.export_state()
 	_current_state.collection_data = CollectionManager.export_state()
+	_current_state.shop_data = ShopManager.export_state()
 	var world := WorldManager.export_state()
 	_current_state.world_flags = world
 	_current_state.current_region_id = WorldManager.get_active_region_id()
@@ -135,6 +136,8 @@ func _distribute_state_to_managers() -> void:
 	WorldManager.import_state(_current_state.world_flags)
 	if _current_state.collection_data:
 		CollectionManager.import_state(_current_state.collection_data)
+	if _current_state.shop_data:
+		ShopManager.import_state(_current_state.shop_data)
 	if _current_state.has_player_checkpoint:
 		WorldManager.set_player_checkpoint(_current_state.player_position)
 

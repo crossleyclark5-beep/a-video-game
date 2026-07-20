@@ -8,8 +8,8 @@ id = &"loot_chest_rare"
 display_name = "Rare Chest Loot"
 description = "Hidden park caches and alley stashes."
 rolls = 2
-bits_min = 20
-bits_max = 40
+bits_min = 28
+bits_max = 48
 entries = Array[Dictionary]([{
 "item_id": "hex_shard",
 "weight": 35.0,
