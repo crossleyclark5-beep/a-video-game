@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"expand_south"
+display_name = "South Gate"
+description = "Future expansion south."
+category = 3
+region_id = &"grassland"
+short_blurb = "Not open yet."
+bits_reward = 8
+map_hint = "South of Park"
+creature_xp_reward = 3
+is_secret = false

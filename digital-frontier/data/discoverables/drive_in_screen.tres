@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"drive_in_screen"
+display_name = "Drive-In Screen"
+description = "Giant outdoor movie screen."
+category = 0
+region_id = &"grassland"
+short_blurb = "A silver cliff for stories."
+bits_reward = 18
+map_hint = "Risky Reels north"
+creature_xp_reward = 8
+is_secret = false

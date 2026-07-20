@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="RegionData" load_steps=2 format=3 uid="uid://region_grassland"]
+
+[ext_resource type="Script" path="res://resources/definitions/region_data.gd" id="1_region"]
+
+[resource]
+script = ExtResource("1_region")
+id = &"grassland"
+display_name = "Grassland Region"
+description = "Chapter One of Digital Frontier — Pleasant Park at the heart, with Salty Springs, Fatal Fields, and Risky Reels connected by country roads, forests, and hidden trails."
+hex_width = 96
+hex_height = 72
+hex_size = 1.0
+hex_orientation = &"pointy"
+scene_path = "res://scenes/world/regions/grassland.tscn"
+music_track_id = &"music_pleasant_park"
+neighbor_regions = PackedStringArray()
+creature_spawn_table_id = &"spawn_pleasant_park"

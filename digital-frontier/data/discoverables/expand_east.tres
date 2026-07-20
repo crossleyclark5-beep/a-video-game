@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"expand_east"
+display_name = "Coast Road"
+description = "Future expansion east."
+category = 3
+region_id = &"grassland"
+short_blurb = "Not open yet."
+bits_reward = 8
+map_hint = "East of Reels"
+creature_xp_reward = 3
+is_secret = false

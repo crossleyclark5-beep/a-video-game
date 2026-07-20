@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"creek_bridge"
+display_name = "Creek Bridge"
+description = "Wooden bridge on the Reels road."
+category = 0
+region_id = &"grassland"
+short_blurb = "Water whispers under the planks."
+bits_reward = 14
+map_hint = "Road to Risky Reels"
+creature_xp_reward = 6
+is_secret = false

@@ -1,0 +1,3 @@
+[gd_scene format=3 uid="uid://region_scene_grassland"]
+
+[node name="Grassland" type="Node3D"]

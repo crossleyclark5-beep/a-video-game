@@ -6,12 +6,12 @@
 script = ExtResource("1_region")
 id = &"pleasant_park"
 display_name = "Pleasant Park"
-description = "A sunny suburban neighborhood built around a central park, sports field, and corner fuel stop. Your first Digital Frontier town."
+description = "A sunny suburban neighborhood built around a central park, sports field, and corner fuel stop — the heart of the Grassland Region."
 hex_width = 24
 hex_height = 24
 hex_size = 1.0
 hex_orientation = &"pointy"
 scene_path = "res://scenes/world/regions/pleasant_park.tscn"
 music_track_id = &"music_pleasant_park"
-neighbor_regions = PackedStringArray()
+neighbor_regions = PackedStringArray("salty_springs", "fatal_fields", "risky_reels")
 creature_spawn_table_id = &"spawn_pleasant_park"

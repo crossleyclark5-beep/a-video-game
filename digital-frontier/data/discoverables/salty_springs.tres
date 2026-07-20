@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"salty_springs"
+display_name = "Salty Springs"
+description = "A quieter hillside neighborhood."
+category = 0
+region_id = &"grassland"
+short_blurb = "Hills, pines, and mineral mist."
+bits_reward = 20
+map_hint = "Northeast of Pleasant Park"
+creature_xp_reward = 8
+is_secret = false

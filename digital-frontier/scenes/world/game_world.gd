@@ -1,5 +1,5 @@
 extends Node3D
-## Adventure world — Pleasant Park with modular interaction + building systems.
+## Adventure world — Grassland Region (Pleasant Park + surrounding POIs).
 ## Visual atmosphere is presentation-only (does not alter gameplay contracts).
 
 @onready var hex_grid_layer: Node3D = $HexGridLayer
@@ -24,8 +24,8 @@ func _ready() -> void:
 	_clear_placeholder_geometry()
 	_setup_atmosphere()
 	_setup_systems()
-	_region_data = PleasantParkBuilder.build(hex_grid_layer)
-	EventBus.region_load_requested.emit(&"pleasant_park")
+	_region_data = GrasslandRegionBuilder.build(hex_grid_layer)
+	EventBus.region_load_requested.emit(&"grassland")
 	_spawn_player()
 	_spawn_companion()
 	_bind_prompt()
@@ -104,7 +104,7 @@ func _spawn_player() -> void:
 	_player.name = "Player"
 	entity_layer.add_child(_player)
 	var spawn: Vector3 = _region_data.get(&"player_spawn", Vector3(0.0, 0.15, 10.0))
-	if WorldManager.has_player_checkpoint() and WorldManager.get_active_region_id() == &"pleasant_park":
+	if WorldManager.has_player_checkpoint() and WorldManager.get_active_region_id() in [&"grassland", &"pleasant_park"]:
 		spawn = WorldManager.get_player_checkpoint()
 	elif WorldManager.has_player_checkpoint():
 		## Returning to adventure mid-save — prefer checkpoint when set.

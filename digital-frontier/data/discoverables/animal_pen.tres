@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"animal_pen"
+display_name = "Animal Pen"
+description = "Sheep pen on the farm."
+category = 1
+region_id = &"grassland"
+short_blurb = "Soft bleats and straw."
+bits_reward = 12
+map_hint = "Fatal Fields east pen"
+creature_xp_reward = 5
+is_secret = false

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"fatal_fields_welcome"
+display_name = "Fatal Fields Welcome"
+description = "Farm road welcome sign."
+category = 0
+region_id = &"grassland"
+short_blurb = "Fields forever."
+bits_reward = 12
+map_hint = "Fatal Fields approach"
+creature_xp_reward = 5
+is_secret = false

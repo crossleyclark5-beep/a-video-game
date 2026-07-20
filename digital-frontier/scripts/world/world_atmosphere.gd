@@ -69,10 +69,10 @@ func _configure_environment() -> void:
 	env.ambient_light_energy = 0.55
 	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	env.tonemap_exposure = 1.0
-	## Soft depth without cinematic aerial mush.
+	## Soft depth without washing out distant grassland POIs.
 	env.fog_enabled = true
 	env.fog_light_color = WorldPalette.SKY_DAY.lightened(0.1)
-	env.fog_density = 0.0012
+	env.fog_density = 0.00015
 	env.fog_aerial_perspective = 0.0
 	env.glow_enabled = false
 	env.ssao_enabled = false
@@ -89,6 +89,9 @@ func _configure_sun() -> void:
 	_sun.shadow_blur = 0.0
 	_sun.light_energy = 1.15
 	_sun.light_color = WorldPalette.SUN_DAY
+	## Keep readable shadows near the player across the large grassland.
+	_sun.directional_shadow_max_distance = 180.0
+	_sun.shadow_opacity = 0.65
 
 
 func _apply_palette(

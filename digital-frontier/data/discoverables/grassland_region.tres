@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"grassland_region"
+display_name = "Grassland Region"
+description = "The first major chapter — countryside adventure."
+category = 3
+region_id = &"grassland"
+short_blurb = "Chapter One begins."
+bits_reward = 10
+map_hint = "South of Pleasant Park"
+creature_xp_reward = 4
+is_secret = false

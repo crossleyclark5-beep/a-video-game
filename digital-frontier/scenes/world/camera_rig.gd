@@ -31,7 +31,8 @@ func _ready() -> void:
 		_camera.size = default_zoom
 		_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 		_camera.near = 0.2
-		_camera.far = 280.0
+		## Grassland Region spans thousands of units — keep distant POIs visible.
+		_camera.far = 12000.0
 	call_deferred("_find_player")
 
 

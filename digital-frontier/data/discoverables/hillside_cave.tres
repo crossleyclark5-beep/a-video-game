@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"hillside_cave"
+display_name = "Hillside Cave"
+description = "Cave along the Salty Springs road."
+category = 2
+region_id = &"grassland"
+short_blurb = "Cool air and echo."
+bits_reward = 18
+map_hint = "Road to Salty Springs"
+creature_xp_reward = 8
+is_secret = true

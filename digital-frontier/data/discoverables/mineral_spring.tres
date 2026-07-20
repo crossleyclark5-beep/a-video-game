@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"mineral_spring"
+display_name = "Mineral Spring"
+description = "Warm mineral pool at town center."
+category = 0
+region_id = &"grassland"
+short_blurb = "The springs that named the town."
+bits_reward = 15
+map_hint = "Salty Springs plaza"
+creature_xp_reward = 6
+is_secret = false

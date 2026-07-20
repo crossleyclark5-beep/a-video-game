@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"risky_reels"
+display_name = "Risky Reels"
+description = "Outdoor movie theater destination."
+category = 0
+region_id = &"grassland"
+short_blurb = "Stories under the open sky."
+bits_reward = 24
+map_hint = "Southeast"
+creature_xp_reward = 10
+is_secret = false
