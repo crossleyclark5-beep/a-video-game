@@ -23,18 +23,19 @@ Download page: https://godotengine.org/download
 
 ## Open this project
 
-1. Clone / pull the repo and checkout the foundation branch if needed:
-   ```bash
-   git checkout cursor/godot-foundation-21cb
-   ```
-2. Launch Godot 4.7.1
-3. **Import** → select:
-   ```
-   <repo>/digital-frontier/project.godot
-   ```
-4. Open the project → press **F5**
+**Canonical folder on Martin’s PC:**
 
-You should boot: `boot.tscn` → `main.tscn` → empty `game_world.tscn`.
+`C:/Users/Martin/Downloads/cooper.cursor/cooper`
+
+1. Launch Godot 4.7.1
+2. **Edit** (do not Import a second copy) this file:
+   ```
+   C:/Users/Martin/Downloads/cooper.cursor/cooper/digital-frontier/project.godot
+   ```
+   If `project.godot` is at the root of `cooper`, open that instead.
+3. Press **F5**
+
+You should boot: `boot.tscn` → `main.tscn` → Home habitat (then Adventure).
 
 ---
 

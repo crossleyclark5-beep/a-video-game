@@ -1,38 +1,34 @@
 # START HERE — Cooper Game
 
-**Your working project on this PC:**
+## FINAL project (only this one)
 
-`C:/Users/Martin/OneDrive/Dokumenty/a-video-game-master/digital-frontier/project.godot`
+Workspace:
 
-Keep that folder. Spelling is `digital-frontier` (not `digital-fronteir`).
+`C:/Users/Martin/Downloads/cooper.cursor/cooper`
+
+Godot project file:
+
+`C:/Users/Martin/Downloads/cooper.cursor/cooper/digital-frontier/project.godot`
+
+(If `project.godot` is directly under `cooper`, open that instead.)
+
+Ignore older copies under OneDrive / Downloads ZIPs / `a-video-game-master`.
 
 ---
 
 ## Open the game (3 steps)
 
 1. Start **Godot 4.7.1**
-2. Open the **existing** project (Edit), not a new Import — the path above
+2. **Edit** the existing project at the path above (do not Import a new one)
 3. Press **F5**
-
-There is only **one** Godot project: `digital-frontier/project.godot`.
 
 ---
 
 ## If Godot shows two projects
 
-You downloaded a ZIP that extracted into a **new folder** next to the old one. Godot treats every folder with its own `project.godot` as a separate project.
+You opened a ZIP extract as a second folder. Delete/ignore the extra folder. Keep only:
 
-**Fix:**
-
-1. Close Godot.
-2. Download master ZIP:  
-   https://github.com/crossleyclark5-beep/a-video-game/archive/refs/heads/master.zip
-3. Delete or rename the old `a-video-game-master` folder.
-4. Put the new extract in the same place, named `a-video-game-master`.
-5. Delete any extra folders like `a-video-game-cursor-…` if you do not need them.
-6. Open Godot → Edit the original project path only.
-
-Do **not** Import the new folder as a second project.
+`C:/Users/Martin/Downloads/cooper.cursor/cooper`
 
 ---
 
@@ -82,7 +78,7 @@ In Adventure your companion **follows you**, notices secrets (**Y** to ask them)
 
 ## Getting updates
 
-1. Download **master** ZIP only:  
+1. Download **master** ZIP:  
    https://github.com/crossleyclark5-beep/a-video-game/archive/refs/heads/master.zip
-2. Replace your `a-video-game-master` folder (same name, same place).
-3. Open the **same** `digital-frontier/project.godot` again in Godot.
+2. Copy/overwrite into **`C:/Users/Martin/Downloads/cooper.cursor/cooper`** (not a new folder)
+3. Open the **same** `project.godot` again in Godot

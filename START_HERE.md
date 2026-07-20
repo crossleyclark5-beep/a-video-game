@@ -1,27 +1,43 @@
-# Open the game (one project only)
+# FINAL project path (Martin’s PC)
 
-**Your working project (this is the one that works):**
+**Everything goes here — do not use any other folder:**
 
-`C:/Users/Martin/OneDrive/Dokumenty/a-video-game-master/digital-frontier/project.godot`
+```
+C:/Users/Martin/Downloads/cooper.cursor/cooper
+```
 
-In Godot, open **Edit** on that same project — do not Import a second copy. Then press **F5**.
+## Open in Godot
 
-Folder spelling is `digital-frontier` (with an **i** before the last **e**).
+Open **Edit** on this file (same project every time):
+
+```
+C:/Users/Martin/Downloads/cooper.cursor/cooper/digital-frontier/project.godot
+```
+
+If `digital-frontier` is not inside `cooper` (Godot files sit at the root of `cooper`), open:
+
+```
+C:/Users/Martin/Downloads/cooper.cursor/cooper/project.godot
+```
+
+Then press **F5**.
+
+Do **not** Import a second copy. Do **not** use OneDrive `a-video-game-master` anymore.
 
 ---
 
-## Getting updates — keep ONE Godot project
+## Getting updates into THIS folder
 
-Branch ZIP downloads make a **new folder** (e.g. `a-video-game-cursor-…`). Godot then shows a **separate project**. That is expected — and not what you want.
+Cloud / GitHub work lands on **master**. Put it into `cooper` like this:
 
-**Do this instead:**
+1. Download: https://github.com/crossleyclark5-beep/a-video-game/archive/refs/heads/master.zip
+2. Open the ZIP. Inside you will see `a-video-game-master/` (and usually `digital-frontier/` under it).
+3. **Copy those contents into**  
+   `C:/Users/Martin/Downloads/cooper.cursor/cooper`  
+   — overwrite files when asked.
+4. Do **not** leave a new folder next to `cooper`. Do **not** Import the ZIP extract as a new Godot project.
+5. In Godot, open the **same** `project.godot` path above → **F5**.
 
-1. Download **master** only:  
-   https://github.com/crossleyclark5-beep/a-video-game/archive/refs/heads/master.zip
-2. Extract the ZIP (it becomes something like `a-video-game-master` again).
-3. **Replace** your old folder: delete or rename the old `a-video-game-master`, then put the new one in the same place with the **same name**.
-4. In Godot Project Manager: open the **existing** entry for  
-   `…/a-video-game-master/digital-frontier/project.godot`  
-   Do **not** click Import on a second folder.
+If this folder is already a git clone of the repo, you can `git pull origin master` inside `cooper` instead of using the ZIP.
 
-More detail: [`digital-frontier/START_HERE.md`](digital-frontier/START_HERE.md)
+More gameplay help: [`digital-frontier/START_HERE.md`](digital-frontier/START_HERE.md)
