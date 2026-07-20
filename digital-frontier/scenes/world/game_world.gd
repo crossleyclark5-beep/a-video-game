@@ -73,9 +73,16 @@ func _setup_systems() -> void:
 		$HUD.queue_free()
 	var hud_scene: PackedScene = load("res://scenes/ui/adventure/adventure_device_hud.tscn")
 	if hud_scene:
-		_device_hud = hud_scene.instantiate()
-		_device_hud.name = "AdventureDeviceHud"
-		add_child(_device_hud)
+		var hud_instance := hud_scene.instantiate()
+		if hud_instance.get_script() == null:
+			push_error("GameWorld: Adventure Device HUD script failed to load")
+			hud_instance.queue_free()
+		else:
+			_device_hud = hud_instance
+			_device_hud.name = "AdventureDeviceHud"
+			add_child(_device_hud)
+	else:
+		push_error("GameWorld: missing adventure_device_hud.tscn")
 
 	var prompt_scene: PackedScene = load("res://scenes/ui/components/interaction_prompt.tscn")
 	if prompt_scene:
@@ -119,7 +126,9 @@ func _spawn_companion() -> void:
 
 
 func _save_checkpoint() -> void:
-	if _player == null:
+	if _player == null or not is_instance_valid(_player):
+		return
+	if not _player.is_inside_tree():
 		return
 	WorldManager.set_player_checkpoint(_player.global_position)
 

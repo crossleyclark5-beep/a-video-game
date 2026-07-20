@@ -47,6 +47,8 @@ func change_scene(scene_path: String, fade: bool = true) -> void:
 
 	EventBus.scene_transition_started.emit(from_name, StringName(scene_path.get_file().get_basename()))
 	_is_transitioning = true
+	## Drop Field Unit / menu modals so input context cannot stick across Home ↔ Adventure.
+	UIManager.clear_modals()
 
 	if fade and _transition_overlay != null:
 		var tween := create_tween()

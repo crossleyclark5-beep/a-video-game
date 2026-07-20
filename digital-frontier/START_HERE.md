@@ -1,6 +1,6 @@
 # START HERE — Cooper Game
 
-Your game folder on this PC:
+Your game folder on this PC (keep this name):
 
 `C:/Users/Martin/OneDrive/Dokumenty/a-video-game-master`
 
@@ -9,11 +9,31 @@ Your game folder on this PC:
 ## Open the game (3 steps)
 
 1. Start **Godot 4.7.1**
-2. **Import** this file:
+2. Open the **existing** project (Edit), not a new Import:
 
    `C:/Users/Martin/OneDrive/Dokumenty/a-video-game-master/digital-frontier/project.godot`
 
 3. Press **F5**
+
+There is only **one** Godot project: `digital-frontier/project.godot`.
+
+---
+
+## If Godot shows two projects
+
+You downloaded a ZIP that extracted into a **new folder** next to the old one. Godot treats every folder with its own `project.godot` as a separate project.
+
+**Fix:**
+
+1. Close Godot.
+2. Download master ZIP:  
+   https://github.com/crossleyclark5-beep/a-video-game/archive/refs/heads/master.zip
+3. Delete or rename the old `a-video-game-master` folder.
+4. Put the new extract in the same place, named `a-video-game-master`.
+5. Delete any extra folders like `a-video-game-cursor-…` if you do not need them.
+6. Open Godot → Edit the original project path only.
+
+Do **not** Import the new folder as a second project.
 
 ---
 
@@ -63,6 +83,7 @@ In Adventure your companion **follows you**, notices secrets (**Y** to ask them)
 
 ## Getting updates
 
-1. Download a fresh ZIP from https://github.com/crossleyclark5-beep/a-video-game
-2. Replace your `a-video-game-master` folder
-3. Open `digital-frontier/project.godot` again
+1. Download **master** ZIP only:  
+   https://github.com/crossleyclark5-beep/a-video-game/archive/refs/heads/master.zip
+2. Replace your `a-video-game-master` folder (same name, same place).
+3. Open the **same** `digital-frontier/project.godot` again in Godot.

@@ -2,7 +2,7 @@ extends CanvasLayer
 ## Handheld Field Unit — Pack / Map / Quests / Log / Bits.
 ## Buttons only: Start opens, X cycles, R map peek, B/Cancel closes, D-pad unused in sheet body (scroll later).
 
-enum Panel {
+enum DeviceSheet {
 	NONE,
 	PACK,
 	MAP,
@@ -11,9 +11,9 @@ enum Panel {
 	BITS,
 }
 
-const PANEL_ORDER: Array[Panel] = [Panel.PACK, Panel.MAP, Panel.QUESTS, Panel.LOG, Panel.BITS]
+const PANEL_ORDER: Array[DeviceSheet] = [DeviceSheet.PACK, DeviceSheet.MAP, DeviceSheet.QUESTS, DeviceSheet.LOG, DeviceSheet.BITS]
 
-var _panel: Panel = Panel.NONE
+var _panel: DeviceSheet = DeviceSheet.NONE
 var _root: PanelContainer
 var _title: Label
 var _bits: Label
@@ -62,29 +62,29 @@ func _process(delta: float) -> void:
 func _unhandled_input(_event: InputEvent) -> void:
 	## All via InputMap actions — no mouse / raw keycodes required.
 	if InputManager.is_action_just_pressed(&"device_menu"):
-		if _panel == Panel.NONE:
-			_open(Panel.PACK)
+		if _panel == DeviceSheet.NONE:
+			_open(DeviceSheet.PACK)
 		else:
 			_close_panel()
 		get_viewport().set_input_as_handled()
 		return
 	if InputManager.is_action_just_pressed(&"map_peek"):
-		_open(Panel.MAP)
+		_open(DeviceSheet.MAP)
 		get_viewport().set_input_as_handled()
 		return
 	if InputManager.is_action_just_pressed(&"device_cycle"):
-		if _panel == Panel.NONE:
-			_open(Panel.PACK)
+		if _panel == DeviceSheet.NONE:
+			_open(DeviceSheet.PACK)
 		else:
 			_cycle(1)
 		get_viewport().set_input_as_handled()
 		return
 	if InputManager.is_action_just_pressed(&"ui_cancel"):
-		if _panel != Panel.NONE:
+		if _panel != DeviceSheet.NONE:
 			_close_panel()
 			get_viewport().set_input_as_handled()
 		return
-	if _panel != Panel.NONE and InputManager.is_action_just_pressed(&"ui_confirm"):
+	if _panel != DeviceSheet.NONE and InputManager.is_action_just_pressed(&"ui_confirm"):
 		## A while sheet open = acknowledge / soft refresh (no mouse click needed).
 		_refresh()
 		EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
@@ -199,8 +199,8 @@ func _apply_device_chrome(top: PanelContainer) -> void:
 	_root.add_theme_stylebox_override("panel", panel_style.duplicate())
 
 
-func _open(panel: Panel) -> void:
-	var was_open := _panel != Panel.NONE
+func _open(panel: DeviceSheet) -> void:
+	var was_open := _panel != DeviceSheet.NONE
 	_panel = panel
 	_root.visible = true
 	_tab_label.visible = true
@@ -220,9 +220,9 @@ func _cycle(dir: int) -> void:
 
 
 func _close_panel() -> void:
-	if _panel == Panel.NONE:
+	if _panel == DeviceSheet.NONE:
 		return
-	_panel = Panel.NONE
+	_panel = DeviceSheet.NONE
 	_root.visible = false
 	_tab_label.visible = false
 	if UIManager.has_open_modal():
@@ -230,17 +230,17 @@ func _close_panel() -> void:
 	EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
 
 
-func _panel_title(p: Panel) -> String:
+func _panel_title(p: DeviceSheet) -> String:
 	match p:
-		Panel.PACK:
+		DeviceSheet.PACK:
 			return "PACK"
-		Panel.MAP:
+		DeviceSheet.MAP:
 			return "MAP"
-		Panel.QUESTS:
+		DeviceSheet.QUESTS:
 			return "QUESTS"
-		Panel.LOG:
+		DeviceSheet.LOG:
 			return "COLLECTION"
-		Panel.BITS:
+		DeviceSheet.BITS:
 			return "BITS"
 		_:
 			return ""
@@ -254,15 +254,15 @@ func _refresh(_a = null) -> void:
 		InputManager.get_action_glyph(&"ui_cancel"),
 	]
 	match _panel:
-		Panel.PACK:
+		DeviceSheet.PACK:
 			_body.text = InventoryManager.get_pack_text()
-		Panel.MAP:
+		DeviceSheet.MAP:
 			_body.text = WorldManager.get_map_blurb()
-		Panel.QUESTS:
+		DeviceSheet.QUESTS:
 			_body.text = QuestManager.get_quest_status_line()
-		Panel.LOG:
+		DeviceSheet.LOG:
 			_body.text = CollectionManager.get_journal_text()
-		Panel.BITS:
+		DeviceSheet.BITS:
 			_body.text = InventoryManager.get_ledger_summary_text()
 		_:
 			pass
@@ -300,10 +300,10 @@ func _on_quest_pulse(_a = null, _b = null) -> void:
 
 func _on_bits(_t = null, _d = null) -> void:
 	_refresh_chrome()
-	if _panel == Panel.BITS or _panel == Panel.PACK:
+	if _panel == DeviceSheet.BITS or _panel == DeviceSheet.PACK:
 		_refresh()
 
 
 func _on_world_pulse(_a = null) -> void:
-	if _panel == Panel.MAP or _panel == Panel.LOG:
+	if _panel == DeviceSheet.MAP or _panel == DeviceSheet.LOG:
 		_refresh()
