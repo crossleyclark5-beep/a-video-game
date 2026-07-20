@@ -21,6 +21,8 @@ signal region_unloaded(region_id: StringName)
 signal hex_tile_entered(region_id: StringName, hex_coords: Vector3i)
 signal building_enter_requested(building_id: StringName)
 signal building_interior_loaded(building_id: StringName)
+signal location_discovered(location_id: StringName)
+signal chest_opened(chest_id: StringName, rarity: StringName)
 
 # --- Save / load ---
 signal save_requested(slot: int)
@@ -32,6 +34,8 @@ signal load_completed(slot: int, success: bool)
 signal item_added(item_id: StringName, quantity: int)
 signal item_removed(item_id: StringName, quantity: int)
 signal inventory_changed
+signal bits_changed(total: int, delta: int)
+signal reward_granted(summary: String)
 
 # --- Quests ---
 signal quest_started(quest_id: StringName)

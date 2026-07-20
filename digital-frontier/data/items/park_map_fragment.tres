@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3 uid="uid://item_park_map_fragment"]
+
+[ext_resource type="Script" path="res://resources/definitions/item_data.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"park_map_fragment"
+display_name = "Park Map Fragment"
+description = "A torn corner of Pleasant Park's tourist map."
+item_type = 1
+max_stack = 20
+sell_value = 8
+buy_value = 25

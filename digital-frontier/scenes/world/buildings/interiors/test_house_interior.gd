@@ -47,6 +47,9 @@ func _build_visuals() -> void:
 	# Hidden attic chest upstairs
 	var chest := ChestInteractable.new()
 	chest.name = "AtticChest"
+	chest.chest_id = &"brick_house_attic_chest"
+	chest.rarity = ChestInteractable.Rarity.RARE
+	chest.loot_table_id = &"loot_chest_rare"
 	chest.position = Vector3(-2.4, 0.45, -2.2)
 	chest.loot_item_id = &"hex_shard"
 	chest.loot_quantity = 2

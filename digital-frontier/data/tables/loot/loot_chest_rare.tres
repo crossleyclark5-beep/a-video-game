@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="LootTableData" load_steps=2 format=3 uid="uid://loot_chest_rare"]
+
+[ext_resource type="Script" path="res://resources/definitions/loot_table_data.gd" id="1_loot"]
+
+[resource]
+script = ExtResource("1_loot")
+id = &"loot_chest_rare"
+display_name = "Rare Chest Loot"
+description = "Hidden park caches and alley stashes."
+rolls = 2
+bits_min = 20
+bits_max = 40
+entries = Array[Dictionary]([{
+"item_id": "hex_shard",
+"weight": 35.0,
+"min_qty": 2,
+"max_qty": 4
+}, {
+"item_id": "park_map_fragment",
+"weight": 30.0,
+"min_qty": 1,
+"max_qty": 2
+}, {
+"item_id": "rare_gem",
+"weight": 25.0,
+"min_qty": 1,
+"max_qty": 1
+}, {
+"item_id": "crystal_dust",
+"weight": 10.0,
+"min_qty": 2,
+"max_qty": 5
+}])

@@ -1,21 +1,31 @@
 extends BaseManager
 ## Save and load orchestration.
 ##
-## WHY: Multiple managers own slices of persistent state. SaveManager aggregates
-## GameState snapshots and handles file I/O, versioning, and migration.
+## Aggregates manager state into GameState and writes user://saves/slot_N.sav.
+## Autosave is requested on scene transitions via request_autosave().
 
 const SAVE_DIR := "user://saves/"
 
 var _current_state: GameState = null
 var _playtime_accumulator: float = 0.0
+var _autosave_enabled: bool = true
 
 
 func _initialize_manager() -> void:
 	_ensure_save_directory()
 	EventBus.save_requested.connect(_on_save_requested)
 	EventBus.load_requested.connect(_on_load_requested)
+	EventBus.scene_transition_started.connect(_on_scene_transition_started)
 	_current_state = GameState.new()
+	## Defer so Inventory/Quest/World/Creature have finished _ready first.
+	call_deferred("_try_load_autosave")
 	_log("SaveManager initialized")
+
+
+func _try_load_autosave() -> void:
+	if FileAccess.file_exists(SAVE_DIR + "slot_%d" % GameConstants.AUTOSAVE_SLOT + GameConstants.SAVE_FILE_EXTENSION):
+		load_from_slot(GameConstants.AUTOSAVE_SLOT)
+		_log("Autosave loaded")
 
 
 func _process(delta: float) -> void:
@@ -26,6 +36,16 @@ func get_current_state() -> GameState:
 	return _current_state
 
 
+func request_autosave() -> void:
+	if not _autosave_enabled:
+		return
+	EventBus.save_requested.emit(GameConstants.AUTOSAVE_SLOT)
+
+
+func set_autosave_enabled(enabled: bool) -> void:
+	_autosave_enabled = enabled
+
+
 func _ensure_save_directory() -> void:
 	if not DirAccess.dir_exists_absolute(SAVE_DIR):
 		DirAccess.make_dir_recursive_absolute(SAVE_DIR)
@@ -34,11 +54,19 @@ func _ensure_save_directory() -> void:
 func _on_save_requested(slot: int) -> void:
 	var success := save_to_slot(slot)
 	EventBus.save_completed.emit(slot, success)
+	if success:
+		_log("Saved slot %d" % slot)
 
 
 func _on_load_requested(slot: int) -> void:
 	var success := load_from_slot(slot)
 	EventBus.load_completed.emit(slot, success)
+
+
+func _on_scene_transition_started(_from: StringName, _to: StringName) -> void:
+	## Persist progress whenever leaving a scene (Home ↔ Adventure).
+	if _from != StringName(""):
+		request_autosave()
 
 
 func save_to_slot(slot: int) -> bool:
@@ -72,14 +100,21 @@ func load_from_slot(slot: int) -> bool:
 	return true
 
 
+func has_save(slot: int = GameConstants.AUTOSAVE_SLOT) -> bool:
+	var path := SAVE_DIR + "slot_%d" % slot + GameConstants.SAVE_FILE_EXTENSION
+	return FileAccess.file_exists(path)
+
+
 func _collect_state_from_managers() -> void:
-	## Each manager writes its section into _current_state.
 	_current_state.inventory_data = InventoryManager.export_state()
 	_current_state.quest_data = QuestManager.export_state()
 	_current_state.creature_data = CreatureManager.export_state()
 	_current_state.npc_data = NPCManager.export_state()
 	_current_state.vehicle_data = VehicleManager.export_state()
-	_current_state.world_flags = WorldManager.export_state()
+	var world := WorldManager.export_state()
+	_current_state.world_flags = world
+	_current_state.current_region_id = WorldManager.get_active_region_id()
+	_current_state.current_hex_coords = WorldManager.get_active_hex_coords()
 	_current_state.settings_data = {
 		&"master_volume": GameConfig.master_volume,
 		&"music_volume": GameConfig.music_volume,
@@ -97,3 +132,7 @@ func _distribute_state_to_managers() -> void:
 
 	if _current_state.settings_data.has(&"master_volume"):
 		GameConfig.master_volume = _current_state.settings_data[&"master_volume"]
+	if _current_state.settings_data.has(&"music_volume"):
+		GameConfig.music_volume = _current_state.settings_data[&"music_volume"]
+	if _current_state.settings_data.has(&"sfx_volume"):
+		GameConfig.sfx_volume = _current_state.settings_data[&"sfx_volume"]

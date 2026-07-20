@@ -22,6 +22,7 @@ func _ready() -> void:
 	_build_stations()
 	_build_hud()
 	_build_camera()
+	QuestManager.ensure_starter_quest()
 	EventBus.music_change_requested.emit(&"home_night")
 	EventBus.sfx_play_requested.emit(&"home_ambient", Vector3.ZERO)
 

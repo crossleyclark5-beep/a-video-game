@@ -3,8 +3,6 @@ extends BaseManager
 ##
 ## WHY: Game content lives in data/ as .tres files. ResourceRegistry loads and indexes
 ## them by ID so gameplay never hardcodes paths or duplicates lookup logic.
-##
-## USAGE: var creature := ResourceRegistry.get_creature(&"forest_sprite")
 
 var _regions: Dictionary = {}
 var _creatures: Dictionary = {}
@@ -14,6 +12,7 @@ var _buildings: Dictionary = {}
 var _npcs: Dictionary = {}
 var _vehicles: Dictionary = {}
 var _bosses: Dictionary = {}
+var _loot_tables: Dictionary = {}
 
 
 func _initialize_manager() -> void:
@@ -25,12 +24,15 @@ func _initialize_manager() -> void:
 	_scan_directory(GameConstants.DATA_NPCS, _npcs)
 	_scan_directory(GameConstants.DATA_VEHICLES, _vehicles)
 	_scan_directory(GameConstants.DATA_BOSSES, _bosses)
-	_log("Indexed %d regions, %d creatures, %d items" % [_regions.size(), _creatures.size(), _items.size()])
+	_scan_directory(GameConstants.DATA_LOOT, _loot_tables)
+	_log(
+		"Indexed %d regions, %d creatures, %d items, %d quests, %d loot tables"
+		% [_regions.size(), _creatures.size(), _items.size(), _quests.size(), _loot_tables.size()]
+	)
 
 
 func _scan_directory(path: String, target: Dictionary) -> void:
 	if not DirAccess.dir_exists_absolute(path):
-		# Optional content folders may be empty at the start of the project.
 		return
 	var dir := DirAccess.open(path)
 	if dir == null:
@@ -78,8 +80,16 @@ func get_boss(id: StringName) -> BossData:
 	return _bosses.get(id)
 
 
+func get_loot_table(id: StringName) -> LootTableData:
+	return _loot_tables.get(id)
+
+
 func get_all_regions() -> Array:
 	return _regions.values()
+
+
+func get_all_quests() -> Array:
+	return _quests.values()
 
 
 func has_id(category: StringName, id: StringName) -> bool:
@@ -92,4 +102,5 @@ func has_id(category: StringName, id: StringName) -> bool:
 		&"npc": return _npcs.has(id)
 		&"vehicle": return _vehicles.has(id)
 		&"boss": return _bosses.has(id)
+		&"loot": return _loot_tables.has(id)
 		_: return false

@@ -749,37 +749,56 @@ static func _add_chests(root: Node3D, result: Dictionary) -> void:
 	var chests_root := Node3D.new()
 	chests_root.name = "Chests"
 	root.add_child(chests_root)
-	var spots: Array[Vector3] = [
-		Vector3(2.5, 0, -2.5),
-		Vector3(-24, 0, -19),
-		Vector3(28, 0, 10),
-		Vector3(0, 0, 26),
-		Vector3(30, 0, -4),
+	var specs := [
+		{"name": "Chest_0", "pos": Vector3(2.5, 0, -2.5), "rarity": ChestInteractable.Rarity.NORMAL},
+		{"name": "Chest_1", "pos": Vector3(-24, 0, -19), "rarity": ChestInteractable.Rarity.NORMAL},
+		{"name": "Chest_2", "pos": Vector3(28, 0, 10), "rarity": ChestInteractable.Rarity.RARE},
+		{"name": "Chest_3", "pos": Vector3(0, 0, 26), "rarity": ChestInteractable.Rarity.NORMAL},
+		{"name": "Chest_4", "pos": Vector3(30, 0, -4), "rarity": ChestInteractable.Rarity.NORMAL},
 	]
-	var idx := 0
-	for spot in spots:
-		result[&"chests"].append(_build_chest(chests_root, "Chest_%d" % idx, spot))
-		idx += 1
+	for spec in specs:
+		result[&"chests"].append(
+			_build_chest(chests_root, String(spec["name"]), spec["pos"], spec["rarity"])
+		)
 
 
-static func _build_chest(parent: Node3D, chest_name: String, pos: Vector3) -> Area3D:
+static func _build_chest(
+	parent: Node3D,
+	chest_name: String,
+	pos: Vector3,
+	rarity: ChestInteractable.Rarity = ChestInteractable.Rarity.NORMAL,
+) -> Area3D:
 	var area := ChestInteractable.new()
 	area.name = chest_name
+	area.chest_id = StringName(chest_name.to_snake_case())
+	area.rarity = rarity
 	area.position = pos + Vector3(0, 0.4, 0)
 	area.loot_item_id = &"hex_shard"
 	area.loot_quantity = 1
-	area.prompt_text = "Press E to open chest"
+	match rarity:
+		ChestInteractable.Rarity.RARE:
+			area.loot_table_id = &"loot_chest_rare"
+		ChestInteractable.Rarity.LEGENDARY:
+			area.loot_table_id = &"loot_chest_legendary"
+		_:
+			area.loot_table_id = &"loot_chest_normal"
 	var body := MeshInstance3D.new()
 	var box := BoxMesh.new()
 	box.size = Vector3(0.95, 0.55, 0.7)
 	body.mesh = box
-	body.material_override = StylizedMesh.make_material(Color(0.88, 0.68, 0.18), 0.5)
+	var body_color := Color(0.88, 0.68, 0.18)
+	match rarity:
+		ChestInteractable.Rarity.RARE:
+			body_color = Color(0.45, 0.65, 0.95)
+		ChestInteractable.Rarity.LEGENDARY:
+			body_color = Color(0.95, 0.55, 0.2)
+	body.material_override = StylizedMesh.make_material(body_color, 0.5)
 	area.add_child(body)
 	var lid := MeshInstance3D.new()
 	var lid_mesh := BoxMesh.new()
 	lid_mesh.size = Vector3(0.98, 0.18, 0.72)
 	lid.mesh = lid_mesh
-	lid.material_override = StylizedMesh.make_material(Color(0.75, 0.5, 0.12), 0.5)
+	lid.material_override = StylizedMesh.make_material(body_color.darkened(0.15), 0.5)
 	lid.position = Vector3(0, 0.35, 0)
 	area.add_child(lid)
 	var shape := CollisionShape3D.new()
@@ -796,25 +815,28 @@ static func _add_exploration_pois(root: Node3D, result: Dictionary) -> void:
 	pois.name = "ExplorationPOIs"
 	root.add_child(pois)
 	StylizedMesh.add_box(pois, Vector3(3.5, 2.2, 1.0), Color(0.34, 0.36, 0.40), Vector3(34, 1.1, 6), "AlleyWall", true, 0.8)
-	var secret := _build_chest(pois, "SecretAlleyChest", Vector3(34, 0, 8))
-	(secret as ChestInteractable).loot_quantity = 3
-	(secret as ChestInteractable).prompt_text = "Press E to open secret stash"
+	var secret := _build_chest(pois, "SecretAlleyChest", Vector3(34, 0, 8), ChestInteractable.Rarity.LEGENDARY)
+	(secret as ChestInteractable).prompt_text = "Press E to open legendary stash"
 	result[&"chests"].append(secret)
+
 	var bush := Node3D.new()
 	bush.name = "MysteryBush"
 	bush.position = Vector3(-9, 0, -3)
 	pois.add_child(bush)
 	StylizedMesh.add_sphere(bush, 0.9, Color(0.18, 0.48, 0.22), Vector3(0, 0.7, 0), "BushA", 12, 8, 0.85)
 	StylizedMesh.add_sphere(bush, 0.7, Color(0.22, 0.52, 0.25), Vector3(0.5, 0.55, 0.2), "BushB", 12, 8, 0.85)
-	var bush_chest := _build_chest(bush, "BushChest", Vector3(0, 0, 0))
+	var bush_chest := _build_chest(bush, "BushChest", Vector3(0, 0, 0), ChestInteractable.Rarity.RARE)
 	bush_chest.position = Vector3(0, 0.35, 0)
 	(bush_chest as ChestInteractable).prompt_text = "Press E to search the bushes"
 	result[&"chests"].append(bush_chest)
-	var plaque := SignInteractable.new()
+
+	var plaque := DiscoverableInteractable.new()
 	plaque.name = "ParkPlaque"
 	plaque.position = Vector3(3.5, 0.6, 1.5)
-	plaque.message = "Pleasant Park — Where every path leads to a story."
-	plaque.prompt_text = "Press E to read plaque"
+	plaque.location_id = &"park_plaque"
+	plaque.location_name = "Park Plaque"
+	plaque.discover_message = "Pleasant Park — Where every path leads to a story."
+	plaque.bits_reward = 8
 	var pshape := CollisionShape3D.new()
 	var pb := BoxShape3D.new()
 	pb.size = Vector3(1.6, 1.4, 1.6)
@@ -822,9 +844,60 @@ static func _add_exploration_pois(root: Node3D, result: Dictionary) -> void:
 	plaque.add_child(pshape)
 	StylizedMesh.add_box(plaque, Vector3(1.2, 0.8, 0.15), Color(0.52, 0.42, 0.28), Vector3(0, 0, 0), "PlaqueBoard", false, 0.7)
 	pois.add_child(plaque)
-	var field_chest := _build_chest(pois, "BleacherChest", Vector3(11, 0, 26))
+
+	var field_chest := _build_chest(pois, "BleacherChest", Vector3(11, 0, 26), ChestInteractable.Rarity.RARE)
 	(field_chest as ChestInteractable).prompt_text = "Press E to check under the bleachers"
 	result[&"chests"].append(field_chest)
+
+	## Landmark discoveries
+	_add_discoverable(pois, &"central_fountain", "Central Fountain", Vector3(0, 0.5, 0), 12, "The fountain hums with soft digital ripples.")
+	_add_discoverable(pois, &"sports_field", "Sports Field", Vector3(0, 0.5, 26), 10, "Cleats and chalk — the field is ready for a match.")
+	_add_discoverable(pois, &"fuel_stop", "Fuel Stop", Vector3(30, 0.5, 0), 10, "A bright canopy over sleepy pumps.")
+
+	## Park Guide NPC (quest talk target)
+	var guide := NpcTalkInteractable.new()
+	guide.name = "ParkGuide"
+	guide.npc_id = &"park_guide"
+	guide.npc_display_name = "Park Guide"
+	guide.position = Vector3(2, 0, 12)
+	guide.dialogue_lines = PackedStringArray([
+		"Welcome to Pleasant Park! Check the welcome sign, open a chest, then talk to me again.",
+		"Nice exploring! Keep caring for your creature at Home, too.",
+		"Rare chests sparkle blue. Legendary ones glow orange — check the alley!",
+	])
+	var gshape := CollisionShape3D.new()
+	var gb := BoxShape3D.new()
+	gb.size = Vector3(1.8, 2.2, 1.8)
+	gshape.shape = gb
+	guide.add_child(gshape)
+	## Placeholder body
+	StylizedMesh.add_cylinder(guide, 0.35, 1.2, Color(0.3, 0.55, 0.45), Vector3(0, 0.7, 0), "Body", false, 12, 0.7)
+	StylizedMesh.add_sphere(guide, 0.28, Color(0.96, 0.8, 0.65), Vector3(0, 1.5, 0), "Head", 12, 8, 0.6)
+	StylizedMesh.add_box(guide, Vector3(0.7, 0.15, 0.4), Color(0.2, 0.45, 0.35), Vector3(0, 1.75, 0), "Hat", false, 0.65)
+	pois.add_child(guide)
+
+
+static func _add_discoverable(
+	parent: Node3D,
+	loc_id: StringName,
+	loc_name: String,
+	pos: Vector3,
+	bits: int,
+	message: String,
+) -> void:
+	var d := DiscoverableInteractable.new()
+	d.name = "Discover_%s" % String(loc_id)
+	d.location_id = loc_id
+	d.location_name = loc_name
+	d.discover_message = message
+	d.bits_reward = bits
+	d.position = pos
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(2.4, 2.0, 2.4)
+	shape.shape = box
+	d.add_child(shape)
+	parent.add_child(d)
 
 
 static func _add_sign(root: Node3D, pos: Vector3, text: String) -> void:
@@ -843,14 +916,20 @@ static func _add_sign(root: Node3D, pos: Vector3, text: String) -> void:
 	label.outline_modulate = Color(0.1, 0.2, 0.12)
 	label.outline_size = 8
 	sign.add_child(label)
-	var readable := SignInteractable.new()
-	readable.name = "WelcomeSignInteract"
-	readable.position = Vector3(0, 1.2, 0.5)
-	readable.message = "Welcome to Pleasant Park! Explore houses, chests, and quiet corners."
-	readable.prompt_text = "Press E to read the sign"
-	var rshape := CollisionShape3D.new()
-	var rb := BoxShape3D.new()
-	rb.size = Vector3(5.5, 2.5, 2.0)
-	rshape.shape = rb
-	readable.add_child(rshape)
-	sign.add_child(readable)
+
+	## Primary tutorial discovery target for first_steps quest.
+	var discover := DiscoverableInteractable.new()
+	discover.name = "WelcomeDiscover"
+	discover.location_id = &"park_welcome"
+	discover.location_name = "Pleasant Park Welcome Sign"
+	discover.discover_message = "Welcome to Pleasant Park! Explore houses, chests, and quiet corners."
+	discover.bits_reward = 15
+	discover.item_reward_id = &"park_map_fragment"
+	discover.item_reward_qty = 1
+	discover.position = Vector3(0, 1.2, 0.5)
+	var dshape := CollisionShape3D.new()
+	var db := BoxShape3D.new()
+	db.size = Vector3(5.5, 2.5, 2.0)
+	dshape.shape = db
+	discover.add_child(dshape)
+	sign.add_child(discover)

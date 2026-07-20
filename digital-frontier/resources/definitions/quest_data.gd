@@ -13,8 +13,9 @@ enum QuestType {
 @export var prerequisite_quest_ids: PackedStringArray = PackedStringArray()
 @export var reward_item_ids: PackedStringArray = PackedStringArray()
 @export var reward_quantities: PackedInt32Array = PackedInt32Array()
+@export var reward_bits: int = 0
 
-## Each stage is a Dictionary: { "type": "collect"|"talk"|"defeat"|"reach", "target_id": ..., "count": ... }
+## Each stage is a Dictionary: { "type": "collect"|"talk"|"defeat"|"reach"|"discover"|"chest", "target_id": ..., "count": ... }
 @export var stages: Array[Dictionary] = []
 
 @export var start_npc_id: StringName = &""

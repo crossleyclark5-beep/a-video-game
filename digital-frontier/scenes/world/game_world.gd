@@ -9,6 +9,8 @@ extends Node3D
 @onready var camera_rig: Node3D = $CameraRig
 @onready var hint_label: Label = %HintLabel
 @onready var toast_label: Label = %ToastLabel
+@onready var quest_label: Label = %QuestLabel
+@onready var bits_label: Label = %BitsLabel
 @onready var sun: DirectionalLight3D = $Sun
 
 var _region_data: Dictionary = {}
@@ -17,6 +19,7 @@ var _interior_controller: BuildingInteriorController = null
 var _interaction_prompt: Control = null
 var _toast_timer: float = 0.0
 var _atmosphere: WorldAtmosphere = null
+var _hud_refresh: float = 0.0
 
 
 func _ready() -> void:
@@ -30,7 +33,12 @@ func _ready() -> void:
 	_bind_prompt()
 	_spawn_ambient_fx()
 	EventBus.ui_notification_requested.connect(_on_notification)
+	EventBus.quest_updated.connect(_on_quest_pulse)
+	EventBus.quest_completed.connect(_on_quest_pulse)
+	EventBus.inventory_changed.connect(_refresh_hud)
+	QuestManager.ensure_starter_quest()
 	_refresh_default_hint()
+	_refresh_hud()
 	## Same CreatureInstance continues from home — tiny outing XP seed.
 	CreatureManager.grant_adventure_experience(2)
 
@@ -40,6 +48,10 @@ func _process(delta: float) -> void:
 		_toast_timer -= delta
 		if _toast_timer <= 0.0 and toast_label:
 			toast_label.visible = false
+	_hud_refresh += delta
+	if _hud_refresh >= 0.5:
+		_hud_refresh = 0.0
+		_refresh_hud()
 
 
 func _clear_placeholder_geometry() -> void:
@@ -137,3 +149,14 @@ func _on_notification(message: String, duration: float) -> void:
 func _refresh_default_hint() -> void:
 	if hint_label:
 		hint_label.text = "WASD move · Shift run · E/A interact · scroll zoom · H home"
+
+
+func _refresh_hud() -> void:
+	if bits_label:
+		bits_label.text = "%d Bits" % InventoryManager.get_bits()
+	if quest_label:
+		quest_label.text = QuestManager.get_quest_status_line()
+
+
+func _on_quest_pulse(_a = null, _b = null) -> void:
+	_refresh_hud()

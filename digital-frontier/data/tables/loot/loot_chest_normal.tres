@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="LootTableData" load_steps=2 format=3 uid="uid://loot_chest_normal"]
+
+[ext_resource type="Script" path="res://resources/definitions/loot_table_data.gd" id="1_loot"]
+
+[resource]
+script = ExtResource("1_loot")
+id = &"loot_chest_normal"
+display_name = "Normal Chest Loot"
+description = "Common suburban stash table."
+rolls = 1
+bits_min = 5
+bits_max = 15
+entries = Array[Dictionary]([{
+"item_id": "hex_shard",
+"weight": 50.0,
+"min_qty": 1,
+"max_qty": 2
+}, {
+"item_id": "crystal_dust",
+"weight": 40.0,
+"min_qty": 1,
+"max_qty": 3
+}, {
+"item_id": "park_map_fragment",
+"weight": 10.0,
+"min_qty": 1,
+"max_qty": 1
+}])

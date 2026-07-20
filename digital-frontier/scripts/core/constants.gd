@@ -27,6 +27,11 @@ const DATA_BUILDINGS := &"res://data/buildings/"
 const DATA_NPCS := &"res://data/npcs/"
 const DATA_VEHICLES := &"res://data/vehicles/"
 const DATA_BOSSES := &"res://data/bosses/"
+const DATA_TABLES := &"res://data/tables/"
+const DATA_LOOT := &"res://data/tables/loot/"
+
+## Default save slot used by autosave.
+const AUTOSAVE_SLOT := 0
 
 ## Physics layer indices (must match project.godot layer_names).
 enum PhysicsLayer {

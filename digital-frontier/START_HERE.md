@@ -19,27 +19,24 @@ Your game folder on this PC:
 
 ## What you can do now
 
-**Home**
-- See Pixel Fox’s mood and hunger
-- **Feed** / **Play** / **Rest** to care for them
-- **Go on Adventure** (or press Enter)
+**Home — Sparkbit companion**
+- Pet / Feed / Rest / Play / Train
+- Status, Bits, Pack
+- **Adventure** (Enter)
 
-**Adventure — Pleasant Park**
-- Stylized town with roads, park, houses, secrets
-- Humanoid player: idle / walk / **Shift run**, shadow, footsteps
-- **E** or gamepad **A** to interact (prompt appears)
-- Enter **Brick House** for a full interior + upstairs stairs
-- Search bushes, bleachers, alley for hidden chests
-- Read signs and the park plaque
-- Scroll / +/- zoom · **H** home
+**Adventure — Pleasant Park (gameplay loop)**
+- **First Steps** quest (top-left): discover the welcome sign → open a chest → talk to the Park Guide
+- Chests: normal (gold), rare (blue), legendary (orange) with random loot + Bits
+- Discover landmarks for Bits (fountain, field, fuel stop, plaque…)
+- Enter **Brick House** (interior + upstairs rare chest)
+- Progress **autosaves** when you leave Adventure / Home
+
+Controls: WASD · Shift run · E interact · scroll zoom · H home
 
 ---
 
 ## Getting updates
 
-When I push new work to GitHub:
 1. Download a fresh ZIP from https://github.com/crossleyclark5-beep/a-video-game
-2. Replace your `a-video-game-master` folder with the new one
+2. Replace your `a-video-game-master` folder
 3. Open `digital-frontier/project.godot` again
-
-(Or use Git pull if you prefer.)

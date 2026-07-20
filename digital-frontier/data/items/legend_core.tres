@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3 uid="uid://item_legend_core"]
+
+[ext_resource type="Script" path="res://resources/definitions/item_data.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"legend_core"
+display_name = "Legend Core"
+description = "A pulsing core from a legendary cache. Placeholder evolution fuel."
+item_type = 4
+max_stack = 10
+sell_value = 100
+buy_value = 0
