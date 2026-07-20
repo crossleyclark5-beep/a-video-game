@@ -1,0 +1,3 @@
+[gd_scene format=3 uid="uid://pleasant_park_region"]
+
+[node name="PleasantPark" type="Node3D"]

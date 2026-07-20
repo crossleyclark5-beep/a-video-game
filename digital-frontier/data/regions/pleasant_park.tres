@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="RegionData" load_steps=2 format=3 uid="uid://region_pleasant_park"]
+
+[ext_resource type="Script" path="res://resources/definitions/region_data.gd" id="1_region"]
+
+[resource]
+script = ExtResource("1_region")
+id = &"pleasant_park"
+display_name = "Pleasant Park"
+description = "A sunny suburban neighborhood built around a central park, sports field, and corner fuel stop. Your first Digital Frontier town."
+hex_width = 24
+hex_height = 24
+hex_size = 1.0
+hex_orientation = &"pointy"
+scene_path = "res://scenes/world/regions/pleasant_park.tscn"
+music_track_id = &"music_pleasant_park"
+neighbor_regions = PackedStringArray()
+creature_spawn_table_id = &"spawn_pleasant_park"

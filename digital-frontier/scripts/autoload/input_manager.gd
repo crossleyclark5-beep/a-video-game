@@ -70,7 +70,7 @@ func _set_context(context: Context) -> void:
 
 
 func get_move_vector() -> Vector2:
-	if _active_context == Context.MENU or _active_context == Context.DIALOGUE:
+	if _active_context == Context.MENU or _active_context == Context.DIALOGUE or _active_context == Context.HOME:
 		return Vector2.ZERO
 	return Input.get_vector(&"move_left", &"move_right", &"move_forward", &"move_back")
 

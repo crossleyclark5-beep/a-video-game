@@ -22,12 +22,12 @@ Your game folder on this PC:
 **Home**
 - See Pixel Fox’s mood and hunger
 - **Feed** / **Play** / **Rest** to care for them
-- Mood color changes with how they feel
 - **Go on Adventure** (or press Enter)
 
-**Adventure**
-- **WASD** or arrows to move
-- **H** to go home
+**Adventure — Pleasant Park**
+- Walk the suburban town: central park, gazebo, sports field, houses, fuel stop
+- **WASD** move · **E** open chests / enter Brick House or Green House · **H** home
+- Roofs fade when you go inside
 
 ---
 
