@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/quest_data.gd" id="1_quest"]
+
+[resource]
+script = ExtResource("1_quest")
+id = &"park_explorer"
+display_name = "Park Explorer"
+description = "Map Pleasant Park — discover the gazebo, fountain, and sports field."
+quest_type = 1
+prerequisite_quest_ids = PackedStringArray("first_steps")
+reward_item_ids = PackedStringArray("crystal_dust")
+reward_quantities = PackedInt32Array(2)
+reward_bits = 55
+stages = Array[Dictionary]([{
+"type": "discover",
+"target_id": "park_gazebo",
+"count": 1
+}, {
+"type": "discover",
+"target_id": "central_fountain",
+"count": 1
+}, {
+"type": "discover",
+"target_id": "sports_field",
+"count": 1
+}])

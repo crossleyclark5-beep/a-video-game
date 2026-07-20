@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="AchievementData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/achievement_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chest_hunter"
+display_name = "Chest Hunter"
+description = "Open 3 chests on your adventures."
+trigger = 1
+trigger_count = 3
+bits_reward = 25
+icon_label = "▣"

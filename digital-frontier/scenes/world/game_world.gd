@@ -7,19 +7,15 @@ extends Node3D
 @onready var entity_layer: Node3D = $EntityLayer
 @onready var effects_layer: Node3D = $EffectsLayer
 @onready var camera_rig: Node3D = $CameraRig
-@onready var hint_label: Label = %HintLabel
-@onready var toast_label: Label = %ToastLabel
-@onready var quest_label: Label = %QuestLabel
-@onready var bits_label: Label = %BitsLabel
 @onready var sun: DirectionalLight3D = $Sun
 
 var _region_data: Dictionary = {}
 var _player: Node3D = null
 var _interior_controller: BuildingInteriorController = null
 var _interaction_prompt: Control = null
-var _toast_timer: float = 0.0
+var _device_hud: CanvasLayer = null
 var _atmosphere: WorldAtmosphere = null
-var _hud_refresh: float = 0.0
+var _checkpoint_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -32,26 +28,20 @@ func _ready() -> void:
 	_spawn_player()
 	_bind_prompt()
 	_spawn_ambient_fx()
-	EventBus.ui_notification_requested.connect(_on_notification)
-	EventBus.quest_updated.connect(_on_quest_pulse)
-	EventBus.quest_completed.connect(_on_quest_pulse)
-	EventBus.inventory_changed.connect(_refresh_hud)
 	QuestManager.ensure_starter_quest()
-	_refresh_default_hint()
-	_refresh_hud()
 	## Same CreatureInstance continues from home — tiny outing XP seed.
 	CreatureManager.grant_adventure_experience(2)
 
 
 func _process(delta: float) -> void:
-	if _toast_timer > 0.0:
-		_toast_timer -= delta
-		if _toast_timer <= 0.0 and toast_label:
-			toast_label.visible = false
-	_hud_refresh += delta
-	if _hud_refresh >= 0.5:
-		_hud_refresh = 0.0
-		_refresh_hud()
+	_checkpoint_timer += delta
+	if _checkpoint_timer >= 2.0:
+		_checkpoint_timer = 0.0
+		_save_checkpoint()
+
+
+func _exit_tree() -> void:
+	_save_checkpoint()
 
 
 func _clear_placeholder_geometry() -> void:
@@ -76,10 +66,24 @@ func _setup_systems() -> void:
 	add_child(_interior_controller)
 	_interior_controller.setup(camera_rig, interior_root)
 
+	## Replace legacy label HUD with handheld adventure device.
+	if has_node("HUD"):
+		$HUD.queue_free()
+	var hud_scene: PackedScene = load("res://scenes/ui/adventure/adventure_device_hud.tscn")
+	if hud_scene:
+		_device_hud = hud_scene.instantiate()
+		_device_hud.name = "AdventureDeviceHud"
+		add_child(_device_hud)
+
 	var prompt_scene: PackedScene = load("res://scenes/ui/components/interaction_prompt.tscn")
-	if prompt_scene and has_node("HUD"):
+	if prompt_scene:
 		_interaction_prompt = prompt_scene.instantiate()
-		$HUD.add_child(_interaction_prompt)
+		## Keep prompt above world; parent to device or a dedicated layer.
+		var prompt_layer := CanvasLayer.new()
+		prompt_layer.layer = 15
+		prompt_layer.name = "PromptLayer"
+		add_child(prompt_layer)
+		prompt_layer.add_child(_interaction_prompt)
 
 
 func _spawn_player() -> void:
@@ -91,9 +95,20 @@ func _spawn_player() -> void:
 	_player.name = "Player"
 	entity_layer.add_child(_player)
 	var spawn: Vector3 = _region_data.get(&"player_spawn", Vector3(0.0, 0.15, 10.0))
+	if WorldManager.has_player_checkpoint() and WorldManager.get_active_region_id() == &"pleasant_park":
+		spawn = WorldManager.get_player_checkpoint()
+	elif WorldManager.has_player_checkpoint():
+		## Returning to adventure mid-save — prefer checkpoint when set.
+		spawn = WorldManager.get_player_checkpoint()
 	_player.global_position = spawn
 	if camera_rig.has_method("set_target"):
 		camera_rig.call("set_target", _player)
+
+
+func _save_checkpoint() -> void:
+	if _player == null:
+		return
+	WorldManager.set_player_checkpoint(_player.global_position)
 
 
 func _bind_prompt() -> void:
@@ -108,7 +123,6 @@ func _bind_prompt() -> void:
 func _spawn_ambient_fx() -> void:
 	if effects_layer == null:
 		return
-	## Lightweight pollen / dust — atmosphere only, no collision.
 	var dust := GPUParticles3D.new()
 	dust.name = "AmbientPollen"
 	dust.amount = 36
@@ -136,27 +150,3 @@ func _spawn_ambient_fx() -> void:
 	dust.draw_pass_1 = draw
 	dust.position = Vector3(0, 3, 0)
 	effects_layer.add_child(dust)
-
-
-func _on_notification(message: String, duration: float) -> void:
-	if toast_label == null:
-		return
-	toast_label.text = message
-	toast_label.visible = true
-	_toast_timer = duration
-
-
-func _refresh_default_hint() -> void:
-	if hint_label:
-		hint_label.text = "WASD move · Shift run · E/A interact · scroll zoom · H home"
-
-
-func _refresh_hud() -> void:
-	if bits_label:
-		bits_label.text = "%d Bits" % InventoryManager.get_bits()
-	if quest_label:
-		quest_label.text = QuestManager.get_quest_status_line()
-
-
-func _on_quest_pulse(_a = null, _b = null) -> void:
-	_refresh_hud()

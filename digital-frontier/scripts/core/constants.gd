@@ -29,6 +29,8 @@ const DATA_VEHICLES := &"res://data/vehicles/"
 const DATA_BOSSES := &"res://data/bosses/"
 const DATA_TABLES := &"res://data/tables/"
 const DATA_LOOT := &"res://data/tables/loot/"
+const DATA_DISCOVERABLES := &"res://data/discoverables/"
+const DATA_ACHIEVEMENTS := &"res://data/achievements/"
 
 ## Default save slot used by autosave.
 const AUTOSAVE_SLOT := 0

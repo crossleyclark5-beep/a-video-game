@@ -750,15 +750,21 @@ static func _add_chests(root: Node3D, result: Dictionary) -> void:
 	chests_root.name = "Chests"
 	root.add_child(chests_root)
 	var specs := [
-		{"name": "Chest_0", "pos": Vector3(2.5, 0, -2.5), "rarity": ChestInteractable.Rarity.NORMAL},
-		{"name": "Chest_1", "pos": Vector3(-24, 0, -19), "rarity": ChestInteractable.Rarity.NORMAL},
-		{"name": "Chest_2", "pos": Vector3(28, 0, 10), "rarity": ChestInteractable.Rarity.RARE},
-		{"name": "Chest_3", "pos": Vector3(0, 0, 26), "rarity": ChestInteractable.Rarity.NORMAL},
-		{"name": "Chest_4", "pos": Vector3(30, 0, -4), "rarity": ChestInteractable.Rarity.NORMAL},
+		{"name": "Chest_0", "pos": Vector3(2.5, 0, -2.5), "rarity": ChestInteractable.Rarity.NORMAL, "respawn": 24.0},
+		{"name": "Chest_1", "pos": Vector3(-24, 0, -19), "rarity": ChestInteractable.Rarity.NORMAL, "respawn": 24.0},
+		{"name": "Chest_2", "pos": Vector3(28, 0, 10), "rarity": ChestInteractable.Rarity.RARE, "respawn": 0.0},
+		{"name": "Chest_3", "pos": Vector3(0, 0, 26), "rarity": ChestInteractable.Rarity.NORMAL, "respawn": 24.0},
+		{"name": "Chest_4", "pos": Vector3(30, 0, -4), "rarity": ChestInteractable.Rarity.NORMAL, "respawn": 24.0},
 	]
 	for spec in specs:
 		result[&"chests"].append(
-			_build_chest(chests_root, String(spec["name"]), spec["pos"], spec["rarity"])
+			_build_chest(
+				chests_root,
+				String(spec["name"]),
+				spec["pos"],
+				spec["rarity"],
+				float(spec.get("respawn", 0.0)),
+			)
 		)
 
 
@@ -767,21 +773,26 @@ static func _build_chest(
 	chest_name: String,
 	pos: Vector3,
 	rarity: ChestInteractable.Rarity = ChestInteractable.Rarity.NORMAL,
+	respawn_hours: float = 0.0,
 ) -> Area3D:
 	var area := ChestInteractable.new()
 	area.name = chest_name
 	area.chest_id = StringName(chest_name.to_snake_case())
 	area.rarity = rarity
+	area.respawn_hours = respawn_hours
 	area.position = pos + Vector3(0, 0.4, 0)
 	area.loot_item_id = &"hex_shard"
 	area.loot_quantity = 1
 	match rarity:
 		ChestInteractable.Rarity.RARE:
 			area.loot_table_id = &"loot_chest_rare"
+			area.creature_xp_on_open = 10
 		ChestInteractable.Rarity.LEGENDARY:
 			area.loot_table_id = &"loot_chest_legendary"
+			area.creature_xp_on_open = 18
 		_:
 			area.loot_table_id = &"loot_chest_normal"
+			area.creature_xp_on_open = 6
 	var body := MeshInstance3D.new()
 	var box := BoxMesh.new()
 	box.size = Vector3(0.95, 0.55, 0.7)
@@ -795,6 +806,7 @@ static func _build_chest(
 	body.material_override = StylizedMesh.make_material(body_color, 0.5)
 	area.add_child(body)
 	var lid := MeshInstance3D.new()
+	lid.name = "Lid"
 	var lid_mesh := BoxMesh.new()
 	lid_mesh.size = Vector3(0.98, 0.18, 0.72)
 	lid.mesh = lid_mesh

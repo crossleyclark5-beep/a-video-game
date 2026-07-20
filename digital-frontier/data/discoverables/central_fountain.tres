@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"central_fountain"
+display_name = "Central Fountain"
+description = "Soft digital ripples dance across the fountain basin."
+category = 0
+region_id = &"pleasant_park"
+short_blurb = "The fountain hums with soft digital ripples."
+bits_reward = 12
+map_hint = "South of the gazebo"
+creature_xp_reward = 4

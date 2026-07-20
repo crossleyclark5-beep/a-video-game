@@ -17,21 +17,40 @@ Your game folder on this PC:
 
 ---
 
+## Core loop
+
+**Home** → care for Sparkbit → **Adventure** → explore → discover / chests / quests → Bits & creature XP → **H** Home → Collection → prepare again.
+
+Progress **autosaves** when you leave Home or Adventure (including your world position).
+
+---
+
 ## What you can do now
 
 **Home — Sparkbit companion**
 - Pet / Feed / Rest / Play / Train
-- Status, Bits, Pack
+- Status, Bits, Pack, **Collection** (explorer journal)
 - **Adventure** (Enter)
+- Shop is a placeholder (Bits ledger is ready for it)
 
-**Adventure — Pleasant Park (gameplay loop)**
-- **First Steps** quest (top-left): discover the welcome sign → open a chest → talk to the Park Guide
-- Chests: normal (gold), rare (blue), legendary (orange) with random loot + Bits
-- Discover landmarks for Bits (fountain, field, fuel stop, plaque…)
+**Adventure — Pleasant Park**
+- **Field Unit HUD:** Tab Pack · M Map · J Quests · C Log · B Bits · Esc close
+- **First Steps:** welcome sign → chest → Park Guide
+- Follow-ups: **Park Explorer**, **Secret Seeker**, **Spark Snack**
+- Chests: normal / rare / legendary — loot, Bits, XP, open animation + SFX
+- Common chests can **respawn** after 24h (framework ready)
+- Discover landmarks; secrets in bush / bleachers / alley behind fuel stop
 - Enter **Brick House** (interior + upstairs rare chest)
-- Progress **autosaves** when you leave Adventure / Home
 
 Controls: WASD · Shift run · E interact · scroll zoom · H home
+
+---
+
+## Docs
+
+- `docs/ADVENTURE_FOUNDATION.md` — exploration / collection / ledger / device HUD
+- `docs/GAMEPLAY_FOUNDATION.md` — earlier spine
+- `docs/CREATURE_COMPANION.md` — companion care
 
 ---
 

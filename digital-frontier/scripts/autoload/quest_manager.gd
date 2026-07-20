@@ -70,8 +70,18 @@ func start_quest(quest_id: StringName) -> bool:
 func ensure_starter_quest() -> void:
 	## Boot hook — start the tutorial quest once per save.
 	if is_quest_active(&"first_steps") or is_quest_completed(&"first_steps"):
+		_offer_followups()
 		return
 	start_quest(&"first_steps")
+
+
+func _offer_followups() -> void:
+	## Side / hidden quests unlock after the tutorial completes (or while active post-start).
+	if not is_quest_completed(&"first_steps"):
+		return
+	for qid in [&"park_explorer", &"secret_seeker", &"spark_snack"]:
+		if not is_quest_active(qid) and not is_quest_completed(qid):
+			start_quest(qid)
 
 
 ## Generic objective notifier used by interactables and managers.
@@ -118,7 +128,10 @@ func complete_quest(quest_id: StringName) -> void:
 	var data: QuestData = ResourceRegistry.get_quest(quest_id)
 	var title := data.display_name if data else String(quest_id)
 	EventBus.ui_notification_requested.emit("Quest complete: %s" % title, 3.0)
+	CreatureManager.grant_adventure_experience(12)
 	_log("Quest completed: %s" % String(quest_id))
+	if quest_id == &"first_steps":
+		_offer_followups()
 
 
 func export_state() -> Dictionary:
@@ -192,6 +205,8 @@ func _format_objective(data: QuestData, stage_idx: int) -> String:
 			return "Collect %s (%d/%d)" % [starget, mini(progress, needed), needed]
 		"chest", "open_chest":
 			return "Open chests (%d/%d)" % [mini(progress, needed), needed]
+		"chest_rarity":
+			return "Open a %s chest (%d/%d)" % [starget, mini(progress, needed), needed]
 		_:
 			return "%s %s (%d/%d)" % [stype, starget, mini(progress, needed), needed]
 
@@ -205,9 +220,13 @@ func _on_location_discovered(location_id: StringName) -> void:
 	notify_objective(&"reach", location_id, 1)
 
 
-func _on_chest_opened(_chest_id: StringName, _rarity: StringName) -> void:
+func _on_chest_opened(_chest_id: StringName, rarity: StringName) -> void:
 	notify_objective(&"chest", &"any", 1)
 	notify_objective(&"open_chest", &"any", 1)
+	notify_objective(&"chest_rarity", rarity, 1)
+	## Legendary also satisfies a "rare" seeker objective.
+	if rarity == &"legendary":
+		notify_objective(&"chest_rarity", &"rare", 1)
 
 
 func _on_npc_talked(npc_id: StringName) -> void:

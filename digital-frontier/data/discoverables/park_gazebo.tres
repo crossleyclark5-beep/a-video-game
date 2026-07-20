@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"park_gazebo"
+display_name = "Park Gazebo"
+description = "The heart of Pleasant Park — shade, stories, and soft light."
+category = 0
+region_id = &"pleasant_park"
+short_blurb = "Gathering place under red roof beams."
+bits_reward = 10
+linked_quest_ids = PackedStringArray("park_explorer")
+map_hint = "Park center"
+creature_xp_reward = 5

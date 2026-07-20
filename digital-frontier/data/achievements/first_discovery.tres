@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="AchievementData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/achievement_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"first_discovery"
+display_name = "First Footprint"
+description = "Discover your first landmark."
+trigger = 0
+trigger_count = 1
+bits_reward = 10
+icon_label = "◇"

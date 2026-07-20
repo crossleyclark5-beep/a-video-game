@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"park_welcome"
+display_name = "Pleasant Park Welcome Sign"
+description = "The south gate into Pleasant Park. Every explorer starts here."
+category = 0
+region_id = &"pleasant_park"
+short_blurb = "Welcome to the neighborhood."
+bits_reward = 15
+reward_item_ids = PackedStringArray("park_map_fragment")
+reward_quantities = PackedInt32Array(1)
+linked_quest_ids = PackedStringArray("first_steps")
+map_hint = "South approach"
+creature_xp_reward = 5

@@ -170,7 +170,13 @@ func _on_shop_pressed() -> void:
 
 func _on_collection_pressed() -> void:
 	collection_pressed.emit()
-	_status_label.text = "Collection: %d creature(s). More friends await on adventures." % CreatureManager.get_collection_count()
+
+
+func show_collection_journal() -> void:
+	_inventory_open = true
+	_inventory_panel.visible = true
+	_inventory_label.text = CollectionManager.get_journal_text()
+	_status_label.text = CollectionManager.get_summary_line()
 
 
 func _on_inventory_pressed() -> void:

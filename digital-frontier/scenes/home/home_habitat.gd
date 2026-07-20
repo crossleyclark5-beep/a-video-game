@@ -89,8 +89,10 @@ func _build_hud() -> void:
 	add_child(_hud)
 	_hud.adventure_pressed.connect(_on_adventure)
 	_hud.care_requested.connect(_on_care_requested)
-	_hud.shop_pressed.connect(func() -> void: pass)
-	_hud.collection_pressed.connect(func() -> void: pass)
+	_hud.shop_pressed.connect(func() -> void:
+		_hud.show_status_message("Shop soon — Bits ready for skins, homes, and gear.")
+	)
+	_hud.collection_pressed.connect(_on_collection)
 
 
 func _build_camera() -> void:
@@ -144,3 +146,11 @@ func _on_station_activated(_station_id: StringName, care_action: StringName) -> 
 
 func _on_adventure() -> void:
 	SceneManager.change_scene(String(GameConstants.SCENE_GAME_WORLD), true)
+
+
+func _on_collection() -> void:
+	if _hud and _hud.has_method("show_collection_journal"):
+		_hud.call("show_collection_journal")
+	elif _hud:
+		_hud.show_status_message(CollectionManager.get_summary_line())
+	EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)

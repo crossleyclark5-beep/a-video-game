@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="AchievementData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/achievement_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"park_cartographer"
+display_name = "Park Cartographer"
+description = "Discover 4 locations in Pleasant Park."
+trigger = 0
+trigger_count = 4
+bits_reward = 35
+icon_label = "▣"

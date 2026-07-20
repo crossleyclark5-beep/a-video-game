@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"park_plaque"
+display_name = "Park Plaque"
+description = "A weathered plaque near the gazebo paths."
+category = 0
+region_id = &"pleasant_park"
+short_blurb = "Where every path leads to a story."
+bits_reward = 8
+map_hint = "Central park"
+creature_xp_reward = 3

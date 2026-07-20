@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="AchievementData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/achievement_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"bits_saver"
+display_name = "Pocket Full"
+description = "Earn 200 Bits across your adventures."
+trigger = 3
+trigger_count = 200
+bits_reward = 20
+icon_label = "◎"

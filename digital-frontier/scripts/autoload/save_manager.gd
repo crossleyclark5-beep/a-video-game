@@ -111,10 +111,14 @@ func _collect_state_from_managers() -> void:
 	_current_state.creature_data = CreatureManager.export_state()
 	_current_state.npc_data = NPCManager.export_state()
 	_current_state.vehicle_data = VehicleManager.export_state()
+	_current_state.collection_data = CollectionManager.export_state()
 	var world := WorldManager.export_state()
 	_current_state.world_flags = world
 	_current_state.current_region_id = WorldManager.get_active_region_id()
 	_current_state.current_hex_coords = WorldManager.get_active_hex_coords()
+	_current_state.player_position = WorldManager.get_player_checkpoint()
+	_current_state.has_player_checkpoint = WorldManager.has_player_checkpoint()
+	_current_state.schema_version = 2
 	_current_state.settings_data = {
 		&"master_volume": GameConfig.master_volume,
 		&"music_volume": GameConfig.music_volume,
@@ -129,6 +133,10 @@ func _distribute_state_to_managers() -> void:
 	NPCManager.import_state(_current_state.npc_data)
 	VehicleManager.import_state(_current_state.vehicle_data)
 	WorldManager.import_state(_current_state.world_flags)
+	if _current_state.collection_data:
+		CollectionManager.import_state(_current_state.collection_data)
+	if _current_state.has_player_checkpoint:
+		WorldManager.set_player_checkpoint(_current_state.player_position)
 
 	if _current_state.settings_data.has(&"master_volume"):
 		GameConfig.master_volume = _current_state.settings_data[&"master_volume"]

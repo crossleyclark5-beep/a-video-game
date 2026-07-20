@@ -1,16 +1,15 @@
 extends BaseManager
-## Music and SFX playback with bus routing.
-##
-## WHY: Centralizes audio so volume settings, crossfades, and pooling apply globally.
-## Responds to EventBus requests so gameplay never touches AudioStreamPlayer nodes directly.
+## Music and SFX playback with bus routing + placeholder synthesized beeps.
 
 @onready var _music_player: AudioStreamPlayer = null
 var _sfx_pool: Array[AudioStreamPlayer] = []
+var _sfx_streams: Dictionary = {}
 const SFX_POOL_SIZE := 8
 
 
 func _initialize_manager() -> void:
 	_setup_players()
+	_build_placeholder_sfx()
 	EventBus.music_change_requested.connect(_on_music_change_requested)
 	EventBus.sfx_play_requested.connect(_on_sfx_play_requested)
 	_apply_volume_settings()
@@ -31,6 +30,16 @@ func _setup_players() -> void:
 		_sfx_pool.append(player)
 
 
+func _build_placeholder_sfx() -> void:
+	## Tiny procedural tones until real audio assets exist.
+	_sfx_streams[&"chest_open"] = _make_beep(520.0, 0.12, 0.35)
+	_sfx_streams[&"discover"] = _make_beep(660.0, 0.16, 0.3)
+	_sfx_streams[&"bits_gain"] = _make_beep(880.0, 0.08, 0.25)
+	_sfx_streams[&"achievement"] = _make_chord([523.25, 659.25, 783.99], 0.28, 0.28)
+	_sfx_streams[&"ui_blip"] = _make_beep(440.0, 0.05, 0.2)
+	_sfx_streams[&"quest"] = _make_beep(392.0, 0.14, 0.28)
+
+
 func _apply_volume_settings() -> void:
 	AudioServer.set_bus_volume_db(
 		AudioServer.get_bus_index(&"Master"),
@@ -39,13 +48,26 @@ func _apply_volume_settings() -> void:
 
 
 func _on_music_change_requested(track_id: StringName) -> void:
-	## Load track from data/audio lookup when audio content exists.
 	_log("Music change requested: %s" % track_id)
 
 
 func _on_sfx_play_requested(sfx_id: StringName, _position: Vector3) -> void:
-	## 2.5D: position used for attenuation on spatial players later.
-	_log("SFX requested: %s" % sfx_id)
+	play_sfx(sfx_id)
+
+
+func play_sfx(sfx_id: StringName) -> void:
+	var stream: AudioStream = _sfx_streams.get(sfx_id)
+	if stream == null:
+		_log("SFX requested (no stream): %s" % sfx_id)
+		return
+	for player in _sfx_pool:
+		if not player.playing:
+			player.stream = stream
+			player.play()
+			return
+	## All busy — steal first.
+	_sfx_pool[0].stream = stream
+	_sfx_pool[0].play()
 
 
 func play_music(stream: AudioStream, crossfade: bool = true) -> void:
@@ -67,3 +89,41 @@ func stop_music(fade: bool = true) -> void:
 		tween.tween_property(_music_player, "volume_db", -40.0, 0.5)
 		await tween.finished
 	_music_player.stop()
+
+
+func _make_beep(freq: float, duration: float, amp: float) -> AudioStreamWAV:
+	var sample_rate := 22050
+	var sample_count := int(sample_rate * duration)
+	var data := PackedByteArray()
+	data.resize(sample_count * 2)
+	for i in sample_count:
+		var t := float(i) / float(sample_rate)
+		var envelope := 1.0 - (t / duration)
+		var sample := int(clamp(amp * envelope * sin(TAU * freq * t), -1.0, 1.0) * 32767.0)
+		data.encode_s16(i * 2, sample)
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = sample_rate
+	stream.data = data
+	return stream
+
+
+func _make_chord(freqs: Array, duration: float, amp: float) -> AudioStreamWAV:
+	var sample_rate := 22050
+	var sample_count := int(sample_rate * duration)
+	var data := PackedByteArray()
+	data.resize(sample_count * 2)
+	for i in sample_count:
+		var t := float(i) / float(sample_rate)
+		var envelope := 1.0 - (t / duration)
+		var mix := 0.0
+		for f in freqs:
+			mix += sin(TAU * float(f) * t)
+		mix /= float(maxi(freqs.size(), 1))
+		var sample := int(clamp(amp * envelope * mix, -1.0, 1.0) * 32767.0)
+		data.encode_s16(i * 2, sample)
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = sample_rate
+	stream.data = data
+	return stream

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"sports_field"
+display_name = "Sports Field"
+description = "Cleats and chalk — the north field is ready for a match."
+category = 0
+region_id = &"pleasant_park"
+short_blurb = "Soccer pitch north of town."
+bits_reward = 10
+map_hint = "North of the houses"
+creature_xp_reward = 4

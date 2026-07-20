@@ -13,6 +13,8 @@ var _npcs: Dictionary = {}
 var _vehicles: Dictionary = {}
 var _bosses: Dictionary = {}
 var _loot_tables: Dictionary = {}
+var _discoverables: Dictionary = {}
+var _achievements: Dictionary = {}
 
 
 func _initialize_manager() -> void:
@@ -25,9 +27,14 @@ func _initialize_manager() -> void:
 	_scan_directory(GameConstants.DATA_VEHICLES, _vehicles)
 	_scan_directory(GameConstants.DATA_BOSSES, _bosses)
 	_scan_directory(GameConstants.DATA_LOOT, _loot_tables)
+	_scan_directory(GameConstants.DATA_DISCOVERABLES, _discoverables)
+	_scan_directory(GameConstants.DATA_ACHIEVEMENTS, _achievements)
 	_log(
-		"Indexed %d regions, %d creatures, %d items, %d quests, %d loot tables"
-		% [_regions.size(), _creatures.size(), _items.size(), _quests.size(), _loot_tables.size()]
+		"Indexed %d regions, %d creatures, %d items, %d quests, %d loot, %d discoverables, %d achievements"
+		% [
+			_regions.size(), _creatures.size(), _items.size(), _quests.size(),
+			_loot_tables.size(), _discoverables.size(), _achievements.size(),
+		]
 	)
 
 
@@ -84,12 +91,36 @@ func get_loot_table(id: StringName) -> LootTableData:
 	return _loot_tables.get(id)
 
 
+func get_discoverable(id: StringName) -> DiscoverableData:
+	return _discoverables.get(id)
+
+
+func get_achievement(id: StringName) -> AchievementData:
+	return _achievements.get(id)
+
+
 func get_all_regions() -> Array:
 	return _regions.values()
 
 
 func get_all_quests() -> Array:
 	return _quests.values()
+
+
+func get_all_creatures() -> Array:
+	return _creatures.values()
+
+
+func get_all_discoverables() -> Array:
+	return _discoverables.values()
+
+
+func get_all_achievements() -> Array:
+	return _achievements.values()
+
+
+func get_all_items() -> Array:
+	return _items.values()
 
 
 func has_id(category: StringName, id: StringName) -> bool:
@@ -103,4 +134,6 @@ func has_id(category: StringName, id: StringName) -> bool:
 		&"vehicle": return _vehicles.has(id)
 		&"boss": return _bosses.has(id)
 		&"loot": return _loot_tables.has(id)
+		&"discoverable": return _discoverables.has(id)
+		&"achievement": return _achievements.has(id)
 		_: return false
