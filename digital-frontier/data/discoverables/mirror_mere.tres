@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"mirror_mere"
+display_name = "Mirror Mere"
+description = "Central lake with an island cabin."
+category = 0
+region_id = &"grassland"
+short_blurb = "Central lake with an island cabin."
+bits_reward = 22
+map_hint = "Central lake"
+creature_xp_reward = 8
+is_secret = false

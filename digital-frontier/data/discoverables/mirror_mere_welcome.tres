@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"mirror_mere_welcome"
+display_name = "Mirror Mere Welcome"
+description = "South shore welcome into the mere."
+category = 0
+region_id = &"grassland"
+short_blurb = "South shore welcome into the mere."
+bits_reward = 18
+map_hint = "Mere south shore"
+creature_xp_reward = 7
+is_secret = false

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"mere_island"
+display_name = "Mere Island"
+description = "Cabin on still water."
+category = 0
+region_id = &"grassland"
+short_blurb = "Cabin on still water."
+bits_reward = 16
+map_hint = "Island cabin"
+creature_xp_reward = 7
+is_secret = false

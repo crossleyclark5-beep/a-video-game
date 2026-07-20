@@ -89,6 +89,9 @@ static func _build_grass_strips(parent: Node3D) -> void:
 	## Dense MultiMesh grass near hubs + along roads (LOD: only travel corridors).
 	var hubs := [
 		GrasslandLayout.PLEASANT_PARK,
+		GrasslandLayout.GREASE_GROVE,
+		GrasslandLayout.MIRROR_MERE,
+		GrasslandLayout.MARKET_MILE,
 		GrasslandLayout.SALTY_SPRINGS,
 		GrasslandLayout.RISKY_REELS,
 		GrasslandLayout.FATAL_FIELDS,
