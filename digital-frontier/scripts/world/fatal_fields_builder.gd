@@ -27,7 +27,7 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 	]
 	for i in fields.size():
 		var p: Vector3 = fields[i]
-	StylizedMesh.add_box(hub, Vector3(22, 1.1, 18), corn if i % 2 == 0 else corn_dark, p + Vector3(0, 0.55, 0), "Corn_%d" % i, false, 1.0, &"leaf")
+		StylizedMesh.add_box(hub, Vector3(22, 1.1, 18), corn if i % 2 == 0 else corn_dark, p + Vector3(0, 0.55, 0), "Corn_%d" % i, false, 1.0, &"leaf")
 		for r in 4:
 			StylizedMesh.add_box(
 				hub,
