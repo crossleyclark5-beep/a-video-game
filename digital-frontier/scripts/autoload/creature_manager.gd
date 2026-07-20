@@ -324,7 +324,49 @@ func grant_adventure_experience(amount: int) -> Dictionary:
 	var result := _active.add_experience(amount)
 	_sync_captured_active()
 	EventBus.companion_state_changed.emit()
+	if bool(result.get("leveled_up", false)):
+		DeviceService.notify_event(&"achievement")
+		EventBus.ui_notification_requested.emit(
+			"%s reached Lv.%d!" % [get_companion_nickname(), get_level()],
+			2.8,
+		)
 	return result
+
+
+func grant_adventure_bond(amount: float, reason: String = "") -> void:
+	## Friendship + tiny happiness from exploring together.
+	if _active == null or amount == 0.0:
+		return
+	_active.apply_care(&"adventure", {
+		"friendship": amount,
+		"happiness": amount * 0.35,
+	})
+	_sync_captured_active()
+	EventBus.companion_state_changed.emit()
+	if not reason.is_empty():
+		EventBus.ui_notification_requested.emit("%s — bond +%.0f" % [reason, amount], 1.8)
+
+
+func get_adventure_status_line() -> String:
+	return "%s  Lv.%d  ·  %s  ·  Bond %d%%" % [
+		get_companion_nickname(),
+		get_level(),
+		get_mood_label(),
+		int(get_friendship()),
+	]
+
+
+func get_active_ability_ids() -> PackedStringArray:
+	var species := get_species_data()
+	if species == null:
+		return PackedStringArray()
+	return species.ability_ids
+
+
+func get_species_data() -> CreatureData:
+	if _active == null:
+		return ResourceRegistry.get_creature(STARTER_CREATURE_ID)
+	return _active.get_species()
 
 
 func get_party() -> PackedStringArray:

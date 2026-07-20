@@ -83,11 +83,19 @@ func _physics_process(delta: float) -> void:
 		elif InputManager.is_action_pressed(&"pause_menu") and InputManager.is_action_just_pressed(&"ui_cancel"):
 			_go_home()
 		elif InputManager.is_action_just_pressed(&"creature_action"):
-			EventBus.ui_notification_requested.emit(
-				"%s is with you. Care for them at Home." % CreatureManager.get_companion_nickname(),
-				2.2,
-			)
-			DeviceService.pulse_led_for_mood(CreatureManager.get_mood_label())
+			_creature_action()
+
+
+func _creature_action() -> void:
+	var companions := get_tree().get_nodes_in_group(&"adventure_companion")
+	if not companions.is_empty() and companions[0].has_method("request_creature_action"):
+		companions[0].call("request_creature_action")
+		return
+	EventBus.ui_notification_requested.emit(
+		"%s is with you." % CreatureManager.get_companion_nickname(),
+		2.0,
+	)
+	DeviceService.pulse_led_for_mood(CreatureManager.get_mood_label())
 
 
 func _go_home() -> void:

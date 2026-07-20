@@ -20,8 +20,14 @@ growth_rates = {
 "defense": 1.4,
 "speed": 1.8
 }
+ability_ids = PackedStringArray("sense_secrets")
 capture_rate = 0.4
 habitat_region_ids = PackedStringArray("starter_plains", "pleasant_park")
+follow_distance = 1.75
+follow_lag = 0.32
+sense_radius_bonus = 1.5
+adventure_bond_on_discover = 2.0
+adventure_bond_on_chest = 2.5
 default_skin_id = &"default"
 available_skin_ids = PackedStringArray("default", "moonlit")
 visual_profile_id = &"sparkbit"

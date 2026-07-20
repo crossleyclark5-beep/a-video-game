@@ -44,14 +44,17 @@ Editor fallbacks: WASD, E/Space=A, Esc=B, Tab=Start, Q=X, C=Y, M=R, Shift=L, H=H
 
 ## Core loop
 
-**Home** → care for Sparkbit (D-pad + A) → **Start** Adventure → explore → discover / chests / quests → **Select+B** or **H** Home → Collection → again.
+**Home** → care for Sparkbit (D-pad + A) → **Start** Adventure → explore **with your creature** → discover / chests / quests → **Select+B** or **H** Home → Collection → again.
 
 Autosave on scene change (including world position).
+
+In Adventure your companion **follows you**, notices secrets (**Y** to ask them), and grows friendship from exploring together.
 
 ---
 
 ## Docs
 
+- `docs/CREATURE_ADVENTURE.md` — partner follow / sense / abilities  
 - `docs/HANDHELD_FIRST.md` — button map + philosophy  
 - `docs/ADVENTURE_FOUNDATION.md` — exploration systems  
 - `docs/CREATURE_COMPANION.md` — companion care  
