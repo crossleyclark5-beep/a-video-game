@@ -111,6 +111,11 @@ static func _park_villager() -> PackedStringArray:
 
 
 static func _park_guide() -> PackedStringArray:
+	if bool(WorldManager.get_world_flag(&"chapter_grassland_cleared", false)):
+		return PackedStringArray([
+			"Chapter one — complete! The Grassland breathes easier because of you.",
+			"Rest at Home. Celebrate with your partner. The Frontier’s still listening.",
+		])
 	if QuestManager.is_quest_active(&"first_steps"):
 		return PackedStringArray([
 			"Welcome to Pleasant Park — first stop on the Digital Frontier!",
@@ -134,11 +139,6 @@ static func _park_guide() -> PackedStringArray:
 			"Pine Hollow’s Root Gate opens for those who cleared Alpha.",
 			"Light the seals. Face the Warden. Write chapter one.",
 		])
-	if bool(WorldManager.get_world_flag(&"chapter_grassland_cleared", false)):
-		return PackedStringArray([
-			"Chapter one — complete! The Grassland breathes easier because of you.",
-			"Rest at Home. Celebrate with your partner. The Frontier’s still listening.",
-		])
 	return PackedStringArray([
 		"Nice exploring! Care for your creature at Home between adventures.",
 		"Rare chests sparkle blue. Legendary ones glow orange — peek behind the fuel stop!",
@@ -146,6 +146,11 @@ static func _park_guide() -> PackedStringArray:
 
 
 static func _field_ranger() -> PackedStringArray:
+	if bool(WorldManager.get_world_flag(&"chapter_grassland_cleared", false)):
+		return PackedStringArray([
+			"You did it. The pines are quiet again.",
+			"Keep the Index growing — the Frontier’s bigger than one chapter.",
+		])
 	if QuestManager.is_quest_active(&"lost_trail"):
 		return PackedStringArray([
 			"A scout went missing on the Pine Hollow road.",
@@ -173,11 +178,6 @@ static func _field_ranger() -> PackedStringArray:
 		return PackedStringArray([
 			"The Warden isn’t a bigger mite — old code in living wood.",
 			"Open the Root Gate. Light both seals. Watch its phases.",
-		])
-	if bool(WorldManager.get_world_flag(&"chapter_grassland_cleared", false)):
-		return PackedStringArray([
-			"You did it. The pines are quiet again.",
-			"Keep the Index growing — the Frontier’s bigger than one chapter.",
 		])
 	return PackedStringArray([
 		"Keep to the roads until your partner is battle-ready.",
