@@ -1,25 +1,26 @@
 class_name CompanionVisual
 extends Node3D
-## Stylized digital-fantasy companion placeholder (Sparkbit silhouette).
-##
-## Unique floating-spirit look — not a realistic animal. Anim API is stable so
-## authored meshes / skins can replace the procedural build later.
+## Handheld mascot visuals — Emberling (orange dino) + legacy Sparkbit profile.
+## Crisp low-poly silhouette, big readable eyes, procedural anims (no heavy clips).
 
 enum Anim {
 	IDLE,
 	WALK,
+	RUN,
 	SLEEP,
 	EAT,
 	HAPPY,
 	SAD,
 	HUNGRY,
+	CURIOUS,
+	DISCOVERY,
 	STRETCH,
 	PET,
 }
 
-@export var body_color := Color(0.42, 0.78, 0.92)
-@export var accent_color := Color(0.98, 0.55, 0.42)
-@export var core_color := Color(0.75, 0.95, 1.0)
+@export var body_color := Color(0.96, 0.52, 0.22)
+@export var accent_color := Color(0.98, 0.78, 0.28)
+@export var core_color := Color(1.0, 0.92, 0.75)
 
 signal anim_changed(anim: Anim)
 
@@ -31,11 +32,21 @@ var _look_yaw: float = 0.0
 var _look_target: float = 0.0
 var _look_timer: float = 1.5
 var _feedback_flash: float = 0.0
+var _profile: StringName = &"emberling"
+var _stage: int = 0
 
 var _root: Node3D
 var _body: MeshInstance3D
+var _belly: MeshInstance3D
+var _head: MeshInstance3D
+var _snout: MeshInstance3D
 var _core: MeshInstance3D
 var _crest: MeshInstance3D
+var _spike_a: MeshInstance3D
+var _spike_b: MeshInstance3D
+var _spike_c: MeshInstance3D
+var _arm_l: MeshInstance3D
+var _arm_r: MeshInstance3D
 var _fin_l: MeshInstance3D
 var _fin_r: MeshInstance3D
 var _eye_l: MeshInstance3D
@@ -43,6 +54,7 @@ var _eye_r: MeshInstance3D
 var _cheek_l: MeshInstance3D
 var _cheek_r: MeshInstance3D
 var _tail: MeshInstance3D
+var _tail_tip: MeshInstance3D
 var _orbit_a: Node3D
 var _orbit_b: Node3D
 var _leg_fl: MeshInstance3D
@@ -56,23 +68,40 @@ var _heart_burst: GPUParticles3D
 
 
 func _ready() -> void:
-	_build()
+	## Prefer live manager state when available.
+	var species := CreatureManager.get_species_data() if CreatureManager else null
+	if species:
+		apply_from_creature(species, CreatureManager.get_evolution_stage())
+	else:
+		_build_profile(_profile, _stage)
 
 
 func apply_species_colors(species: CreatureData) -> void:
+	apply_from_creature(species, CreatureManager.get_evolution_stage() if CreatureManager else _stage)
+
+
+func apply_from_creature(species: CreatureData, stage: int = 0) -> void:
 	if species == null:
 		return
 	body_color = species.body_color
 	accent_color = species.accent_color
 	core_color = species.core_color
-	if _body_mat:
-		_body_mat.albedo_color = body_color
-		_body_mat.emission = body_color
-	if _core_mat:
-		_core_mat.albedo_color = core_color
-		_core_mat.emission = core_color
-	if _aura:
-		_aura.light_color = core_color
+	var profile := species.visual_profile_id
+	if profile == &"":
+		profile = &"emberling"
+	var need_rebuild := _root == null or profile != _profile or stage != _stage
+	_profile = profile
+	_stage = clampi(stage, 0, 2)
+	if need_rebuild:
+		_clear_build()
+		_build_profile(_profile, _stage)
+	_tint_materials()
+
+
+func refresh_from_manager() -> void:
+	var species := CreatureManager.get_species_data()
+	if species:
+		apply_from_creature(species, CreatureManager.get_evolution_stage())
 
 
 func set_anim(anim: Anim) -> void:
@@ -88,9 +117,15 @@ func get_anim() -> Anim:
 
 func set_walk_amount(amount: float) -> void:
 	_walk_amount = clampf(amount, 0.0, 1.0)
-	if _walk_amount > 0.12 and _anim != Anim.SLEEP and _anim != Anim.EAT and _anim != Anim.STRETCH and _anim != Anim.PET:
+	if _anim == Anim.SLEEP or _anim == Anim.EAT or _anim == Anim.STRETCH or _anim == Anim.PET:
+		return
+	if _anim == Anim.DISCOVERY or _anim == Anim.CURIOUS or _anim == Anim.HAPPY:
+		return
+	if _walk_amount > 0.72:
+		set_anim(Anim.RUN)
+	elif _walk_amount > 0.12:
 		set_anim(Anim.WALK)
-	elif _anim == Anim.WALK and _walk_amount <= 0.08:
+	elif _anim == Anim.WALK or _anim == Anim.RUN:
 		set_anim(Anim.IDLE)
 
 
@@ -99,7 +134,7 @@ func set_mood_tint(color: Color) -> void:
 		return
 	_body_mat.albedo_color = body_color.lerp(color, 0.28)
 	_body_mat.emission = color.lerp(body_color, 0.4)
-	_body_mat.emission_energy_multiplier = 0.4
+	_body_mat.emission_energy_multiplier = 0.35
 	if _aura:
 		_aura.light_color = color.lerp(core_color, 0.35)
 
@@ -119,7 +154,7 @@ func _process(delta: float) -> void:
 	if _blink_timer <= 0.0:
 		_do_blink()
 		_blink_timer = randf_range(1.8, 4.2)
-	if _look_timer <= 0.0 and (_anim == Anim.IDLE or _anim == Anim.HUNGRY):
+	if _look_timer <= 0.0 and (_anim == Anim.IDLE or _anim == Anim.HUNGRY or _anim == Anim.CURIOUS):
 		_look_target = randf_range(-28.0, 28.0)
 		_look_timer = randf_range(1.4, 3.2)
 	_look_yaw = lerpf(_look_yaw, _look_target, clampf(delta * 2.5, 0.0, 1.0))
@@ -128,85 +163,182 @@ func _process(delta: float) -> void:
 		_orbit_a.rotation.y = _time * 1.4
 		_orbit_b.rotation.y = -_time * 1.1
 	if _aura:
-		_aura.light_energy = 0.55 + sin(_time * 2.0) * 0.08 + _feedback_flash * 0.8
+		_aura.light_energy = 0.5 + sin(_time * 2.0) * 0.08 + _feedback_flash * 0.8
 
 
-func _build() -> void:
+func _clear_build() -> void:
+	for child in get_children():
+		child.queue_free()
+	_root = null
+	_body = null
+	_belly = null
+	_head = null
+	_snout = null
+	_core = null
+	_crest = null
+	_spike_a = null
+	_spike_b = null
+	_spike_c = null
+	_arm_l = null
+	_arm_r = null
+	_fin_l = null
+	_fin_r = null
+	_eye_l = null
+	_eye_r = null
+	_cheek_l = null
+	_cheek_r = null
+	_tail = null
+	_tail_tip = null
+	_orbit_a = null
+	_orbit_b = null
+	_leg_fl = null
+	_leg_fr = null
+	_leg_bl = null
+	_leg_br = null
+	_aura = null
+	_heart_burst = null
+
+
+func _build_profile(profile: StringName, stage: int) -> void:
 	_root = Node3D.new()
 	_root.name = "Root"
 	add_child(_root)
+	_body_mat = _emit_mat(body_color, 0.35)
+	_core_mat = _emit_mat(core_color, 1.4)
+	if profile == &"sparkbit":
+		_build_sparkbit()
+	else:
+		_build_emberling(stage)
+	_build_heart_particles()
+	_build_aura()
 
-	_body_mat = _emit_mat(body_color, 0.45)
-	_core_mat = _emit_mat(core_color, 1.8)
 
-	## Pear body — digital spirit silhouette (taller than a blob).
+func _build_emberling(stage: int) -> void:
+	## Scale grows with evolution — silhouette stays the same family.
+	var s := 1.0 + float(stage) * 0.18
+	_root.scale = Vector3(s, s, s)
+
+	## Strong legs + round body — readable from top-down handheld camera.
+	_body = _sphere(0.30, body_color, Vector3(0, 0.42, 0), "Body")
+	_body.scale = Vector3(1.05, 1.0, 0.95)
+	_body.material_override = _body_mat
+
+	_belly = _sphere(0.18, core_color, Vector3(0, 0.38, 0.16), "Belly")
+	_belly.scale = Vector3(1.1, 0.95, 0.55)
+	_belly.material_override = _emit_mat(core_color, 0.25)
+
+	_head = _sphere(0.26, body_color, Vector3(0, 0.78, 0.08), "Head")
+	_head.scale = Vector3(1.05, 0.95, 1.0)
+	_head.material_override = _body_mat
+
+	_snout = _sphere(0.11, body_color.lightened(0.08), Vector3(0, 0.70, 0.28), "Snout")
+	_snout.scale = Vector3(0.9, 0.7, 1.1)
+
+	## Oversized eyes — mood readable on a small screen.
+	_eye_l = _sphere(0.075, Color(0.08, 0.09, 0.14), Vector3(-0.10, 0.82, 0.26), "EyeL")
+	_eye_r = _sphere(0.075, Color(0.08, 0.09, 0.14), Vector3(0.10, 0.82, 0.26), "EyeR")
+	_sphere(0.025, Color(1, 1, 1), Vector3(-0.08, 0.85, 0.31), "HiliteL")
+	_sphere(0.025, Color(1, 1, 1), Vector3(0.12, 0.85, 0.31), "HiliteR")
+
+	_cheek_l = _sphere(0.05, Color(1.0, 0.45, 0.35), Vector3(-0.18, 0.72, 0.22), "CheekL")
+	_cheek_r = _sphere(0.05, Color(1.0, 0.45, 0.35), Vector3(0.18, 0.72, 0.22), "CheekR")
+
+	## Short arms
+	_arm_l = _capsule(0.045, 0.14, body_color.darkened(0.05), Vector3(-0.28, 0.48, 0.08), "ArmL")
+	_arm_r = _capsule(0.045, 0.14, body_color.darkened(0.05), Vector3(0.28, 0.48, 0.08), "ArmR")
+	_arm_l.rotation_degrees.z = 25.0
+	_arm_r.rotation_degrees.z = -25.0
+
+	## Bipedal legs (front pair primary; rear stubs for silhouette thickness).
+	_leg_fl = _capsule(0.07, 0.22, body_color.darkened(0.12), Vector3(-0.11, 0.14, 0.06), "LegL")
+	_leg_fr = _capsule(0.07, 0.22, body_color.darkened(0.12), Vector3(0.11, 0.14, 0.06), "LegR")
+	_leg_bl = _sphere(0.06, body_color.darkened(0.15), Vector3(-0.09, 0.06, -0.04), "FootL")
+	_leg_br = _sphere(0.06, body_color.darkened(0.15), Vector3(0.09, 0.06, -0.04), "FootR")
+	_leg_bl.scale = Vector3(1.3, 0.55, 1.5)
+	_leg_br.scale = Vector3(1.3, 0.55, 1.5)
+
+	## Long expressive tail
+	_tail = _sphere(0.11, body_color, Vector3(0, 0.38, -0.32), "Tail")
+	_tail.scale = Vector3(0.7, 0.65, 1.55)
+	_tail.material_override = _body_mat
+	_tail_tip = _sphere(0.07, accent_color, Vector3(0, 0.36, -0.58), "TailTip")
+	_tail_tip.material_override = _emit_mat(accent_color, 0.7)
+
+	## Back spikes — grow with stage
+	_spike_a = _sphere(0.07, accent_color, Vector3(0, 0.62, -0.08), "SpikeA")
+	_spike_a.scale = Vector3(0.45, 1.1 + 0.25 * stage, 0.45)
+	_spike_a.material_override = _emit_mat(accent_color, 0.6)
+	_spike_b = _sphere(0.06, accent_color, Vector3(0, 0.55, -0.18), "SpikeB")
+	_spike_b.scale = Vector3(0.4, 0.95 + 0.2 * stage, 0.4)
+	_spike_b.material_override = _emit_mat(accent_color, 0.55)
+	if stage >= 1:
+		_spike_c = _sphere(0.055, accent_color, Vector3(0, 0.88, 0.0), "CrestSpike")
+		_spike_c.scale = Vector3(0.35, 1.2, 0.35)
+		_spike_c.material_override = _emit_mat(accent_color, 0.9)
+	if stage >= 2:
+		## Shoulder plates — guardian presence without changing species ID.
+		var plate_l := _box(Vector3(0.14, 0.1, 0.18), accent_color.darkened(0.1), Vector3(-0.26, 0.58, 0.0), "PlateL")
+		_root.add_child(plate_l)
+		var plate_r := _box(Vector3(0.14, 0.1, 0.18), accent_color.darkened(0.1), Vector3(0.26, 0.58, 0.0), "PlateR")
+		_root.add_child(plate_r)
+
+	## Soft brow ridges as "fins" for happy/sad posing reuse
+	_fin_l = _sphere(0.06, body_color.darkened(0.08), Vector3(-0.16, 0.92, 0.1), "BrowL")
+	_fin_l.scale = Vector3(0.8, 0.4, 0.5)
+	_fin_r = _sphere(0.06, body_color.darkened(0.08), Vector3(0.16, 0.92, 0.1), "BrowR")
+	_fin_r.scale = Vector3(0.8, 0.4, 0.5)
+
+	_crest = _spike_c if _spike_c else _spike_a
+	_core = _belly
+
+
+func _build_sparkbit() -> void:
+	## Legacy cyan spirit — kept for old saves / profile id.
 	_body = _sphere(0.34, body_color, Vector3(0, 0.48, 0), "Body")
 	_body.scale = Vector3(0.95, 1.15, 0.9)
 	_body.material_override = _body_mat
-
-	## Glowing data-core in the chest.
 	_core = _sphere(0.12, core_color, Vector3(0, 0.5, 0.22), "Core")
 	_core.material_override = _core_mat
-
-	## Antenna crest — unique silhouette read from 2.5D camera.
 	_crest = _sphere(0.1, accent_color, Vector3(0, 0.92, 0), "Crest")
 	_crest.scale = Vector3(0.55, 1.4, 0.55)
-	var crest_mat := _emit_mat(accent_color, 1.2)
-	_crest.material_override = crest_mat
-	var crest_tip := _sphere(0.07, core_color, Vector3(0, 1.12, 0), "CrestTip")
-	crest_tip.material_override = _emit_mat(core_color, 2.0)
-
-	## Soft fin-cheeks (not animal ears — digital fins).
+	_crest.material_override = _emit_mat(accent_color, 1.2)
 	_fin_l = _sphere(0.14, accent_color, Vector3(-0.34, 0.62, 0.0), "FinL")
 	_fin_l.scale = Vector3(0.55, 1.1, 0.35)
 	_fin_r = _sphere(0.14, accent_color, Vector3(0.34, 0.62, 0.0), "FinR")
 	_fin_r.scale = Vector3(0.55, 1.1, 0.35)
-
 	_eye_l = _sphere(0.055, Color(0.08, 0.1, 0.16), Vector3(-0.11, 0.58, 0.28), "EyeL")
 	_eye_r = _sphere(0.055, Color(0.08, 0.1, 0.16), Vector3(0.11, 0.58, 0.28), "EyeR")
-	_sphere(0.02, Color(1, 1, 1), Vector3(-0.09, 0.6, 0.32), "HiliteL")
-	_sphere(0.02, Color(1, 1, 1), Vector3(0.13, 0.6, 0.32), "HiliteR")
-
 	_cheek_l = _sphere(0.045, Color(1.0, 0.55, 0.55), Vector3(-0.2, 0.48, 0.26), "CheekL")
 	_cheek_r = _sphere(0.045, Color(1.0, 0.55, 0.55), Vector3(0.2, 0.48, 0.26), "CheekR")
-
-	## Comet-tail of soft cubes (digital, not fox).
 	_tail = _sphere(0.1, accent_color, Vector3(0, 0.4, -0.38), "Tail")
 	_tail.scale = Vector3(0.7, 0.7, 1.3)
-	_tail.material_override = _emit_mat(accent_color, 0.7)
-
-	## Orbiting bit-shards — fantasy digital identity.
 	_orbit_a = Node3D.new()
 	_orbit_a.name = "OrbitA"
 	_orbit_a.position = Vector3(0, 0.55, 0)
 	_root.add_child(_orbit_a)
 	var bit_a := _box(Vector3(0.06, 0.06, 0.06), core_color, Vector3(0.48, 0.05, 0), "BitA")
 	_orbit_a.add_child(bit_a)
-	bit_a.material_override = _emit_mat(core_color, 1.5)
-
 	_orbit_b = Node3D.new()
 	_orbit_b.name = "OrbitB"
 	_orbit_b.position = Vector3(0, 0.55, 0)
 	_root.add_child(_orbit_b)
 	var bit_b := _box(Vector3(0.05, 0.05, 0.05), accent_color, Vector3(-0.42, -0.08, 0.1), "BitB")
 	_orbit_b.add_child(bit_b)
-	bit_b.material_override = _emit_mat(accent_color, 1.2)
-
 	_leg_fl = _capsule(0.05, 0.16, body_color.darkened(0.12), Vector3(-0.12, 0.1, 0.12), "LegFL")
 	_leg_fr = _capsule(0.05, 0.16, body_color.darkened(0.12), Vector3(0.12, 0.1, 0.12), "LegFR")
 	_leg_bl = _capsule(0.05, 0.16, body_color.darkened(0.12), Vector3(-0.12, 0.1, -0.12), "LegBL")
 	_leg_br = _capsule(0.05, 0.16, body_color.darkened(0.12), Vector3(0.12, 0.1, -0.12), "LegBR")
 
+
+func _build_aura() -> void:
 	_aura = OmniLight3D.new()
 	_aura.name = "CompanionAura"
 	_aura.position = Vector3(0, 0.55, 0)
 	_aura.light_color = core_color
-	_aura.light_energy = 0.6
-	_aura.omni_range = 2.4
+	_aura.light_energy = 0.55
+	_aura.omni_range = 2.2
 	_aura.shadow_enabled = false
 	add_child(_aura)
-
-	_build_heart_particles()
 
 
 func _build_heart_particles() -> void:
@@ -217,7 +349,7 @@ func _build_heart_particles() -> void:
 	_heart_burst.explosiveness = 0.9
 	_heart_burst.amount = 10
 	_heart_burst.lifetime = 0.7
-	_heart_burst.position = Vector3(0, 0.9, 0)
+	_heart_burst.position = Vector3(0, 0.95, 0)
 	var mat := ParticleProcessMaterial.new()
 	mat.direction = Vector3(0, 1, 0)
 	mat.spread = 60.0
@@ -226,16 +358,27 @@ func _build_heart_particles() -> void:
 	mat.gravity = Vector3(0, 0.6, 0)
 	mat.scale_min = 0.04
 	mat.scale_max = 0.08
-	mat.color = Color(1.0, 0.45, 0.55, 0.9)
+	mat.color = Color(1.0, 0.55, 0.35, 0.9)
 	_heart_burst.process_material = mat
 	var draw := SphereMesh.new()
 	draw.radius = 0.04
 	draw.height = 0.08
-	var draw_mat := _emit_mat(Color(1.0, 0.5, 0.6), 1.5)
+	var draw_mat := _emit_mat(Color(1.0, 0.55, 0.4), 1.5)
 	draw_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	draw.material = draw_mat
 	_heart_burst.draw_pass_1 = draw
 	add_child(_heart_burst)
+
+
+func _tint_materials() -> void:
+	if _body_mat:
+		_body_mat.albedo_color = body_color
+		_body_mat.emission = body_color
+	if _core_mat:
+		_core_mat.albedo_color = core_color
+		_core_mat.emission = core_color
+	if _aura:
+		_aura.light_color = core_color
 
 
 func _emit_mat(color: Color, energy: float) -> StandardMaterial3D:
@@ -243,6 +386,8 @@ func _emit_mat(color: Color, energy: float) -> StandardMaterial3D:
 	mat.emission_enabled = true
 	mat.emission = color
 	mat.emission_energy_multiplier = energy
+	## Slightly sharper for modern “pixel-inspired” handheld read.
+	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	return mat
 
 
@@ -252,8 +397,8 @@ func _sphere(radius: float, color: Color, pos: Vector3, node_name: String) -> Me
 	var mesh := SphereMesh.new()
 	mesh.radius = radius
 	mesh.height = radius * 2.0
-	mesh.radial_segments = 14
-	mesh.rings = 8
+	mesh.radial_segments = 12
+	mesh.rings = 7
 	mi.mesh = mesh
 	mi.material_override = StylizedMesh.make_material(color, 0.6)
 	mi.position = pos
@@ -302,7 +447,9 @@ func _animate(_delta: float) -> void:
 		Anim.IDLE:
 			_animate_idle()
 		Anim.WALK:
-			_animate_walk()
+			_animate_walk(false)
+		Anim.RUN:
+			_animate_walk(true)
 		Anim.SLEEP:
 			_animate_sleep()
 		Anim.EAT:
@@ -313,6 +460,10 @@ func _animate(_delta: float) -> void:
 			_animate_sad()
 		Anim.HUNGRY:
 			_animate_hungry()
+		Anim.CURIOUS:
+			_animate_curious()
+		Anim.DISCOVERY:
+			_animate_discovery()
 		Anim.STRETCH:
 			_animate_stretch()
 		Anim.PET:
@@ -320,108 +471,142 @@ func _animate(_delta: float) -> void:
 
 
 func _animate_idle() -> void:
-	_root.position.y = sin(_time * 2.1) * 0.03
-	_root.rotation_degrees = Vector3(0, _look_yaw * 0.35, 0)
-	_body.scale = Vector3(0.95, 1.15, 0.9) * (1.0 + sin(_time * 2.3) * 0.025)
-	_fin_l.rotation_degrees.z = 12.0 + sin(_time * 1.6) * 10.0
-	_fin_r.rotation_degrees.z = -12.0 - sin(_time * 1.6) * 10.0
-	_crest.rotation_degrees.z = sin(_time * 1.8) * 6.0
-	_tail.rotation_degrees.y = sin(_time * 2.8) * 16.0
+	_root.position.y = sin(_time * 2.0) * 0.025
+	_root.rotation_degrees = Vector3(0, _look_yaw * 0.4, 0)
+	if _body:
+		_body.scale = Vector3(1.05, 1.0, 0.95) * (1.0 + sin(_time * 2.2) * 0.03)
+	if _head:
+		_head.rotation_degrees.y = _look_yaw * 0.5
+	if _tail:
+		_tail.rotation_degrees.y = sin(_time * 2.6) * 14.0
+	if _tail_tip:
+		_tail_tip.rotation_degrees.y = sin(_time * 2.6) * 18.0
+	if _arm_l:
+		_arm_l.rotation_degrees.x = sin(_time * 1.5) * 8.0
+		_arm_r.rotation_degrees.x = -sin(_time * 1.5) * 8.0
 	_reset_legs(0.12)
 	_set_eyes_open(true)
-	_orbit_visible(true)
+	_orbit_visible(false)
 
 
-func _animate_walk() -> void:
-	var speed := 10.0
-	var swing := sin(_time * speed) * 26.0 * _walk_amount
-	_root.position.y = absf(sin(_time * speed)) * 0.06 * _walk_amount
-	_root.rotation_degrees = Vector3(0, 0, 0)
-	_leg_fl.rotation_degrees.x = swing
-	_leg_br.rotation_degrees.x = swing
-	_leg_fr.rotation_degrees.x = -swing
-	_leg_bl.rotation_degrees.x = -swing
-	_tail.rotation_degrees.y = sin(_time * speed) * 22.0
-	_fin_l.rotation_degrees.z = 18.0
-	_fin_r.rotation_degrees.z = -18.0
+func _animate_walk(running: bool) -> void:
+	var speed := 14.0 if running else 9.5
+	var amp := 34.0 if running else 24.0
+	var swing := sin(_time * speed) * amp * maxf(_walk_amount, 0.35)
+	_root.position.y = absf(sin(_time * speed)) * (0.09 if running else 0.05)
+	_root.rotation_degrees = Vector3(-6.0 if running else 0.0, 0, 0)
+	if _leg_fl:
+		_leg_fl.rotation_degrees.x = swing
+		_leg_fr.rotation_degrees.x = -swing
+	if _arm_l:
+		_arm_l.rotation_degrees.x = -swing * 0.6
+		_arm_r.rotation_degrees.x = swing * 0.6
+	if _tail:
+		_tail.rotation_degrees.y = sin(_time * speed) * (28.0 if running else 18.0)
+	if _head:
+		_head.rotation_degrees.x = -8.0 if running else 0.0
 	_set_eyes_open(true)
-	_orbit_visible(true)
+	_orbit_visible(false)
 
 
 func _animate_sleep() -> void:
-	_root.position.y = lerpf(_root.position.y, -0.05, 0.1)
-	_root.rotation_degrees = Vector3(0, 0, lerpf(_root.rotation_degrees.z, 58.0, 0.08))
-	_body.scale = Vector3(0.95, 1.15, 0.9) * (1.0 + sin(_time * 1.1) * 0.035)
+	_root.position.y = lerpf(_root.position.y, -0.04, 0.1)
+	_root.rotation_degrees = Vector3(0, 0, lerpf(_root.rotation_degrees.z, 52.0, 0.08))
+	if _body:
+		_body.scale = Vector3(1.05, 1.0, 0.95) * (1.0 + sin(_time * 1.0) * 0.04)
 	_set_eyes_open(false)
 	_reset_legs(0.2)
 	_orbit_visible(false)
 
 
 func _animate_eat() -> void:
-	_root.position.y = sin(_time * 8.0) * 0.02
-	_root.rotation_degrees.x = 16.0 + sin(_time * 8.0) * 5.0
-	_body.scale = Vector3(0.95, 1.15 + sin(_time * 8.0) * 0.04, 0.9)
+	_root.position.y = sin(_time * 7.5) * 0.02
+	_root.rotation_degrees.x = 14.0 + sin(_time * 7.5) * 5.0
+	if _head:
+		_head.rotation_degrees.x = 12.0 + sin(_time * 7.5) * 8.0
 	_set_eyes_open(true)
-	_orbit_visible(true)
 
 
 func _animate_happy() -> void:
-	_root.position.y = absf(sin(_time * 7.5)) * 0.2
-	_root.rotation_degrees.y = sin(_time * 5.5) * 22.0
-	_fin_l.rotation_degrees.z = 30.0
-	_fin_r.rotation_degrees.z = -30.0
-	_crest.rotation_degrees.z = sin(_time * 8.0) * 12.0
-	_tail.rotation_degrees.y = sin(_time * 14.0) * 40.0
-	_cheek_l.scale = Vector3.ONE * (1.0 + sin(_time * 6.0) * 0.15)
-	_cheek_r.scale = _cheek_l.scale
+	_root.position.y = absf(sin(_time * 7.0)) * 0.18
+	_root.rotation_degrees.y = sin(_time * 5.0) * 18.0
+	if _tail:
+		_tail.rotation_degrees.y = sin(_time * 14.0) * 42.0
+	if _arm_l:
+		_arm_l.rotation_degrees.z = 55.0
+		_arm_r.rotation_degrees.z = -55.0
+	if _cheek_l:
+		_cheek_l.scale = Vector3.ONE * (1.0 + sin(_time * 6.0) * 0.2)
+		_cheek_r.scale = _cheek_l.scale
 	_set_eyes_open(true)
-	_orbit_visible(true)
 
 
 func _animate_sad() -> void:
-	_root.position.y = sin(_time * 1.1) * 0.01
-	_root.rotation_degrees = Vector3(14.0, 0, 0)
-	_fin_l.rotation_degrees.z = -18.0
-	_fin_r.rotation_degrees.z = 18.0
-	_crest.rotation_degrees.x = 20.0
-	_body.scale = Vector3(1.02, 1.05, 1.02)
+	_root.position.y = sin(_time * 1.0) * 0.01
+	_root.rotation_degrees = Vector3(12.0, 0, 0)
+	if _head:
+		_head.rotation_degrees.x = 16.0
+	if _fin_l:
+		_fin_l.rotation_degrees.z = -12.0
+		_fin_r.rotation_degrees.z = 12.0
+	if _tail:
+		_tail.rotation_degrees.x = -18.0
 	_set_eyes_open(true)
-	_orbit_visible(false)
 
 
 func _animate_hungry() -> void:
-	## Sniff / search — lean forward, glance side to side.
 	_root.position.y = sin(_time * 3.0) * 0.02
-	_root.rotation_degrees = Vector3(18.0, _look_yaw * 0.8, 0)
-	_body.scale = Vector3(0.95, 1.1, 0.95)
-	_crest.rotation_degrees.x = -10.0 + sin(_time * 4.0) * 8.0
+	_root.rotation_degrees = Vector3(16.0, _look_yaw * 0.7, 0)
+	if _snout:
+		_snout.scale = Vector3(0.9, 0.7, 1.1) * (1.0 + sin(_time * 5.0) * 0.06)
 	_set_eyes_open(true)
-	_orbit_visible(true)
+
+
+func _animate_curious() -> void:
+	## Lean in, glance, sniff — investigating the world.
+	_root.position.y = sin(_time * 2.4) * 0.02
+	_root.rotation_degrees = Vector3(20.0, _look_yaw * 0.9, sin(_time * 1.8) * 4.0)
+	if _head:
+		_head.rotation_degrees.x = -6.0 + sin(_time * 3.0) * 6.0
+	if _tail:
+		_tail.rotation_degrees.y = sin(_time * 4.0) * 10.0
+	_set_eyes_open(true)
+
+
+func _animate_discovery() -> void:
+	## Spark of joy — hop + tail whip when a secret appears.
+	_root.position.y = absf(sin(_time * 9.0)) * 0.16
+	_root.rotation_degrees.y = sin(_time * 7.0) * 25.0
+	if _tail:
+		_tail.rotation_degrees.y = sin(_time * 16.0) * 50.0
+	if _arm_l:
+		_arm_l.rotation_degrees.z = 48.0
+		_arm_r.rotation_degrees.z = -48.0
+	_set_eyes_open(true)
 
 
 func _animate_stretch() -> void:
-	_root.position.y = 0.06
-	_root.rotation_degrees.x = -20.0 + sin(_time * 2.0) * 4.0
-	_body.scale = Vector3(1.05, 1.0, 1.15)
-	_fin_l.rotation_degrees.z = 22.0
-	_fin_r.rotation_degrees.z = -22.0
+	_root.position.y = 0.05
+	_root.rotation_degrees.x = -18.0 + sin(_time * 2.0) * 4.0
+	if _arm_l:
+		_arm_l.rotation_degrees.z = 40.0
+		_arm_r.rotation_degrees.z = -40.0
 	_set_eyes_open(true)
-	_orbit_visible(true)
 
 
 func _animate_pet() -> void:
-	_root.position.y = absf(sin(_time * 5.0)) * 0.08
+	_root.position.y = absf(sin(_time * 5.0)) * 0.07
 	_root.rotation_degrees.y = sin(_time * 3.0) * 10.0
-	_fin_l.rotation_degrees.z = 25.0
-	_fin_r.rotation_degrees.z = -25.0
-	_cheek_l.scale = Vector3.ONE * 1.25
-	_cheek_r.scale = Vector3.ONE * 1.25
+	if _cheek_l:
+		_cheek_l.scale = Vector3.ONE * 1.3
+		_cheek_r.scale = Vector3.ONE * 1.3
+	if _tail:
+		_tail.rotation_degrees.y = sin(_time * 10.0) * 30.0
 	_set_eyes_open(true)
-	_orbit_visible(true)
 
 
 func _reset_legs(lerp_w: float) -> void:
-	for leg in [_leg_fl, _leg_fr, _leg_bl, _leg_br]:
+	for leg in [_leg_fl, _leg_fr]:
 		if leg:
 			leg.rotation_degrees.x = lerpf(leg.rotation_degrees.x, 0.0, lerp_w)
 

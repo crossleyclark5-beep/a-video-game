@@ -209,7 +209,8 @@ func _apply_species_look() -> void:
 	var inst := CreatureManager.get_active_instance()
 	if inst == null or visual == null:
 		return
-	visual.apply_species_colors(inst.get_species())
+	visual.apply_from_creature(inst.get_species(), CreatureManager.get_evolution_stage())
+	visual.set_mood_tint(CreatureManager.get_mood_color())
 
 
 func _update_idle_visual() -> void:
@@ -220,6 +221,8 @@ func _update_idle_visual() -> void:
 		visual.set_anim(CompanionVisual.Anim.SLEEP)
 	elif CreatureManager.get_hunger() < 40.0:
 		visual.set_anim(CompanionVisual.Anim.HUNGRY)
+	elif mood == CreatureManager.Mood.BORED:
+		visual.set_anim(CompanionVisual.Anim.CURIOUS if randf() < 0.4 else CompanionVisual.Anim.IDLE)
 	elif mood == CreatureManager.Mood.EXCITED or mood == CreatureManager.Mood.HAPPY:
 		visual.set_anim(CompanionVisual.Anim.HAPPY if randf() < 0.03 else CompanionVisual.Anim.IDLE)
 	else:

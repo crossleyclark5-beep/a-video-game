@@ -297,12 +297,19 @@ func show_status_message(text: String) -> void:
 
 
 func _refresh() -> void:
-	_name_label.text = CreatureManager.get_companion_nickname()
+	var stage := CreatureManager.get_stage_display_name()
+	var nick := CreatureManager.get_companion_nickname()
+	if stage != nick and not stage.is_empty():
+		_name_label.text = "%s  ·  %s" % [nick, stage]
+	else:
+		_name_label.text = nick
 	_mood_label.text = CreatureManager.get_mood_label()
 	_level_label.text = "Lv.%d  ·  XP %d%%" % [
 		CreatureManager.get_level(),
 		int(CreatureManager.get_xp_progress() * 100.0),
 	]
+	if CreatureManager.can_evolve():
+		_level_label.text += "  ·  Ready to grow!"
 	if not _status_label.text.begins_with("Shop") and not _status_label.text.begins_with("Collection"):
 		_status_label.text = CreatureManager.get_status_line()
 	_bits_label.text = "%d Bits" % InventoryManager.get_bits()

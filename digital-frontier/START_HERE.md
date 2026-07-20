@@ -63,7 +63,7 @@ Editor fallbacks: WASD, E/Space=A, Esc=B, Tab=Start, Q=X, C=Y, M=R, Shift=L, H=H
 
 Autosave on scene change (including world position).
 
-In Adventure your companion **follows you**, notices secrets (**Y** to ask them), and grows friendship from exploring together.
+In Adventure your companion **Emberling** follows you, notices secrets (**Y** to ask them), and grows friendship from exploring together. Care + bond can evolve them into **Emberaptor**, then **Emberion**.
 
 ---
 

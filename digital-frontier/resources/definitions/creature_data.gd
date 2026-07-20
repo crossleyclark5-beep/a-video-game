@@ -19,6 +19,12 @@ enum Rarity {
 @export var ability_ids: PackedStringArray = PackedStringArray()
 @export var evolution_chain_id: StringName = &""
 @export var max_evolution_stage: int = 0
+## Display names per evolution stage (0 = base). Falls back to display_name.
+@export var stage_display_names: PackedStringArray = PackedStringArray()
+## Level required to unlock stage 1, stage 2, ...
+@export var evolve_level_thresholds: PackedInt32Array = PackedInt32Array()
+## Friendship required alongside level for each stage unlock.
+@export var evolve_friendship_thresholds: PackedInt32Array = PackedInt32Array()
 
 @export var scene_path: String = ""       ## Battle/overworld creature scene
 @export var icon_path: String = ""
@@ -36,8 +42,15 @@ enum Rarity {
 ## Visual / animation profile ids — resolve to skins & anim sets later.
 @export var default_skin_id: StringName = &"default"
 @export var available_skin_ids: PackedStringArray = PackedStringArray(["default"])
-@export var visual_profile_id: StringName = &"sparkbit"
+@export var visual_profile_id: StringName = &"emberling"
 @export var anim_set_id: StringName = &"companion_default"
+
+## Flavor for journals / Field Unit (optional).
+@export_multiline var lore_blurb: String = ""
+@export var likes: PackedStringArray = PackedStringArray()
+@export var dislikes: PackedStringArray = PackedStringArray()
+@export var habitat_blurb: String = ""
+@export var favorite_activities: PackedStringArray = PackedStringArray()
 
 ## Personality defaults (0–100). Copied onto new CreatureInstance.
 @export var default_personality: Dictionary = {

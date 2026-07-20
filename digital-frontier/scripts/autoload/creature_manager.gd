@@ -14,7 +14,7 @@ enum Mood {
 	TIRED,
 }
 
-const STARTER_CREATURE_ID := &"sparkbit"
+const STARTER_CREATURE_ID := &"emberling"
 
 const CARE_FEED := {
 	"hunger": 28.0,
@@ -112,6 +112,61 @@ func get_evolution_stage() -> int:
 	return _active.evolution_stage if _active else 0
 
 
+func get_stage_display_name() -> String:
+	var species := get_species_data()
+	if species == null:
+		return get_companion_nickname()
+	var stage := get_evolution_stage()
+	if stage >= 0 and stage < species.stage_display_names.size():
+		return String(species.stage_display_names[stage])
+	return species.display_name if not species.display_name.is_empty() else get_companion_nickname()
+
+
+func can_evolve() -> bool:
+	if _active == null:
+		return false
+	var species := get_species_data()
+	if species == null:
+		return false
+	var next := _active.evolution_stage + 1
+	if next > species.max_evolution_stage:
+		return false
+	var idx := _active.evolution_stage  ## threshold index for advancing TO next
+	var need_level := 99
+	var need_friend := 100.0
+	if idx < species.evolve_level_thresholds.size():
+		need_level = int(species.evolve_level_thresholds[idx])
+	if idx < species.evolve_friendship_thresholds.size():
+		need_friend = float(species.evolve_friendship_thresholds[idx])
+	return get_level() >= need_level and get_friendship() >= need_friend
+
+
+func try_evolve() -> Dictionary:
+	## Returns {evolved, stage, name, message}. Safe no-op if not ready.
+	if not can_evolve():
+		return {"evolved": false, "stage": get_evolution_stage(), "name": get_stage_display_name(), "message": ""}
+	_active.evolution_stage += 1
+	## Soft stat bump — keeps identity, feels like growth.
+	for key in _active.stats.keys():
+		_active.stats[key] = float(_active.stats[key]) * 1.12 + 1.0
+	_active.happiness = minf(100.0, _active.happiness + 12.0)
+	_active.friendship = minf(100.0, _active.friendship + 8.0)
+	_sync_captured_active()
+	var new_name := get_stage_display_name()
+	## Keep nickname as player bond name; toast uses stage form name.
+	EventBus.companion_state_changed.emit()
+	DeviceService.notify_event(&"achievement")
+	var msg := "%s evolved into %s!" % [get_companion_nickname(), new_name]
+	EventBus.ui_notification_requested.emit(msg, 3.2)
+	return {"evolved": true, "stage": _active.evolution_stage, "name": new_name, "message": msg}
+
+
+func check_evolution_after_growth() -> void:
+	## Auto-evolve when thresholds met (handheld — no menu required).
+	if can_evolve():
+		try_evolve()
+
+
 func get_stats() -> Dictionary:
 	return _active.stats.duplicate() if _active else {}
 
@@ -149,6 +204,7 @@ func get_needs_snapshot() -> Dictionary:
 		"creature_id": String(get_companion_id()),
 		"instance_id": String(get_companion_instance_id()),
 		"display_name": get_companion_nickname(),
+		"stage_name": get_stage_display_name(),
 		"level": get_level(),
 		"experience": get_experience(),
 		"xp_progress": get_xp_progress(),
@@ -161,6 +217,7 @@ func get_needs_snapshot() -> Dictionary:
 		"mood_value": get_happiness(),
 		"skin_id": String(get_skin_id()),
 		"evolution_stage": get_evolution_stage(),
+		"can_evolve": can_evolve(),
 		"stats": get_stats(),
 		"personality": get_personality_snapshot(),
 		"adventure_ready": is_adventure_ready(),
@@ -222,9 +279,10 @@ func get_energy_label() -> String:
 
 func get_status_line() -> String:
 	var name := get_companion_nickname()
+	var form := get_stage_display_name()
 	match get_mood():
 		Mood.EXCITED:
-			return "%s (Lv.%d) is buzzing — ready for adventure!" % [name, get_level()]
+			return "%s (Lv.%d · %s) is buzzing — ready for adventure!" % [name, get_level(), form]
 		Mood.HAPPY:
 			return "%s looks happy and ready to explore." % name
 		Mood.CONTENT:
@@ -330,6 +388,7 @@ func grant_adventure_experience(amount: int) -> Dictionary:
 			"%s reached Lv.%d!" % [get_companion_nickname(), get_level()],
 			2.8,
 		)
+		check_evolution_after_growth()
 	return result
 
 
@@ -345,11 +404,12 @@ func grant_adventure_bond(amount: float, reason: String = "") -> void:
 	EventBus.companion_state_changed.emit()
 	if not reason.is_empty():
 		EventBus.ui_notification_requested.emit("%s — bond +%.0f" % [reason, amount], 1.8)
+	check_evolution_after_growth()
 
 
 func get_adventure_status_line() -> String:
 	return "%s  Lv.%d  ·  %s  ·  Bond %d%%" % [
-		get_companion_nickname(),
+		get_stage_display_name(),
 		get_level(),
 		get_mood_label(),
 		int(get_friendship()),
@@ -456,6 +516,8 @@ func _ensure_starter_companion() -> void:
 		return
 	var data: CreatureData = ResourceRegistry.get_creature(STARTER_CREATURE_ID)
 	if data == null:
+		data = ResourceRegistry.get_creature(&"sparkbit")
+	if data == null:
 		data = ResourceRegistry.get_creature(&"pixel_fox")
 	if data == null:
 		push_warning("CreatureManager: no starter species found")
@@ -483,6 +545,7 @@ func _care(action: StringName, base_deltas: Dictionary, xp: int, message_fmt: St
 	var msg := message_fmt % get_companion_nickname()
 	if level_info.get("leveled_up", false):
 		msg += "  Level up! Now Lv.%d." % int(level_info.get("new_level", get_level()))
+	check_evolution_after_growth()
 	return msg
 
 

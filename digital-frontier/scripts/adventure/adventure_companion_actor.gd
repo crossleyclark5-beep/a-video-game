@@ -110,8 +110,15 @@ func _build_visual() -> void:
 	add_child(_visual)
 	var species := CreatureManager.get_species_data()
 	if species:
-		_visual.apply_species_colors(species)
+		_visual.apply_from_creature(species, CreatureManager.get_evolution_stage())
 	_visual.set_anim(CompanionVisual.Anim.IDLE)
+	if not EventBus.companion_state_changed.is_connected(_on_companion_changed):
+		EventBus.companion_state_changed.connect(_on_companion_changed)
+
+
+func _on_companion_changed() -> void:
+	if _visual:
+		_visual.refresh_from_manager()
 
 
 func _apply_species_tuning() -> void:
@@ -330,7 +337,7 @@ func _idle_look() -> void:
 		&"sleep":
 			_visual.set_anim(CompanionVisual.Anim.SLEEP)
 		&"explore":
-			_visual.set_anim(CompanionVisual.Anim.STRETCH)
+			_visual.set_anim(CompanionVisual.Anim.CURIOUS)
 		_:
 			_visual.set_anim(CompanionVisual.Anim.IDLE)
 	rotate_y(randf_range(-0.6, 0.6))
@@ -406,7 +413,7 @@ func _raise_notice(target: Node3D, kind: StringName, id: StringName, ability: Cr
 	_state = State.NOTICE
 	_cooldown = ability.cooldown_seconds
 	if _visual:
-		_visual.set_anim(CompanionVisual.Anim.HAPPY)
+		_visual.set_anim(CompanionVisual.Anim.DISCOVERY)
 		_visual.play_feedback_burst(&"heart")
 	EventBus.companion_noticed.emit(id, kind)
 	DeviceService.play_haptic(&"discover", 0.35)
@@ -489,7 +496,10 @@ func _update_visual_motion() -> void:
 	var planar := Vector2(velocity.x, velocity.z).length()
 	_visual.set_walk_amount(clampf(planar / BASE_SPEED, 0.0, 1.0))
 	if _state == State.FOLLOW and planar > 0.4:
-		_visual.set_anim(CompanionVisual.Anim.WALK)
+		if planar > 5.5:
+			_visual.set_anim(CompanionVisual.Anim.RUN)
+		else:
+			_visual.set_anim(CompanionVisual.Anim.WALK)
 
 
 func _personality_quip() -> String:
