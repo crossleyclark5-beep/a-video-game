@@ -58,7 +58,7 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 	ticket.position = Vector3(-8, 0, 42)
 	hub.add_child(ticket)
 	StylizedMesh.add_box(ticket, Vector3(4.5, 2.8, 3.2), Color(0.55, 0.2, 0.18), Vector3(0, 1.4, 0), "Booth", true, 1.0, &"wood")
-	StylizedMesh.add_box(ticket, Vector3(5.0, 0.3, 3.6), WorldPalette.ROOF, Vector3(0, 2.95, 0), "Roof", false, 1.0, &"wood")
+	StylizedMesh.add_box(ticket, Vector3(5.0, 0.3, 3.6), WorldPalette.ROOF, Vector3(0, 2.95, 0), "Roof", false, 1.0, &"roof")
 	StylizedMesh.add_box(ticket, Vector3(1.6, 1.0, 0.1), WorldPalette.WINDOW, Vector3(0, 1.5, 1.65), "Window")
 	var tlabel := Label3D.new()
 	tlabel.text = "TICKETS"
@@ -69,7 +69,7 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 
 	## Snack / food stand east side.
 	StylizedMesh.add_box(hub, Vector3(7, 3.0, 5), Color(0.86, 0.55, 0.2), Vector3(28, 1.5, 10), "SnackShack", true, 1.0, &"brick")
-	StylizedMesh.add_box(hub, Vector3(7.8, 0.35, 5.6), WorldPalette.ROOF_RED, Vector3(28, 3.2, 10), "SnackRoof", false, 1.0, &"wood")
+	StylizedMesh.add_box(hub, Vector3(7.8, 0.35, 5.6), WorldPalette.ROOF_RED, Vector3(28, 3.2, 10), "SnackRoof", false, 1.0, &"roof")
 	StylizedMesh.add_box(hub, Vector3(3.2, 1.4, 0.1), WorldPalette.WINDOW, Vector3(28, 1.6, 12.55), "SnackWindow")
 	RegionPropKit.add_discoverable(hub, &"snack_shack", "Snack Shack", Vector3(28, 0.5, 14), 12, "Popcorn ghosts and sticky counters.")
 

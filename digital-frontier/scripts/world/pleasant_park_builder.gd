@@ -88,13 +88,25 @@ static func _add_terrain(root: Node3D) -> void:
 		var tint := DIRT.lightened(0.04 * float(i % 3))
 		StylizedMesh.add_box(terrain, d[1], tint, d[0], "Dirt_%d" % i, false, 1.0, &"dirt")
 
-	## Tiny ground imperfections (pebbles / bare spots).
-	for i in 10:
-		var ang := float(i) * 2.3
-		var r := 8.0 + float(i % 5) * 4.5
+	## Tiny ground imperfections (pebbles / bare spots / grass clumps).
+	for i in 18:
+		var ang := float(i) * 2.15
+		var r := 7.0 + float(i % 6) * 4.2
 		var pos := Vector3(cos(ang) * r, 0.04, sin(ang) * r * 0.85)
-		var s := 0.28 + float(i % 3) * 0.12
-		StylizedMesh.add_box(terrain, Vector3(s, 0.04, s * 0.7), DIRT.darkened(0.08), pos, "Pebble_%d" % i, false, 1.0, &"dirt")
+		var s := 0.22 + float(i % 3) * 0.1
+		if i % 3 == 0:
+			StylizedMesh.add_box(terrain, Vector3(s, 0.05, s * 0.65), DIRT.darkened(0.08), pos, "Pebble_%d" % i, false, 1.0, &"dirt")
+		elif i % 3 == 1:
+			StylizedMesh.add_box(terrain, Vector3(s * 1.4, 0.03, s * 1.1), GRASS_D, pos, "Tuft_%d" % i, false, 1.0, &"grass")
+		else:
+			StylizedMesh.add_box(terrain, Vector3(0.12, 0.22, 0.12), WorldPalette.LEAF_DARK, pos + Vector3(0, 0.1, 0), "Plant_%d" % i, false, 1.0, &"leaf")
+			StylizedMesh.add_box(terrain, Vector3(0.2, 0.14, 0.2), WorldPalette.LEAF_LIT, pos + Vector3(0, 0.22, 0), "PlantTop_%d" % i, false, 1.0, &"leaf")
+
+	## Path edge wear — denser dirt/path texture along park ring approaches.
+	for i in 8:
+		var a := float(i) * TAU / 8.0
+		var edge := Vector3(cos(a) * (PARK_HALF + 0.8), 0.028, sin(a) * (PARK_HALF + 0.8))
+		StylizedMesh.add_box(terrain, Vector3(1.6, 0.025, 0.9), PATH.darkened(0.05), edge, "PathWear_%d" % i, false, 1.0, &"path")
 
 
 # --- Roads -------------------------------------------------------------------
@@ -376,7 +388,7 @@ static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 	StylizedMesh.add_box(house, Vector3(3.0, 0.04, 4.2), ROAD.lightened(0.08), Vector3(4.2, 0.04, 3.5), "Driveway", true, 1.0, &"asphalt")
 
 	## Main body + foundation
-	var wall_pattern: StringName = &"brick" if style == &"brick" else &"flat"
+	var wall_pattern: StringName = &"brick" if style == &"brick" else &"wood"
 	StylizedMesh.add_box(house, Vector3(7.6, 0.25, 6.3), WorldPalette.SIDEWALK, Vector3(0, 0.12, 0), "Foundation", false, 1.0, &"asphalt")
 	if enterable:
 		## Open-top shell — walls with front doorway so interiors stay visible under a faded roof.
@@ -405,10 +417,14 @@ static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 	if enterable:
 		roof_mi.material_override = StylizedMesh.make_transparent_material(roof_c)
 	else:
-		roof_mi.material_override = StylizedMesh.make_material(roof_c, 1.0, 0.0, 0.0, &"wood")
+		roof_mi.material_override = StylizedMesh.make_material(roof_c, 1.0, 0.0, 0.0, &"roof")
 	roof_mi.position = Vector3(0, 3.72, 0)
 	house.add_child(roof_mi)
-	StylizedMesh.add_box(house, Vector3(5.2, 0.85, 4.6), roof_c.darkened(0.1), Vector3(0, 4.28, 0), "RoofPeak", false, 1.0, &"wood")
+	StylizedMesh.add_box(house, Vector3(5.2, 0.85, 4.6), roof_c.darkened(0.1), Vector3(0, 4.28, 0), "RoofPeak", false, 1.0, &"roof")
+	## Ridge tile + eave shingles for high-res roof read.
+	StylizedMesh.add_box(house, Vector3(5.4, 0.12, 0.35), roof_c.lightened(0.06), Vector3(0, 4.72, 0), "Ridge", false, 1.0, &"roof")
+	StylizedMesh.add_box(house, Vector3(8.6, 0.1, 0.28), roof_c.darkened(0.15), Vector3(0, 3.45, 3.45), "EaveF", false, 1.0, &"roof")
+	StylizedMesh.add_box(house, Vector3(8.6, 0.1, 0.28), roof_c.darkened(0.15), Vector3(0, 3.45, -3.45), "EaveB", false, 1.0, &"roof")
 	StylizedMesh.add_box(house, Vector3(8.7, 0.08, 0.12), WorldPalette.METAL, Vector3(0, 3.35, 3.55), "GutterF")
 	StylizedMesh.add_box(house, Vector3(8.7, 0.08, 0.12), WorldPalette.METAL, Vector3(0, 3.35, -3.55), "GutterB")
 	StylizedMesh.add_box(house, Vector3(0.1, 3.2, 0.1), WorldPalette.METAL, Vector3(-4.1, 1.7, 3.5), "Downspout")
@@ -465,6 +481,9 @@ static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 			NodePath("Roof"),
 			NodePath("RoofPeak"),
 			NodePath("PorchRoof"),
+			NodePath("Ridge"),
+			NodePath("EaveF"),
+			NodePath("EaveB"),
 		])
 		house.set("cutaway_paths", [
 			NodePath("Garage"),
@@ -638,19 +657,38 @@ static func _add_vegetation(root: Node3D) -> void:
 	var rocks := Node3D.new()
 	rocks.name = "Rocks"
 	root.add_child(rocks)
-	for i in 10:
-		var a := float(i) * 1.7
-		var pos := Vector3(cos(a) * (10 + float(i)), 0.08, sin(a) * (8 + float(i % 4) * 2))
+	for i in 16:
+		var a := float(i) * 1.55
+		var pos := Vector3(cos(a) * (9.5 + float(i) * 0.9), 0.08, sin(a) * (7.5 + float(i % 5) * 1.8))
 		var c := WorldPalette.ROCK.darkened(0.05 * float(i % 3))
-		StylizedMesh.add_box(rocks, Vector3(0.4 + float(i % 3) * 0.15, 0.2 + float(i % 2) * 0.1, 0.35), c, pos, "Rock_%d" % i)
+		var rs := Vector3(0.32 + float(i % 3) * 0.12, 0.16 + float(i % 2) * 0.1, 0.28 + float(i % 4) * 0.06)
+		StylizedMesh.add_box(rocks, rs, c, pos, "Rock_%d" % i, false, 1.0, &"dirt")
+		if i % 3 == 0:
+			StylizedMesh.add_box(rocks, rs * Vector3(0.55, 0.7, 0.5), c.lightened(0.08), pos + Vector3(0.12, 0.06, -0.08), "RockChip_%d" % i)
 
 	var leaves := Node3D.new()
 	leaves.name = "FallenLeaves"
 	root.add_child(leaves)
-	for i in 12:
-		var pos := Vector3(-6 + float(i % 4) * 4.0, 0.05, -5 + float(i / 4) * 5.0)
+	for i in 20:
+		var pos := Vector3(-7 + float(i % 5) * 3.5, 0.05, -6 + float(i / 5) * 4.0)
 		var lc := Color(0.75, 0.45, 0.2) if i % 2 == 0 else Color(0.7, 0.55, 0.15)
-		StylizedMesh.add_box(leaves, Vector3(0.5, 0.02, 0.35), lc, pos, "Leaf_%d" % i, false, 0.95)
+		StylizedMesh.add_box(leaves, Vector3(0.35, 0.02, 0.22), lc, pos, "Leaf_%d" % i, false, 1.0, &"leaf")
+
+	## Small roadside plants for high-res ground clutter.
+	var plants := Node3D.new()
+	plants.name = "SmallPlants"
+	root.add_child(plants)
+	var plant_spots := [
+		Vector3(-7, 0, -11), Vector3(7.5, 0, 11), Vector3(-11, 0, 6), Vector3(11, 0, -6),
+		Vector3(2, 0, -12), Vector3(-3, 0, 12), Vector3(22, 0, -10), Vector3(-22, 0, 10),
+		Vector3(38, 0, 2), Vector3(-15, 0, -28), Vector3(15, 0, -28), Vector3(0, 0, 34),
+	]
+	for i in plant_spots.size():
+		var pp: Vector3 = plant_spots[i]
+		StylizedMesh.add_box(plants, Vector3(0.1, 0.28, 0.1), WorldPalette.LEAF_DARK, pp + Vector3(0, 0.14, 0), "Stem_%d" % i)
+		StylizedMesh.add_box(plants, Vector3(0.28, 0.16, 0.28), WorldPalette.LEAF if i % 2 == 0 else WorldPalette.LEAF_LIT, pp + Vector3(0, 0.32, 0), "Foliage_%d" % i, false, 1.0, &"leaf")
+		if i % 2 == 0:
+			StylizedMesh.add_box(plants, Vector3(0.14, 0.14, 0.14), WorldPalette.FLOWER if i % 4 == 0 else WorldPalette.FLOWER_Y, pp + Vector3(0.12, 0.4, 0), "Bloom_%d" % i)
 
 	_flower_bed(root, Vector3(-5, 0, -9))
 	_flower_bed(root, Vector3(6, 0, 9))
@@ -659,30 +697,37 @@ static func _add_vegetation(root: Node3D) -> void:
 
 
 static func _tree(parent: Node3D, pos: Vector3, kind: StringName, scale_v: float, idx: int) -> void:
-	## Chunky low-poly pixel trees — boxes/tapered stacks, not soft multi-sphere clay.
+	## High-res pixel trees — denser leaf clusters + stronger silhouettes, still boxy.
 	var tree := Node3D.new()
 	tree.name = "Tree_%d" % idx
 	tree.position = pos
 	tree.rotation_degrees.y = float(idx * 37 % 360)
 	parent.add_child(tree)
 	var trunk_c := WorldPalette.TRUNK
-	var tw := 0.36 * scale_v
-	StylizedMesh.add_box(tree, Vector3(tw, 1.7 * scale_v, tw), trunk_c, Vector3(0, 0.85 * scale_v, 0), "Trunk", true, 1.0, &"wood")
+	var tw := 0.32 * scale_v
+	StylizedMesh.add_box(tree, Vector3(tw, 1.75 * scale_v, tw), trunk_c, Vector3(0, 0.88 * scale_v, 0), "Trunk", true, 1.0, &"wood")
+	StylizedMesh.add_box(tree, Vector3(tw * 0.55, 0.7 * scale_v, tw * 0.55), trunk_c.lightened(0.06), Vector3(0.28 * scale_v, 1.5 * scale_v, 0.1), "Branch", false, 1.0, &"wood")
 	match kind:
 		&"pine":
 			var leaf := WorldPalette.LEAF_DARK
-			StylizedMesh.add_box(tree, Vector3(1.8 * scale_v, 1.1 * scale_v, 1.8 * scale_v), leaf, Vector3(0, 2.0 * scale_v, 0), "Canopy1", false, 1.0, &"grass")
-			StylizedMesh.add_box(tree, Vector3(1.3 * scale_v, 0.95 * scale_v, 1.3 * scale_v), leaf.lightened(0.05), Vector3(0, 2.85 * scale_v, 0), "Canopy2", false, 1.0, &"grass")
-			StylizedMesh.add_box(tree, Vector3(0.75 * scale_v, 0.7 * scale_v, 0.75 * scale_v), leaf.lightened(0.1), Vector3(0, 3.5 * scale_v, 0), "Canopy3", false, 1.0, &"grass")
+			StylizedMesh.add_box(tree, Vector3(1.85 * scale_v, 0.95 * scale_v, 1.85 * scale_v), leaf, Vector3(0, 1.95 * scale_v, 0), "Canopy1", false, 1.0, &"leaf")
+			StylizedMesh.add_box(tree, Vector3(1.35 * scale_v, 0.85 * scale_v, 1.35 * scale_v), leaf.lightened(0.05), Vector3(0, 2.7 * scale_v, 0), "Canopy2", false, 1.0, &"leaf")
+			StylizedMesh.add_box(tree, Vector3(0.85 * scale_v, 0.7 * scale_v, 0.85 * scale_v), leaf.lightened(0.1), Vector3(0, 3.35 * scale_v, 0), "Canopy3", false, 1.0, &"leaf")
+			StylizedMesh.add_box(tree, Vector3(0.45 * scale_v, 0.5 * scale_v, 0.45 * scale_v), leaf.lightened(0.14), Vector3(0, 3.85 * scale_v, 0), "Tip", false, 1.0, &"leaf")
+			StylizedMesh.add_box(tree, Vector3(0.55 * scale_v, 0.4 * scale_v, 0.55 * scale_v), leaf.darkened(0.06), Vector3(0.45 * scale_v, 2.2 * scale_v, 0.2), "Needle", false, 1.0, &"leaf")
 		&"oak":
 			var leaf := WorldPalette.LEAF if idx % 2 == 0 else WorldPalette.LEAF_LIT
-			StylizedMesh.add_box(tree, Vector3(2.1 * scale_v, 1.5 * scale_v, 2.1 * scale_v), leaf, Vector3(0, 2.35 * scale_v, 0), "Canopy", false, 1.0, &"grass")
-			StylizedMesh.add_box(tree, Vector3(1.2 * scale_v, 1.0 * scale_v, 1.2 * scale_v), leaf.lightened(0.06), Vector3(0.55 * scale_v, 2.85 * scale_v, 0.2), "Canopy2", false, 1.0, &"grass")
-			StylizedMesh.add_box(tree, Vector3(1.0 * scale_v, 0.9 * scale_v, 1.0 * scale_v), leaf.darkened(0.05), Vector3(-0.5 * scale_v, 2.55 * scale_v, -0.25), "Canopy3", false, 1.0, &"grass")
+			StylizedMesh.add_box(tree, Vector3(2.0 * scale_v, 1.35 * scale_v, 2.0 * scale_v), leaf, Vector3(0, 2.3 * scale_v, 0), "Canopy", false, 1.0, &"leaf")
+			StylizedMesh.add_box(tree, Vector3(1.15 * scale_v, 0.9 * scale_v, 1.15 * scale_v), leaf.lightened(0.06), Vector3(0.6 * scale_v, 2.9 * scale_v, 0.25), "Canopy2", false, 1.0, &"leaf")
+			StylizedMesh.add_box(tree, Vector3(1.0 * scale_v, 0.85 * scale_v, 1.0 * scale_v), leaf.darkened(0.05), Vector3(-0.55 * scale_v, 2.6 * scale_v, -0.3), "Canopy3", false, 1.0, &"leaf")
+			StylizedMesh.add_box(tree, Vector3(0.7 * scale_v, 0.55 * scale_v, 0.7 * scale_v), leaf.lightened(0.1), Vector3(0.15 * scale_v, 3.35 * scale_v, -0.35), "Canopy4", false, 1.0, &"leaf")
+			StylizedMesh.add_box(tree, Vector3(0.55 * scale_v, 0.45 * scale_v, 0.55 * scale_v), leaf.darkened(0.08), Vector3(-0.7 * scale_v, 2.15 * scale_v, 0.45), "Canopy5", false, 1.0, &"leaf")
 		_:
 			var leaf := WorldPalette.LEAF_LIT
-			StylizedMesh.add_box(tree, Vector3(1.8 * scale_v, 1.35 * scale_v, 1.8 * scale_v), leaf, Vector3(0, 2.15 * scale_v, 0), "Canopy", false, 1.0, &"grass")
-			StylizedMesh.add_box(tree, Vector3(1.0 * scale_v, 0.85 * scale_v, 1.0 * scale_v), leaf.lightened(0.08), Vector3(0.4 * scale_v, 2.55 * scale_v, 0.15), "Canopy2", false, 1.0, &"grass")
+			StylizedMesh.add_box(tree, Vector3(1.7 * scale_v, 1.2 * scale_v, 1.7 * scale_v), leaf, Vector3(0, 2.15 * scale_v, 0), "Canopy", false, 1.0, &"leaf")
+			StylizedMesh.add_box(tree, Vector3(0.95 * scale_v, 0.8 * scale_v, 0.95 * scale_v), leaf.lightened(0.08), Vector3(0.45 * scale_v, 2.6 * scale_v, 0.2), "Canopy2", false, 1.0, &"leaf")
+			StylizedMesh.add_box(tree, Vector3(0.8 * scale_v, 0.7 * scale_v, 0.8 * scale_v), leaf.darkened(0.05), Vector3(-0.4 * scale_v, 2.45 * scale_v, -0.25), "Canopy3", false, 1.0, &"leaf")
+			StylizedMesh.add_box(tree, Vector3(0.5 * scale_v, 0.45 * scale_v, 0.5 * scale_v), leaf.lightened(0.12), Vector3(0.1 * scale_v, 3.05 * scale_v, 0.1), "Canopy4", false, 1.0, &"leaf")
 
 
 static func _bush(parent: Node3D, pos: Vector3, idx: int) -> void:
@@ -691,9 +736,10 @@ static func _bush(parent: Node3D, pos: Vector3, idx: int) -> void:
 	b.position = pos
 	parent.add_child(b)
 	var c := WorldPalette.BUSH if idx % 2 == 0 else WorldPalette.LEAF
-	var s := 0.7 + float(idx % 3) * 0.15
-	StylizedMesh.add_box(b, Vector3(s, s * 0.85, s), c, Vector3(0, s * 0.4, 0), "A", false, 1.0, &"grass")
-	StylizedMesh.add_box(b, Vector3(s * 0.7, s * 0.65, s * 0.7), c.lightened(0.06), Vector3(s * 0.35, s * 0.35, 0.08), "B", false, 1.0, &"grass")
+	var s := 0.65 + float(idx % 3) * 0.14
+	StylizedMesh.add_box(b, Vector3(s, s * 0.8, s), c, Vector3(0, s * 0.4, 0), "A", false, 1.0, &"leaf")
+	StylizedMesh.add_box(b, Vector3(s * 0.65, s * 0.55, s * 0.65), c.lightened(0.06), Vector3(s * 0.32, s * 0.4, 0.08), "B", false, 1.0, &"leaf")
+	StylizedMesh.add_box(b, Vector3(s * 0.45, s * 0.4, s * 0.45), c.darkened(0.05), Vector3(-s * 0.28, s * 0.35, -0.1), "C", false, 1.0, &"leaf")
 
 
 static func _flower_bed(parent: Node3D, pos: Vector3) -> void:
@@ -702,8 +748,11 @@ static func _flower_bed(parent: Node3D, pos: Vector3) -> void:
 	parent.add_child(bed)
 	StylizedMesh.add_box(bed, Vector3(2.6, 0.22, 1.0), WorldPalette.DIRT, Vector3(0, 0.15, 0), "Bed", true, 1.0, &"dirt")
 	var colors := [WorldPalette.FLOWER, WorldPalette.FLOWER_Y, WorldPalette.WINDOW, Color(0.85, 0.45, 0.85)]
-	for i in 4:
-		StylizedMesh.add_box(bed, Vector3(0.32, 0.32, 0.32), colors[i], Vector3(-0.9 + float(i) * 0.55, 0.42, 0.0), "Flower")
+	for i in 6:
+		var fx := -1.0 + float(i) * 0.4
+		var fz := 0.12 if i % 2 == 0 else -0.12
+		StylizedMesh.add_box(bed, Vector3(0.1, 0.18, 0.1), WorldPalette.LEAF_DARK, Vector3(fx, 0.28, fz), "Stem")
+		StylizedMesh.add_box(bed, Vector3(0.26, 0.26, 0.26), colors[i % colors.size()], Vector3(fx, 0.48, fz), "Flower")
 
 
 # --- Street furniture / cars -------------------------------------------------
@@ -769,14 +818,14 @@ static func _street_lamp(parent: Node3D, pos: Vector3, with_light: bool) -> void
 	StylizedMesh.add_box(lamp, Vector3(0.9, 0.12, 0.28), WorldPalette.METAL.darkened(0.1), Vector3(0, 3.35, 0.15), "Arm")
 	var bulb := StylizedMesh.add_box(lamp, Vector3(0.32, 0.32, 0.32), WorldPalette.LAMP_GLOW, Vector3(0, 3.2, 0.4), "Bulb")
 	if bulb is MeshInstance3D:
-		(bulb as MeshInstance3D).material_override = StylizedMesh.make_material(WorldPalette.LAMP_GLOW, 1.0, 0.0, 0.35)
+		(bulb as MeshInstance3D).material_override = StylizedMesh.make_material(WorldPalette.LAMP_GLOW, 1.0, 0.0, 0.5)
 	if with_light:
 		var light := OmniLight3D.new()
 		light.name = "LampLight"
 		light.position = Vector3(0, 3.1, 0.4)
 		light.light_color = WorldPalette.LAMP_GLOW
-		light.light_energy = 0.35
-		light.omni_range = 6.5
+		light.light_energy = 0.48
+		light.omni_range = 7.5
 		light.shadow_enabled = false
 		lamp.add_child(light)
 
