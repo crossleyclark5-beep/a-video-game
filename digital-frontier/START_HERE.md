@@ -1,64 +1,41 @@
 # START HERE — Cooper Game
 
-You do **not** need to understand the whole project. Do these 3 steps.
+Your game folder on this PC:
+
+`C:/Users/Martin/OneDrive/Dokumenty/a-video-game-master`
 
 ---
 
-## 1. Install Godot (if you haven't)
+## Open the game (3 steps)
 
-Download **Godot 4.7.1** for **Windows**:  
-https://godotengine.org/download/windows/
+1. Start **Godot 4.7.1**
+2. **Import** this file:
 
-Use the file named like: `Godot_v4.7.1-stable_win64.exe`  
-(Not the Linux one.)
+   `C:/Users/Martin/OneDrive/Dokumenty/a-video-game-master/digital-frontier/project.godot`
 
-Put it somewhere easy, like `C:\Godot\`.
-
----
-
-## 2. Open this game project
-
-1. Start Godot
-2. Click **Import**
-3. Browse to this folder and select:
-
-   **`digital-frontier/project.godot`**
-
-   (Inside your cloned/downloaded GitHub repo.)
-
-4. Click **Import & Edit**
-
-The project name in the editor should say **Cooper Game**.
+3. Press **F5**
 
 ---
 
-## 3. Press Play
+## What you can do now
 
-Press **F5** (or the Play button).
+**Home**
+- See Pixel Fox’s mood and hunger
+- **Feed** / **Play** / **Rest** to care for them
+- Mood color changes with how they feel
+- **Go on Adventure** (or press Enter)
 
-You should see:
-- A **Home** screen with your creature placeholder
-- A button to go on an **Adventure**
-- In adventure: move with **WASD** or **Arrow keys**
-- Press **H** or the **Home** button to return
-
----
-
-## If something goes wrong
-
-| Problem | Fix |
-|---------|-----|
-| Godot asks to upgrade / wrong version | Use Godot **4.7.1** |
-| Can't find project | Open the folder that contains `project.godot` named `digital-frontier` |
-| Blank OneDrive "cooper-game" folder | That empty folder is unused — open **this** `digital-frontier` project instead |
-| Errors on start | Tell Cursor/chat: “F5 failed” and paste the error |
+**Adventure**
+- **WASD** or arrows to move
+- **H** to go home
 
 ---
 
-## What's already done for you
+## Getting updates
 
-- Project named Cooper Game (matches your setup)
-- Design document for the full game
-- First playable slice: Home ↔ Adventure, walk around
+When I push new work to GitHub:
+1. Download a fresh ZIP from https://github.com/crossleyclark5-beep/a-video-game
+2. Replace your `a-video-game-master` folder with the new one
+3. Open `digital-frontier/project.godot` again
 
-You don't need to choose A/B/C or set anything else up. Just open and press Play.
+(Or use Git pull if you prefer.)

@@ -1,12 +1,11 @@
-# Open the game (read this first)
+# Open the game
 
-1. Install **Godot 4.7.1 for Windows**: https://godotengine.org/download/windows/
-2. Open Godot → **Import** → choose this file:
+Your folder: `C:/Users/Martin/OneDrive/Dokumenty/a-video-game-master`
 
-   **`digital-frontier/project.godot`**
+In Godot, open:
 
-3. Press **F5**
+`a-video-game-master/digital-frontier/project.godot`
 
-Full instructions: [`digital-frontier/START_HERE.md`](digital-frontier/START_HERE.md)
+Then press **F5**.
 
-Ignore the empty OneDrive "cooper-game" folder if you made one — this repo folder is the real project.
+More detail: [`digital-frontier/START_HERE.md`](digital-frontier/START_HERE.md)

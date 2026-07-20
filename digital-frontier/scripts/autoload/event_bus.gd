@@ -42,6 +42,8 @@ signal quest_completed(quest_id: StringName)
 signal creature_captured(creature_id: StringName)
 signal creature_released(instance_id: StringName)
 signal party_changed
+signal companion_state_changed
+signal companion_cared(action: StringName)
 
 # --- NPCs ---
 signal npc_dialogue_started(npc_id: StringName)
