@@ -447,7 +447,7 @@ func _box(size: Vector3, color: Color, pos: Vector3, node_name: String) -> MeshI
 	var mesh := BoxMesh.new()
 	mesh.size = size
 	mi.mesh = mesh
-	mi.material_override = StylizedMesh.make_material(color, 0.5)
+	mi.material_override = StylizedMesh.make_material(color, 1.0)
 	mi.position = pos
 	return mi
 
@@ -458,8 +458,9 @@ func _capsule(radius: float, height: float, color: Color, pos: Vector3, node_nam
 	var mesh := CapsuleMesh.new()
 	mesh.radius = radius
 	mesh.height = height
+	mesh.radial_segments = 8
 	mi.mesh = mesh
-	mi.material_override = StylizedMesh.make_material(color, 0.7)
+	mi.material_override = StylizedMesh.make_material(color, 1.0)
 	mi.position = pos
 	_root.add_child(mi)
 	return mi
