@@ -9,9 +9,11 @@ signal care_requested(action: StringName)
 
 @onready var _name_label: Label = %CreatureName
 @onready var _mood_label: Label = %MoodLabel
+@onready var _level_label: Label = %LevelLabel
 @onready var _status_label: Label = %StatusLabel
 @onready var _bits_label: Label = %BitsLabel
 @onready var _time_label: Label = %TimeLabel
+@onready var _bar_xp: ProgressBar = %BarXP
 @onready var _bar_hunger: ProgressBar = %BarHunger
 @onready var _bar_happy: ProgressBar = %BarHappy
 @onready var _bar_energy: ProgressBar = %BarEnergy
@@ -116,9 +118,14 @@ func show_status_message(text: String) -> void:
 func _refresh() -> void:
 	_name_label.text = CreatureManager.get_companion_nickname()
 	_mood_label.text = CreatureManager.get_mood_label()
+	_level_label.text = "Lv.%d  ·  XP %d%%" % [
+		CreatureManager.get_level(),
+		int(CreatureManager.get_xp_progress() * 100.0),
+	]
 	_status_label.text = CreatureManager.get_status_line()
 	_bits_label.text = "%d Bits" % InventoryManager.get_bits()
 
+	_bar_xp.value = CreatureManager.get_xp_progress() * 100.0
 	_bar_hunger.value = CreatureManager.get_hunger()
 	_bar_happy.value = CreatureManager.get_happiness()
 	_bar_energy.value = CreatureManager.get_energy()
@@ -163,7 +170,7 @@ func _on_shop_pressed() -> void:
 
 func _on_collection_pressed() -> void:
 	collection_pressed.emit()
-	_status_label.text = "Collection grows as you meet new creatures."
+	_status_label.text = "Collection: %d creature(s). More friends await on adventures." % CreatureManager.get_collection_count()
 
 
 func _on_inventory_pressed() -> void:
@@ -186,3 +193,12 @@ func _on_play_pressed() -> void:
 
 func _on_train_pressed() -> void:
 	care_requested.emit(&"train")
+
+
+func _on_pet_pressed() -> void:
+	care_requested.emit(&"pet")
+
+
+func _on_status_pressed() -> void:
+	care_requested.emit(&"status")
+	_status_label.text = CreatureManager.get_detailed_status()

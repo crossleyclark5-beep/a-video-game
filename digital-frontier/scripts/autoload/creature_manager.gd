@@ -1,9 +1,8 @@
 extends BaseManager
-## Creature collection, party, and living companion needs.
+## Creature collection, party, and living companion ownership.
 ##
-## Expanded needs model (happiness / hunger / energy / friendship / health)
-## powers the Home habitat. Templates live in CreatureData; this manager owns
-## runtime values. Designed for multiple creatures, skins, and homes later.
+## Active companion is a CreatureInstance (data-driven). Species templates
+## live in CreatureData. Home + adventure share the same instance state.
 
 enum Mood {
 	EXCITED,
@@ -15,13 +14,7 @@ enum Mood {
 	TIRED,
 }
 
-const STARTER_CREATURE_ID := &"pixel_fox"
-
-## Soft decay rates per real-time second while the game is open.
-const DECAY_HUNGER := 0.35
-const DECAY_ENERGY := 0.18
-const DECAY_HAPPINESS := 0.08
-const DECAY_HEALTH_WHEN_NEGLECTED := 0.05
+const STARTER_CREATURE_ID := &"sparkbit"
 
 const CARE_FEED := {
 	"hunger": 28.0,
@@ -46,104 +39,149 @@ const CARE_TRAIN := {
 	"happiness": 10.0,
 	"hunger": -6.0,
 }
+const CARE_PET := {
+	"happiness": 10.0,
+	"friendship": 6.0,
+	"energy": -2.0,
+}
 
-var _captured: Dictionary = {}
+## XP grants for home care / future adventure hooks.
+const XP_FEED := 3
+const XP_PLAY := 5
+const XP_REST := 2
+const XP_TRAIN := 8
+const XP_PET := 4
+
+var _captured: Dictionary = {}  ## instance_id -> CreatureInstance.to_dict()
 var _party: PackedStringArray = PackedStringArray()
-var _companion_species_id: StringName = STARTER_CREATURE_ID
-var _companion_nickname: String = "Pixel Fox"
-
-## Needs — 0 empty / depleted → 100 full / thriving.
-## Hunger is "fullness" (high = fed), matching the original home loop.
-var _hunger: float = 72.0
-var _happiness: float = 70.0
-var _energy: float = 80.0
-var _friendship: float = 40.0
-var _health: float = 95.0
-
+var _active: CreatureInstance = null
 var _care_initialized: bool = false
 var _decay_enabled: bool = true
 
 
 func _initialize_manager() -> void:
 	_ensure_starter_companion()
-	_log("CreatureManager initialized (companion=%s)" % _companion_species_id)
+	_log("CreatureManager initialized (companion=%s)" % get_companion_nickname())
 
 
 func _process(delta: float) -> void:
-	if not _care_initialized or not _decay_enabled:
+	if not _care_initialized or not _decay_enabled or _active == null:
 		return
-	_apply_passive_decay(delta)
+	_active.apply_passive_decay(delta)
 
 
 func set_decay_enabled(enabled: bool) -> void:
 	_decay_enabled = enabled
 
 
-# --- Companion getters ---
+# --- Active companion access ---
+
+func get_active_instance() -> CreatureInstance:
+	return _active
+
 
 func get_companion_id() -> StringName:
-	return _companion_species_id
+	return _active.species_id if _active else STARTER_CREATURE_ID
+
+
+func get_companion_instance_id() -> StringName:
+	return _active.instance_id if _active else &""
 
 
 func get_companion_nickname() -> String:
-	return _companion_nickname
+	return _active.nickname if _active else "Companion"
+
+
+func get_level() -> int:
+	return _active.level if _active else 1
+
+
+func get_experience() -> int:
+	return _active.experience if _active else 0
+
+
+func get_xp_progress() -> float:
+	return _active.get_xp_progress() if _active else 0.0
+
+
+func get_skin_id() -> StringName:
+	return _active.skin_id if _active else &"default"
+
+
+func get_evolution_stage() -> int:
+	return _active.evolution_stage if _active else 0
+
+
+func get_stats() -> Dictionary:
+	return _active.stats.duplicate() if _active else {}
+
+
+func get_personality_snapshot() -> Dictionary:
+	return _active.personality.duplicate() if _active else {}
 
 
 func get_hunger() -> float:
-	return _hunger
+	return _active.hunger if _active else 0.0
 
 
 func get_happiness() -> float:
-	return _happiness
+	return _active.happiness if _active else 0.0
 
 
 func get_energy() -> float:
-	return _energy
+	return _active.energy if _active else 0.0
 
 
 func get_friendship() -> float:
-	return _friendship
+	return _active.friendship if _active else 0.0
 
 
 func get_health() -> float:
-	return _health
+	return _active.health if _active else 0.0
 
 
-## Legacy alias — older UI treated mood_value as a single meter.
 func get_mood_value() -> float:
-	return _happiness
+	return get_happiness()
 
 
 func get_needs_snapshot() -> Dictionary:
 	return {
-		"creature_id": String(_companion_species_id),
-		"display_name": _companion_nickname,
-		"hunger": _hunger,
-		"happiness": _happiness,
-		"energy": _energy,
-		"friendship": _friendship,
-		"health": _health,
+		"creature_id": String(get_companion_id()),
+		"instance_id": String(get_companion_instance_id()),
+		"display_name": get_companion_nickname(),
+		"level": get_level(),
+		"experience": get_experience(),
+		"xp_progress": get_xp_progress(),
+		"hunger": get_hunger(),
+		"happiness": get_happiness(),
+		"energy": get_energy(),
+		"friendship": get_friendship(),
+		"health": get_health(),
 		"mood": get_mood_label(),
-		"mood_value": _happiness,
+		"mood_value": get_happiness(),
+		"skin_id": String(get_skin_id()),
+		"evolution_stage": get_evolution_stage(),
+		"stats": get_stats(),
+		"personality": get_personality_snapshot(),
 		"adventure_ready": is_adventure_ready(),
 		"readiness_score": get_readiness_score(),
 	}
 
 
 func get_mood() -> Mood:
-	if _health < 30.0:
+	if get_health() < 30.0:
 		return Mood.SAD
-	if _energy < 25.0:
+	if get_energy() < 25.0:
 		return Mood.TIRED
-	if _hunger < 20.0:
+	if get_hunger() < 20.0:
 		return Mood.IRRITABLE
-	if _happiness >= 85.0 and _energy > 55.0:
+	if get_happiness() >= 85.0 and get_energy() > 55.0:
 		return Mood.EXCITED
-	if _happiness >= 65.0:
+	if get_happiness() >= 65.0:
 		return Mood.HAPPY
-	if _happiness >= 45.0:
+	if get_happiness() >= 45.0:
 		return Mood.CONTENT
-	if _happiness >= 25.0:
+	if get_happiness() >= 25.0:
 		return Mood.BORED
 	return Mood.SAD
 
@@ -161,45 +199,62 @@ func get_mood_label() -> String:
 
 
 func get_hunger_label() -> String:
-	if _hunger >= 80.0:
+	if get_hunger() >= 80.0:
 		return "Full"
-	if _hunger >= 55.0:
+	if get_hunger() >= 55.0:
 		return "Okay"
-	if _hunger >= 30.0:
+	if get_hunger() >= 30.0:
 		return "Peckish"
-	if _hunger >= 10.0:
+	if get_hunger() >= 10.0:
 		return "Hungry"
 	return "Starving"
 
 
 func get_energy_label() -> String:
-	if _energy >= 75.0:
+	if get_energy() >= 75.0:
 		return "Rested"
-	if _energy >= 45.0:
+	if get_energy() >= 45.0:
 		return "Okay"
-	if _energy >= 20.0:
+	if get_energy() >= 20.0:
 		return "Sleepy"
 	return "Exhausted"
 
 
 func get_status_line() -> String:
+	var name := get_companion_nickname()
 	match get_mood():
 		Mood.EXCITED:
-			return "%s is buzzing with energy — ready for adventure!" % _companion_nickname
+			return "%s (Lv.%d) is buzzing — ready for adventure!" % [name, get_level()]
 		Mood.HAPPY:
-			return "%s looks happy and ready to explore." % _companion_nickname
+			return "%s looks happy and ready to explore." % name
 		Mood.CONTENT:
-			return "%s is calm. A little playtime wouldn't hurt." % _companion_nickname
+			return "%s is calm. A little playtime wouldn't hurt." % name
 		Mood.BORED:
-			return "%s seems bored. Try playing together." % _companion_nickname
+			return "%s seems bored. Try playing or petting them." % name
 		Mood.SAD:
-			return "%s looks down. Some care would help." % _companion_nickname
+			return "%s looks down. Some care would help." % name
 		Mood.IRRITABLE:
-			return "%s is too hungry to focus. Feed them first." % _companion_nickname
+			return "%s is too hungry to focus. Feed them first." % name
 		Mood.TIRED:
-			return "%s can barely keep their eyes open. Time for bed." % _companion_nickname
+			return "%s can barely keep their eyes open. Time for bed." % name
 		_:
-			return "%s is waiting." % _companion_nickname
+			return "%s is waiting." % name
+
+
+func get_detailed_status() -> String:
+	var snap := get_needs_snapshot()
+	var stats: Dictionary = snap.get("stats", {})
+	return "%s  ·  Lv.%d  ·  %s\nHunger %s · Energy %s · Bond %d\nATK %d  DEF %d  SPD %d" % [
+		snap.get("display_name", "?"),
+		int(snap.get("level", 1)),
+		snap.get("mood", "?"),
+		get_hunger_label(),
+		get_energy_label(),
+		int(snap.get("friendship", 0)),
+		int(stats.get("attack", 0)),
+		int(stats.get("defense", 0)),
+		int(stats.get("speed", 0)),
+	]
 
 
 func get_mood_color() -> Color:
@@ -216,127 +271,177 @@ func get_mood_color() -> Color:
 
 func get_readiness_score() -> float:
 	return clampf(
-		_hunger * 0.20 + _happiness * 0.25 + _energy * 0.30 + _health * 0.15 + _friendship * 0.10,
+		get_hunger() * 0.20
+		+ get_happiness() * 0.25
+		+ get_energy() * 0.30
+		+ get_health() * 0.15
+		+ get_friendship() * 0.10,
 		0.0,
 		100.0,
 	)
 
 
-## Soft gate — adventure always allowed, but returns false when care is critical.
 func is_adventure_ready() -> bool:
 	return get_readiness_score() >= 35.0 and get_mood() != Mood.SAD
 
 
-## Hint for companion AI — what the creature wants most right now.
 func get_behavior_bias() -> StringName:
-	if _energy < 28.0:
-		return &"sleep"
-	if _hunger < 35.0:
-		return &"eat"
-	if _happiness < 40.0:
-		return &"play"
-	if _energy > 70.0 and _happiness > 60.0:
-		return &"playful"
+	if _active:
+		return _active.get_behavior_bias()
 	return &"idle"
 
 
-# --- Care actions (return player-facing status strings for HUD) ---
+func get_walk_speed_multiplier() -> float:
+	return _active.get_walk_speed_multiplier() if _active else 1.0
+
+
+# --- Care / interaction ---
 
 func feed() -> String:
-	_apply_care_deltas(CARE_FEED)
-	_emit_care(&"feed")
-	return "You filled the bowl. %s digs in happily!" % _companion_nickname
+	return _care(&"feed", CARE_FEED, XP_FEED, "You filled the bowl. %s digs in happily!")
 
 
 func play() -> String:
-	_apply_care_deltas(CARE_PLAY)
-	_emit_care(&"play")
-	return "You played together. %s is happier!" % _companion_nickname
+	return _care(&"play", CARE_PLAY, XP_PLAY, "You played together. %s is happier!")
 
 
 func rest() -> String:
-	_apply_care_deltas(CARE_REST)
-	_emit_care(&"rest")
-	return "%s curled up and feels restored." % _companion_nickname
+	return _care(&"rest", CARE_REST, XP_REST, "%s curled up and feels restored.")
 
 
 func train() -> String:
-	_apply_care_deltas(CARE_TRAIN)
-	_emit_care(&"train")
-	return "A little training session. %s feels closer to you." % _companion_nickname
+	return _care(&"train", CARE_TRAIN, XP_TRAIN, "Training complete. %s feels stronger and closer.")
+
+
+func pet() -> String:
+	return _care(&"pet", CARE_PET, XP_PET, "%s leans into your hand. Bond grows.")
+
+
+func grant_adventure_experience(amount: int) -> Dictionary:
+	## Hook for world gameplay — same creature continues across modes.
+	if _active == null or amount <= 0:
+		return {}
+	var result := _active.add_experience(amount)
+	_sync_captured_active()
+	EventBus.companion_state_changed.emit()
+	return result
 
 
 func get_party() -> PackedStringArray:
 	return _party
 
 
+func get_collection_count() -> int:
+	return _captured.size()
+
+
 func export_state() -> Dictionary:
+	_sync_captured_active()
 	return {
 		&"captured": _captured.duplicate(true),
 		&"party": _party.duplicate(),
-		&"companion_id": _companion_species_id,
-		&"companion_nickname": _companion_nickname,
-		&"companion_hunger": _hunger,
-		&"companion_mood_value": _happiness,
-		&"companion_happiness": _happiness,
-		&"companion_energy": _energy,
-		&"companion_friendship": _friendship,
-		&"companion_health": _health,
+		&"active_instance_id": String(get_companion_instance_id()),
+		## Legacy flat keys for older readers / migration.
+		&"companion_id": get_companion_id(),
+		&"companion_nickname": get_companion_nickname(),
+		&"companion_hunger": get_hunger(),
+		&"companion_mood_value": get_happiness(),
+		&"companion_happiness": get_happiness(),
+		&"companion_energy": get_energy(),
+		&"companion_friendship": get_friendship(),
+		&"companion_health": get_health(),
 		&"care_initialized": _care_initialized,
 	}
 
 
 func import_state(data: Dictionary) -> void:
+	if data.is_empty():
+		_ensure_starter_companion()
+		return
+
 	if data.has(&"captured"):
 		_captured = data[&"captured"].duplicate(true)
 	if data.has(&"party"):
 		_party = data[&"party"].duplicate()
-	if data.has(&"companion_id"):
-		_companion_species_id = data[&"companion_id"]
-	if data.has(&"companion_nickname"):
-		_companion_nickname = data[&"companion_nickname"]
-	if data.has(&"companion_hunger"):
-		_hunger = float(data[&"companion_hunger"])
-	if data.has(&"companion_happiness"):
-		_happiness = float(data[&"companion_happiness"])
-	elif data.has(&"companion_mood_value"):
-		_happiness = float(data[&"companion_mood_value"])
-	if data.has(&"companion_energy"):
-		_energy = float(data[&"companion_energy"])
-	if data.has(&"companion_friendship"):
-		_friendship = float(data[&"companion_friendship"])
-	if data.has(&"companion_health"):
-		_health = float(data[&"companion_health"])
+
+	var active_id := StringName(str(data.get(&"active_instance_id", data.get("active_instance_id", ""))))
+	if active_id != &"" and _captured.has(String(active_id)):
+		_active = CreatureInstance.from_dict(_captured[String(active_id)])
+	elif active_id != &"" and _captured.has(active_id):
+		_active = CreatureInstance.from_dict(_captured[active_id])
+	elif not _captured.is_empty():
+		var first_key = _captured.keys()[0]
+		_active = CreatureInstance.from_dict(_captured[first_key])
+	else:
+		## Migrate legacy flat companion fields into a new instance.
+		_migrate_legacy_flat(data)
+
 	if data.has(&"care_initialized"):
 		_care_initialized = bool(data[&"care_initialized"])
-	_clamp_all()
 	_ensure_starter_companion()
 	EventBus.companion_state_changed.emit()
 
 
+func _migrate_legacy_flat(data: Dictionary) -> void:
+	var species_id := StringName(str(data.get(&"companion_id", data.get("companion_id", STARTER_CREATURE_ID))))
+	var species: CreatureData = ResourceRegistry.get_creature(species_id)
+	if species == null:
+		species = ResourceRegistry.get_creature(STARTER_CREATURE_ID)
+	if species == null:
+		return
+	var nick := str(data.get(&"companion_nickname", data.get("companion_nickname", species.display_name)))
+	_active = CreatureInstance.create_from_species(species, nick)
+	if data.has(&"companion_hunger"):
+		_active.hunger = float(data[&"companion_hunger"])
+	if data.has(&"companion_happiness"):
+		_active.happiness = float(data[&"companion_happiness"])
+	elif data.has(&"companion_mood_value"):
+		_active.happiness = float(data[&"companion_mood_value"])
+	if data.has(&"companion_energy"):
+		_active.energy = float(data[&"companion_energy"])
+	if data.has(&"companion_friendship"):
+		_active.friendship = float(data[&"companion_friendship"])
+	if data.has(&"companion_health"):
+		_active.health = float(data[&"companion_health"])
+	_active.clamp_needs()
+	_sync_captured_active()
+
+
 func _ensure_starter_companion() -> void:
-	if _care_initialized:
+	if _active != null:
+		_care_initialized = true
+		_sync_captured_active()
 		return
 	var data: CreatureData = ResourceRegistry.get_creature(STARTER_CREATURE_ID)
-	if data != null and not data.display_name.is_empty():
-		_companion_nickname = data.display_name
-	_companion_species_id = STARTER_CREATURE_ID
+	if data == null:
+		data = ResourceRegistry.get_creature(&"pixel_fox")
+	if data == null:
+		push_warning("CreatureManager: no starter species found")
+		return
+	_active = CreatureInstance.create_from_species(data)
 	_care_initialized = true
+	_sync_captured_active()
+	if _party.is_empty():
+		_party.append(String(_active.instance_id))
 
 
-func _apply_care_deltas(deltas: Dictionary) -> void:
-	for key: String in deltas.keys():
-		match key:
-			"hunger":
-				_hunger = clampf(_hunger + float(deltas[key]), 0.0, 100.0)
-			"happiness":
-				_happiness = clampf(_happiness + float(deltas[key]), 0.0, 100.0)
-			"energy":
-				_energy = clampf(_energy + float(deltas[key]), 0.0, 100.0)
-			"friendship":
-				_friendship = clampf(_friendship + float(deltas[key]), 0.0, 100.0)
-			"health":
-				_health = clampf(_health + float(deltas[key]), 0.0, 100.0)
+func _care(action: StringName, base_deltas: Dictionary, xp: int, message_fmt: String) -> String:
+	if _active == null:
+		return "No companion nearby."
+	var deltas := base_deltas.duplicate()
+	var species := _active.get_species()
+	if species and species.care_affinities.has(String(action)):
+		var mult := float(species.care_affinities[String(action)])
+		for key: String in deltas.keys():
+			deltas[key] = float(deltas[key]) * mult
+	_active.apply_care(action, deltas)
+	var level_info := _active.add_experience(xp)
+	_sync_captured_active()
+	_emit_care(action)
+	var msg := message_fmt % get_companion_nickname()
+	if level_info.get("leveled_up", false):
+		msg += "  Level up! Now Lv.%d." % int(level_info.get("new_level", get_level()))
+	return msg
 
 
 func _emit_care(action: StringName) -> void:
@@ -344,32 +449,7 @@ func _emit_care(action: StringName) -> void:
 	EventBus.companion_state_changed.emit()
 
 
-func _apply_passive_decay(delta: float) -> void:
-	_hunger = maxf(0.0, _hunger - DECAY_HUNGER * delta)
-	_energy = maxf(0.0, _energy - DECAY_ENERGY * delta)
-	var happiness_drain := DECAY_HAPPINESS * delta
-	if _hunger < 25.0:
-		happiness_drain *= 2.0
-	_happiness = maxf(0.0, _happiness - happiness_drain)
-
-	var neglect := 0
-	if _hunger < 25.0:
-		neglect += 1
-	if _energy < 20.0:
-		neglect += 1
-	if _happiness < 25.0:
-		neglect += 1
-	if neglect >= 2:
-		_health = maxf(0.0, _health - DECAY_HEALTH_WHEN_NEGLECTED * delta * float(neglect))
-
-	if _hunger > 70.0 and _energy > 60.0 and _happiness > 60.0:
-		_health = minf(100.0, _health + 0.02 * delta)
-		_friendship = minf(100.0, _friendship + 0.01 * delta)
-
-
-func _clamp_all() -> void:
-	_hunger = clampf(_hunger, 0.0, 100.0)
-	_happiness = clampf(_happiness, 0.0, 100.0)
-	_energy = clampf(_energy, 0.0, 100.0)
-	_friendship = clampf(_friendship, 0.0, 100.0)
-	_health = clampf(_health, 0.0, 100.0)
+func _sync_captured_active() -> void:
+	if _active == null:
+		return
+	_captured[String(_active.instance_id)] = _active.to_dict()

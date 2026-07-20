@@ -25,6 +25,8 @@ func _ready() -> void:
 	_bind_prompt()
 	EventBus.ui_notification_requested.connect(_on_notification)
 	_refresh_default_hint()
+	## Same CreatureInstance continues from home — tiny outing XP seed.
+	CreatureManager.grant_adventure_experience(2)
 
 
 func _process(delta: float) -> void:

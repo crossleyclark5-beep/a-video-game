@@ -17,8 +17,9 @@ Boot / Main still load `SCENE_HOME`, which now points at the 3D habitat.
 |--------|------|---------|
 | HabitatEnvironment | `scripts/home/habitat_environment.gd` | Builds room, lighting, stations markers, decor hooks |
 | HabitatTimeOfDay | `scripts/home/habitat_time_of_day.gd` | Night/day/dawn/dusk + weather id foundation |
-| CompanionVisual | `scripts/home/companion_visual.gd` | Procedural mesh + idle/walk/sleep/eat/happy/sad/stretch |
-| CompanionActor | `scripts/home/companion_actor.gd` | Needs-driven wander / care AI |
+| CompanionVisual | `scripts/home/companion_visual.gd` | Sparkbit silhouette + idle/walk/sleep/eat/happy/sad/hungry/stretch/pet |
+| CompanionActor | `scripts/home/companion_actor.gd` | Personality + needs AI, pet/status reactions |
+| CreatureInstance | `scripts/creatures/creature_instance.gd` | Runtime companion data (see `docs/CREATURE_COMPANION.md`) |
 | HomeStation | `scripts/home/home_station.gd` | Clickable bowl / bed / toy / train |
 | HomeHud | `scenes/home/ui/home_hud.tscn` | Handheld-device status + care + nav |
 

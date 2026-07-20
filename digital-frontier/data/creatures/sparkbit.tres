@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3 uid="uid://creature_sparkbit"]
+
+[ext_resource type="Script" path="res://resources/definitions/creature_data.gd" id="1_creature"]
+
+[resource]
+script = ExtResource("1_creature")
+id = &"sparkbit"
+display_name = "Sparkbit"
+description = "A playful digital spirit born from leftover adventure code. Glows brighter when bonded."
+rarity = 1
+base_stats = {
+"hp": 48,
+"attack": 9,
+"defense": 7,
+"speed": 14
+}
+growth_rates = {
+"hp": 2.2,
+"attack": 1.6,
+"defense": 1.4,
+"speed": 1.8
+}
+capture_rate = 0.4
+habitat_region_ids = PackedStringArray("starter_plains", "pleasant_park")
+default_skin_id = &"default"
+available_skin_ids = PackedStringArray("default", "moonlit")
+visual_profile_id = &"sparkbit"
+anim_set_id = &"companion_default"
+default_personality = {
+"playful": 72.0,
+"curious": 68.0,
+"affectionate": 62.0,
+"lazy": 28.0,
+"brave": 55.0
+}
+care_affinities = {
+"feed": 1.1,
+"play": 1.25,
+"rest": 0.95,
+"train": 1.05,
+"pet": 1.3
+}
+body_color = Color(0.42, 0.78, 0.92, 1)
+accent_color = Color(0.98, 0.55, 0.42, 1)
+core_color = Color(0.75, 0.95, 1, 1)
+max_evolution_stage = 2
+evolution_chain_id = &"sparkbit_chain"

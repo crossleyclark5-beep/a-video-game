@@ -43,6 +43,13 @@ theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 1)
 theme_override_font_sizes/font_size = 14
 text = "Content"
 
+[node name="LevelLabel" type="Label" parent="TopBar/TopMargin/TopRow/Identity"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.9, 0.85, 1)
+theme_override_font_sizes/font_size = 12
+text = "Lv.1"
+
 [node name="Meta" type="VBoxContainer" parent="TopBar/TopMargin/TopRow"]
 layout_mode = 2
 alignment = 2
@@ -86,6 +93,19 @@ theme_override_constants/separation = 8
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
 text = "STATUS"
+
+[node name="LXP" type="Label" parent="NeedsPanel/NeedsMargin/NeedsCol"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Experience"
+
+[node name="BarXP" type="ProgressBar" parent="NeedsPanel/NeedsMargin/NeedsCol"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+max_value = 100.0
+value = 0.0
+show_percentage = false
 
 [node name="LHunger" type="Label" parent="NeedsPanel/NeedsMargin/NeedsCol"]
 layout_mode = 2
@@ -189,25 +209,35 @@ layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 1
 
+[node name="PetButton" type="Button" parent="BottomBar/BottomMargin/BottomCol/CareRow"]
+custom_minimum_size = Vector2(72, 32)
+layout_mode = 2
+text = "Pet"
+
 [node name="FeedButton" type="Button" parent="BottomBar/BottomMargin/BottomCol/CareRow"]
-custom_minimum_size = Vector2(90, 32)
+custom_minimum_size = Vector2(72, 32)
 layout_mode = 2
 text = "Feed"
 
 [node name="RestButton" type="Button" parent="BottomBar/BottomMargin/BottomCol/CareRow"]
-custom_minimum_size = Vector2(90, 32)
+custom_minimum_size = Vector2(72, 32)
 layout_mode = 2
 text = "Rest"
 
 [node name="PlayButton" type="Button" parent="BottomBar/BottomMargin/BottomCol/CareRow"]
-custom_minimum_size = Vector2(90, 32)
+custom_minimum_size = Vector2(72, 32)
 layout_mode = 2
 text = "Play"
 
 [node name="TrainButton" type="Button" parent="BottomBar/BottomMargin/BottomCol/CareRow"]
-custom_minimum_size = Vector2(90, 32)
+custom_minimum_size = Vector2(72, 32)
 layout_mode = 2
 text = "Train"
+
+[node name="StatusButton" type="Button" parent="BottomBar/BottomMargin/BottomCol/CareRow"]
+custom_minimum_size = Vector2(72, 32)
+layout_mode = 2
+text = "Status"
 
 [node name="NavRow" type="HBoxContainer" parent="BottomBar/BottomMargin/BottomCol"]
 layout_mode = 2
@@ -261,10 +291,12 @@ theme_override_font_sizes/font_size = 13
 text = "Pack empty"
 autowrap_mode = 3
 
+[connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/CareRow/PetButton" to="." method="_on_pet_pressed"]
 [connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/CareRow/FeedButton" to="." method="_on_feed_pressed"]
 [connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/CareRow/RestButton" to="." method="_on_rest_pressed"]
 [connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/CareRow/PlayButton" to="." method="_on_play_pressed"]
 [connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/CareRow/TrainButton" to="." method="_on_train_pressed"]
+[connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/CareRow/StatusButton" to="." method="_on_status_pressed"]
 [connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/NavRow/InventoryButton" to="." method="_on_inventory_pressed"]
 [connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/NavRow/CollectionButton" to="." method="_on_collection_pressed"]
 [connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/NavRow/ShopButton" to="." method="_on_shop_pressed"]

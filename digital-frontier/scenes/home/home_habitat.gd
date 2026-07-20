@@ -119,10 +119,21 @@ func _on_care_requested(action: StringName) -> void:
 			message = CreatureManager.play()
 		&"train":
 			message = CreatureManager.train()
+		&"pet":
+			message = CreatureManager.pet()
+		&"status":
+			message = CreatureManager.get_detailed_status()
+			if _companion:
+				_companion.request_status_check()
+			if _hud:
+				_hud.show_status_message(message)
+			EventBus.sfx_play_requested.emit(&"creature_status", Vector3.ZERO)
+			return
 	if _hud:
 		_hud.show_status_message(message)
 	if _companion:
 		_companion.request_care(action)
+	EventBus.sfx_play_requested.emit(StringName("creature_%s" % String(action)), Vector3.ZERO)
 
 
 func _on_station_activated(_station_id: StringName, care_action: StringName) -> void:
