@@ -4,7 +4,9 @@ extends Node3D
 
 @export var building_id: StringName = &""
 @export var display_name: String = "House"
+## Handcrafted interior override. When null, ModularInteriorBuilder uses interior_kind.
 @export var interior_scene: PackedScene
+@export var interior_kind: StringName = &"house"
 @export var exterior_zoom: float = 14.5
 @export var interior_zoom: float = 9.5
 @export var roof_paths: Array[NodePath] = []
@@ -87,6 +89,13 @@ func get_interior_entry_position() -> Vector3:
 	if marker:
 		return marker.global_position
 	return to_global(Vector3(0, 0.15, 0.2))
+
+
+func resolve_interior() -> Node3D:
+	## Prefer unique handcrafted scenes; otherwise generate a themed modular room.
+	if interior_scene != null:
+		return interior_scene.instantiate() as Node3D
+	return ModularInteriorBuilder.build(interior_kind, building_id)
 
 
 func _on_door_interacted(actor: Node) -> void:

@@ -26,8 +26,8 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 	RegionPropKit.make_enterable_house(
 		hub, "GroveBungalow", Vector3(-32, 0, -10), Color(0.88, 0.72, 0.55), WorldPalette.ROOF_RED, 90.0, result
 	)
-	_bungalow(hub, "YellowBungalow", Vector3(-34, 0, 12), Color(0.92, 0.85, 0.45), WorldPalette.ROOF, 90.0)
-	_bungalow(hub, "TealBungalow", Vector3(-28, 0, -28), Color(0.45, 0.7, 0.72), WorldPalette.ROOF, 0.0)
+	RegionPropKit.make_enterable_building(hub, "YellowBungalow", Vector3(-34, 0, 12), Color(0.92, 0.85, 0.45), WorldPalette.ROOF, 90.0, result, InteriorKinds.HOUSE)
+	RegionPropKit.make_enterable_building(hub, "TealBungalow", Vector3(-28, 0, -28), Color(0.45, 0.7, 0.72), WorldPalette.ROOF, 0.0, result, InteriorKinds.HOUSE)
 
 	## Parking cars.
 	_car(hub, Vector3(4, 0, 16), Color(0.85, 0.3, 0.25), 10.0)
@@ -59,11 +59,12 @@ static func _gigabite(parent: Node3D, result: Dictionary) -> void:
 	g.position = Vector3(8, 0, 0)
 	parent.add_child(g)
 	## Restaurant building (enterable).
-	RegionPropKit.make_enterable_house(
-		g, "GigaBiteDining", Vector3(0, 0, 0), Color(0.9, 0.55, 0.2), WorldPalette.ROOF_RED, 0.0, result
+	RegionPropKit.make_enterable_building(
+		g, "GigaBiteDining", Vector3(0, 0, 0), Color(0.9, 0.55, 0.2), WorldPalette.ROOF_RED, 0.0, result, InteriorKinds.RESTAURANT, Vector3(8.0, 3.2, 6.5)
 	)
 	## Drive-thru canopy wing.
-	StylizedMesh.add_box(g, Vector3(10, 0.25, 5.5), WorldPalette.ROOF_RED, Vector3(8, 3.2, -2), "Canopy")
+	var canopy := StylizedMesh.add_box(g, Vector3(10, 0.25, 5.5), WorldPalette.ROOF_RED, Vector3(8, 3.2, -2), "Canopy")
+	OcclusionUtil.mark(canopy)
 	StylizedMesh.add_box(g, Vector3(0.3, 3.0, 0.3), WorldPalette.METAL, Vector3(4, 1.5, -3.5), "Post1", true)
 	StylizedMesh.add_box(g, Vector3(0.3, 3.0, 0.3), WorldPalette.METAL, Vector3(11, 1.5, -3.5), "Post2", true)
 	StylizedMesh.add_box(g, Vector3(1.2, 1.6, 0.8), WorldPalette.UI_INK, Vector3(10, 1.0, -4.2), "MenuBoard", true)

@@ -2,6 +2,8 @@ extends Node3D
 ## Angled top-down camera for a living adventure diorama.
 ## Snappy follow, light look-ahead, stepped zoom — readable on small screens.
 
+const _OcclusionFaderScript = preload("res://scripts/systems/camera/camera_occlusion_fader.gd")
+
 @export var follow_distance := Vector3(0.0, 22.0, 16.0)
 @export var interior_follow_distance := Vector3(0.0, 16.5, 11.5)
 @export var follow_smoothing := 9.0
@@ -22,6 +24,7 @@ var _interior_mode: bool = false
 var _active_follow_distance := Vector3(0.0, 22.0, 16.0)
 var _floor_focus_y: float = 0.0
 var _floor_focus_target: float = 0.0
+var _occlusion_fader: Node = null
 
 @onready var _camera: Camera3D = $Camera3D
 
@@ -35,6 +38,11 @@ func _ready() -> void:
 		_camera.near = 0.2
 		## Grassland Region spans thousands of units — keep distant POIs visible.
 		_camera.far = 12000.0
+	_occlusion_fader = _OcclusionFaderScript.new()
+	_occlusion_fader.name = "OcclusionFader"
+	add_child(_occlusion_fader)
+	if _camera and _occlusion_fader.has_method("setup"):
+		_occlusion_fader.call("setup", _camera, _target)
 	call_deferred("_find_player")
 
 
@@ -46,6 +54,8 @@ func _find_player() -> void:
 
 func set_target(target: Node3D) -> void:
 	_target = target
+	if _occlusion_fader and _occlusion_fader.has_method("set_target"):
+		_occlusion_fader.call("set_target", target)
 	if _target != null and _camera != null:
 		global_position = _target.global_position + _active_follow_distance
 		_camera.look_at(_target.global_position + look_at_offset, Vector3.UP)
@@ -66,7 +76,8 @@ func set_interior_mode(inside: bool) -> void:
 	if not inside:
 		_floor_focus_target = 0.0
 		_floor_focus_y = 0.0
-
+	if _occlusion_fader and _occlusion_fader.has_method("set_interior_mode"):
+		_occlusion_fader.call("set_interior_mode", inside)
 
 func set_floor_focus_height(relative_y: float) -> void:
 	## Multi-story framing offset relative to ground (0 = ground).

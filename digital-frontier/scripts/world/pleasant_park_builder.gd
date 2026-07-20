@@ -35,7 +35,7 @@ static func build(root: Node3D) -> Dictionary:
 	_add_road_network(root)
 	_add_central_park(root)
 	_add_sports_field(root)
-	_add_fuel_stop(root)
+	_add_fuel_stop(root, result)
 	_add_houses(root, result)
 	_add_fences(root)
 	_add_vegetation(root)
@@ -217,8 +217,10 @@ static func _add_central_park(root: Node3D) -> void:
 	park.add_child(gazebo)
 	for offset in [Vector3(-2.4, 1.35, -2.4), Vector3(2.4, 1.35, -2.4), Vector3(-2.4, 1.35, 2.4), Vector3(2.4, 1.35, 2.4)]:
 		StylizedMesh.add_box(gazebo, Vector3(0.32, 2.7, 0.32), WorldPalette.WOOD, offset, "Post", true, 1.0, &"wood")
-	StylizedMesh.add_box(gazebo, Vector3(7.0, 0.2, 7.0), WorldPalette.ROOF_RED, Vector3(0, 2.75, 0), "RoofDeck", false, 1.0, &"wood")
-	StylizedMesh.add_box(gazebo, Vector3(4.6, 0.55, 4.6), WorldPalette.ROOF_RED.darkened(0.08), Vector3(0, 3.2, 0), "RoofPeak", false, 1.0, &"wood")
+	var gazebo_roof := StylizedMesh.add_box(gazebo, Vector3(7.0, 0.2, 7.0), WorldPalette.ROOF_RED, Vector3(0, 2.75, 0), "RoofDeck", false, 1.0, &"wood")
+	var gazebo_peak := StylizedMesh.add_box(gazebo, Vector3(4.6, 0.55, 4.6), WorldPalette.ROOF_RED.darkened(0.08), Vector3(0, 3.2, 0), "RoofPeak", false, 1.0, &"wood")
+	OcclusionUtil.mark(gazebo_roof)
+	OcclusionUtil.mark(gazebo_peak)
 	StylizedMesh.add_box(gazebo, Vector3(5.2, 0.16, 5.2), WorldPalette.WOOD.lightened(0.1), Vector3(0, 0.14, 0), "Floor", true, 1.0, &"wood")
 	for z in [-2.5, 2.5]:
 		StylizedMesh.add_box(gazebo, Vector3(4.6, 0.08, 0.08), WorldPalette.WOOD.lightened(0.15), Vector3(0, 1.05, z), "Rail")
@@ -304,7 +306,7 @@ static func _add_sports_field(root: Node3D) -> void:
 	StylizedMesh.add_box(field, Vector3(0.12, 1.4, 7.5), WorldPalette.METAL, Vector3(13.2, 1.0, 0), "BleacherRail")
 
 
-static func _add_fuel_stop(root: Node3D) -> void:
+static func _add_fuel_stop(root: Node3D, result: Dictionary) -> void:
 	## Peripheral fuel stop on the east edge (yellow shop + red accents — original branding).
 	var fuel := Node3D.new()
 	fuel.name = "FuelStop"
@@ -313,10 +315,11 @@ static func _add_fuel_stop(root: Node3D) -> void:
 	StylizedMesh.add_box(fuel, Vector3(14, 0.12, 12), WorldPalette.ROAD, Vector3(0, 0.08, 0), "Lot", true, 1.0, &"asphalt")
 	for i in 4:
 		StylizedMesh.add_box(fuel, Vector3(0.08, 0.02, 2.4), Color(0.9, 0.9, 0.85), Vector3(-5 + float(i) * 2.4, 0.14, -3.5), "Stall")
-	StylizedMesh.add_box(fuel, Vector3(8.0, 3.5, 5.8), Color(0.86, 0.76, 0.30), Vector3(2.0, 1.75, 1.8), "Shop", true, 1.0, &"brick")
-	StylizedMesh.add_box(fuel, Vector3(9.0, 0.35, 6.8), WorldPalette.ROOF_RED, Vector3(2.0, 3.65, 1.8), "ShopRoof", false, 1.0, &"wood")
-	StylizedMesh.add_window_pane(fuel, Vector3(1.6, 1.6, 0.08), Vector3(2.0, 1.9, 4.75), "ShopWindow")
-	StylizedMesh.add_box(fuel, Vector3(9, 0.24, 5.5), WorldPalette.ROAD.darkened(0.1), Vector3(-1.5, 3.5, -2.2), "Canopy")
+	RegionPropKit.make_enterable_building(
+		fuel, "PassNFuelShop", Vector3(2.0, 0, 1.8), Color(0.86, 0.76, 0.30), WorldPalette.ROOF_RED, 0.0, result, InteriorKinds.SHOP, Vector3(7.5, 3.2, 5.2)
+	)
+	var canopy := StylizedMesh.add_box(fuel, Vector3(9, 0.24, 5.5), WorldPalette.ROAD.darkened(0.1), Vector3(-1.5, 3.5, -2.2), "Canopy")
+	OcclusionUtil.mark(canopy)
 	StylizedMesh.add_box(fuel, Vector3(0.32, 3.3, 0.32), WorldPalette.METAL, Vector3(-4, 1.65, -2.2), "CanopyPost1", true)
 	StylizedMesh.add_box(fuel, Vector3(0.32, 3.3, 0.32), WorldPalette.METAL, Vector3(1, 1.65, -2.2), "CanopyPost2", true)
 	StylizedMesh.add_box(fuel, Vector3(0.8, 1.5, 0.6), WorldPalette.ROOF_RED, Vector3(-4, 0.85, -3.0), "Pump1", true)
@@ -343,16 +346,16 @@ static func _add_houses(root: Node3D, result: Dictionary) -> void:
 	var specs := [
 		## North row — face south toward park
 		{"name": "BrickHouse", "pos": Vector3(-12, 0, -h), "color": Color(0.68, 0.34, 0.28), "roof": Color(0.34, 0.22, 0.18), "enterable": true, "yaw": 0.0, "style": &"brick"},
-		{"name": "WhiteHouse", "pos": Vector3(12, 0, -h), "color": Color(0.92, 0.92, 0.88), "roof": Color(0.32, 0.38, 0.48), "enterable": false, "yaw": 0.0, "style": &"colonial"},
+		{"name": "WhiteHouse", "pos": Vector3(12, 0, -h), "color": Color(0.92, 0.92, 0.88), "roof": Color(0.32, 0.38, 0.48), "enterable": true, "yaw": 0.0, "style": &"colonial"},
 		## East row — face west toward park
-		{"name": "YellowHouse", "pos": Vector3(h, 0, -12), "color": Color(0.90, 0.78, 0.28), "roof": Color(0.42, 0.26, 0.14), "enterable": false, "yaw": -90.0, "style": &"cottage"},
-		{"name": "ModernHouse", "pos": Vector3(h, 0, 12), "color": Color(0.36, 0.55, 0.85), "roof": Color(0.18, 0.22, 0.32), "enterable": false, "yaw": -90.0, "style": &"modern"},
+		{"name": "YellowHouse", "pos": Vector3(h, 0, -12), "color": Color(0.90, 0.78, 0.28), "roof": Color(0.42, 0.26, 0.14), "enterable": true, "yaw": -90.0, "style": &"cottage"},
+		{"name": "ModernHouse", "pos": Vector3(h, 0, 12), "color": Color(0.36, 0.55, 0.85), "roof": Color(0.18, 0.22, 0.32), "enterable": true, "yaw": -90.0, "style": &"modern"},
 		## South row — face north toward park
 		{"name": "GreenHouse", "pos": Vector3(-12, 0, h), "color": Color(0.28, 0.58, 0.36), "roof": Color(0.22, 0.28, 0.20), "enterable": true, "yaw": 180.0, "style": &"garden"},
-		{"name": "CoralHouse", "pos": Vector3(12, 0, h), "color": Color(0.88, 0.50, 0.42), "roof": Color(0.38, 0.24, 0.18), "enterable": false, "yaw": 180.0, "style": &"bungalow"},
+		{"name": "CoralHouse", "pos": Vector3(12, 0, h), "color": Color(0.88, 0.50, 0.42), "roof": Color(0.38, 0.24, 0.18), "enterable": true, "yaw": 180.0, "style": &"bungalow"},
 		## West row — face east toward park
-		{"name": "SkyHouse", "pos": Vector3(-h, 0, -12), "color": Color(0.52, 0.75, 0.90), "roof": Color(0.28, 0.32, 0.38), "enterable": false, "yaw": 90.0, "style": &"ranch"},
-		{"name": "LavenderHouse", "pos": Vector3(-h, 0, 12), "color": Color(0.70, 0.56, 0.86), "roof": Color(0.32, 0.24, 0.38), "enterable": false, "yaw": 90.0, "style": &"victorian"},
+		{"name": "SkyHouse", "pos": Vector3(-h, 0, -12), "color": Color(0.52, 0.75, 0.90), "roof": Color(0.28, 0.32, 0.38), "enterable": true, "yaw": 90.0, "style": &"ranch"},
+		{"name": "LavenderHouse", "pos": Vector3(-h, 0, 12), "color": Color(0.70, 0.56, 0.86), "roof": Color(0.32, 0.24, 0.38), "enterable": true, "yaw": 90.0, "style": &"victorian"},
 	]
 	var houses := Node3D.new()
 	houses.name = "Houses"
@@ -492,9 +495,16 @@ static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 			NodePath("ChimneyCap"),
 		])
 		## Every enterable house gets a real interior room to explore.
-		house.set("interior_scene", load("res://scenes/world/buildings/interiors/test_house_interior.tscn"))
+		var kind: StringName = spec.get("kind", InteriorKinds.HOUSE)
+		if style == &"modern":
+			kind = InteriorKinds.OFFICE
+		elif style == &"ranch":
+			kind = InteriorKinds.APARTMENT
+		house.set("interior_kind", kind)
+		house.set("interior_scene", null)
 		if house.has_method("bind_door_now"):
 			house.call("bind_door_now")
+		OcclusionUtil.mark_named_in(house, PackedStringArray(["Roof", "RoofPeak", "PorchRoof", "Ridge", "EaveF", "EaveB"]))
 
 	return house
 

@@ -37,16 +37,16 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 		hub, "BlueHouse", Vector3(-16, 0.4, -6), Color(0.35, 0.55, 0.88), WorldPalette.ROOF, 90.0, result
 	)
 	## Small house across from blue.
-	_salty_house(hub, "SmallHouse", Vector3(-6, 0.2, 8), Color(0.88, 0.84, 0.72), WorldPalette.ROOF_RED, 0.0, Vector3(4.2, 2.2, 3.8))
+	RegionPropKit.make_enterable_building(hub, "SmallHouse", Vector3(-6, 0.2, 8), Color(0.88, 0.84, 0.72), WorldPalette.ROOF_RED, 0.0, result, InteriorKinds.HOUSE, Vector3(4.2, 2.2, 3.8))
 	## Northern brick house.
-	_salty_house(hub, "BrickHouse", Vector3(2, 0.6, -16), WorldPalette.BRICK, WorldPalette.ROOF, 180.0, Vector3(5.8, 2.8, 5.0))
+	RegionPropKit.make_enterable_building(hub, "BrickHouse", Vector3(2, 0.6, -16), WorldPalette.BRICK, WorldPalette.ROOF, 180.0, result, InteriorKinds.HOUSE, Vector3(5.8, 2.8, 5.0))
 	## Southern house.
-	_salty_house(hub, "SouthHouse", Vector3(4, 0.3, 14), Color(0.78, 0.62, 0.42), WorldPalette.ROOF, 0.0, Vector3(5.4, 2.5, 4.6))
+	RegionPropKit.make_enterable_building(hub, "SouthHouse", Vector3(4, 0.3, 14), Color(0.78, 0.62, 0.42), WorldPalette.ROOF, 0.0, result, InteriorKinds.HOUSE, Vector3(5.4, 2.5, 4.6))
 	## Eastern red house (larger).
-	_salty_house(hub, "RedHouse", Vector3(18, 0.5, 2), WorldPalette.ROOF_RED.lightened(0.15), WorldPalette.ROOF, -90.0, Vector3(6.2, 3.0, 5.2))
+	RegionPropKit.make_enterable_building(hub, "RedHouse", Vector3(18, 0.5, 2), WorldPalette.ROOF_RED.lightened(0.15), WorldPalette.ROOF, -90.0, result, InteriorKinds.HOUSE, Vector3(6.2, 3.0, 5.2))
 
 	## Gas station — NE corner of the hollow (OG Salty landmark).
-	_gas_station(hub, Vector3(16, 0.2, -14))
+	_gas_station(hub, Vector3(16, 0.2, -14), result)
 
 	## Parked cars / street clutter.
 	_car(hub, Vector3(-4, 0, -2), Color(0.75, 0.22, 0.2), 20.0)
@@ -80,20 +80,21 @@ static func _salty_house(parent: Node3D, house_name: String, pos: Vector3, wall:
 	StylizedMesh.add_box(h, Vector3(0.5, 0.35, 0.5), WorldPalette.BUSH, Vector3(-size.x * 0.4, 0.2, size.z * 0.45), "Bush", false, 1.0, &"leaf")
 
 
-static func _gas_station(parent: Node3D, pos: Vector3) -> void:
+static func _gas_station(parent: Node3D, pos: Vector3, result: Dictionary) -> void:
 	var g := Node3D.new()
 	g.name = "SaltyGasStation"
 	g.position = pos
 	parent.add_child(g)
 	StylizedMesh.add_box(g, Vector3(12, 0.1, 10), WorldPalette.ROAD, Vector3(0, 0.06, 0), "Lot", true, 1.0, &"asphalt")
-	StylizedMesh.add_box(g, Vector3(6.5, 3.0, 4.8), Color(0.86, 0.76, 0.28), Vector3(2.0, 1.5, 1.2), "Shop", true, 1.0, &"brick")
-	StylizedMesh.add_box(g, Vector3(7.4, 0.3, 5.6), WorldPalette.ROOF_RED, Vector3(2.0, 3.15, 1.2), "ShopRoof", false, 1.0, &"roof")
-	StylizedMesh.add_box(g, Vector3(8, 0.22, 4.5), WorldPalette.ROAD.darkened(0.1), Vector3(-1.5, 3.0, -1.5), "Canopy")
+	RegionPropKit.make_enterable_building(
+		g, "SaltyGasShop", Vector3(2.0, 0, 1.2), Color(0.86, 0.76, 0.28), WorldPalette.ROOF_RED, 0.0, result, InteriorKinds.SHOP, Vector3(6.0, 2.8, 4.5)
+	)
+	var canopy := StylizedMesh.add_box(g, Vector3(8, 0.22, 4.5), WorldPalette.ROAD.darkened(0.1), Vector3(-1.5, 3.0, -1.5), "Canopy")
+	OcclusionUtil.mark(canopy)
 	StylizedMesh.add_box(g, Vector3(0.28, 2.9, 0.28), WorldPalette.METAL, Vector3(-4, 1.45, -1.5), "Post1", true)
 	StylizedMesh.add_box(g, Vector3(0.28, 2.9, 0.28), WorldPalette.METAL, Vector3(1, 1.45, -1.5), "Post2", true)
 	StylizedMesh.add_box(g, Vector3(0.7, 1.4, 0.55), WorldPalette.ROOF_RED, Vector3(-4, 0.8, -2.2), "Pump1", true)
 	StylizedMesh.add_box(g, Vector3(0.7, 1.4, 0.55), WorldPalette.ROOF_RED, Vector3(0, 0.8, -2.2), "Pump2", true)
-	StylizedMesh.add_window_pane(g, Vector3(1.4, 1.4, 0.08), Vector3(2.0, 1.7, 3.65), "ShopWin")
 	RegionPropKit.add_discoverable(g, &"salty_gas", "Salty Gas Station", Vector3(0, 0.6, 3.5), 12, "Yellow shop, red canopy — fuel for the hills.")
 
 

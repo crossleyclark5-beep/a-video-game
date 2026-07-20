@@ -103,8 +103,10 @@ static func _shoulder_forest(parent: Node3D, a: Vector3, b: Vector3, seed_i: int
 			continue
 		StylizedMesh.add_box(parent, Vector3(0.32, 1.65, 0.32), WorldPalette.TRUNK, p + Vector3(0, 0.82, 0), "Trunk", false, 1.0, &"wood")
 		var leaf_c := WorldPalette.LEAF if j % 2 == 0 else WorldPalette.LEAF_DARK
-		StylizedMesh.add_box(parent, Vector3(1.5, 1.15, 1.5), leaf_c, p + Vector3(0, 2.05, 0), "Canopy", false, 1.0, &"leaf")
-		StylizedMesh.add_box(parent, Vector3(0.85, 0.7, 0.85), leaf_c.lightened(0.08), p + Vector3(0.35, 2.55, 0.15), "Canopy2", false, 1.0, &"leaf")
+		var canopy := StylizedMesh.add_box(parent, Vector3(1.5, 1.15, 1.5), leaf_c, p + Vector3(0, 2.05, 0), "Canopy", false, 1.0, &"leaf")
+		var canopy2 := StylizedMesh.add_box(parent, Vector3(0.85, 0.7, 0.85), leaf_c.lightened(0.08), p + Vector3(0.35, 2.55, 0.15), "Canopy2", false, 1.0, &"leaf")
+		OcclusionUtil.mark(canopy)
+		OcclusionUtil.mark(canopy2)
 		if j == 1:
 			StylizedMesh.add_box(parent, Vector3(0.35, 0.2, 0.3), WorldPalette.ROCK, p + Vector3(1.2, 0.12, 0.4), "Rock", false, 1.0, &"dirt")
 			StylizedMesh.add_box(parent, Vector3(0.12, 0.28, 0.12), WorldPalette.LEAF_DARK, p + Vector3(-1.0, 0.14, 0.6), "Plant")
