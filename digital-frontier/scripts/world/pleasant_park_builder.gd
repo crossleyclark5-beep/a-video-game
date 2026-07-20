@@ -376,13 +376,14 @@ static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 	var enterable: bool = spec["enterable"]
 	var style: StringName = spec["style"]
 
-	## Yard with subtle tone
+	## Outer lawn (grass) + clean dirt pad under the footprint — no grass through floors.
 	var yard_tint := WorldPalette.GRASS
 	if style == &"garden":
 		yard_tint = WorldPalette.GRASS_DARK
 	elif style == &"modern":
 		yard_tint = WorldPalette.GRASS_LIGHT
-	StylizedMesh.add_box(house, Vector3(11, 0.05, 10), yard_tint, Vector3(0, 0.03, 0), "Yard", false, 1.0, &"grass")
+	StylizedMesh.add_box(house, Vector3(11, 0.04, 10), yard_tint, Vector3(0, 0.02, 0), "Lawn", false, 1.0, &"grass")
+	StylizedMesh.add_box(house, Vector3(8.2, 0.05, 7.0), WorldPalette.DIRT.lightened(0.06), Vector3(0, 0.04, 0), "Yard", false, 1.0, &"dirt")
 
 	## Driveway
 	StylizedMesh.add_box(house, Vector3(3.0, 0.04, 4.2), ROAD.lightened(0.08), Vector3(4.2, 0.04, 3.5), "Driveway", true, 1.0, &"asphalt")

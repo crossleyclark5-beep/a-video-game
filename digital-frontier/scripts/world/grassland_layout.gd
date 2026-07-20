@@ -123,3 +123,65 @@ static func path_length(points: Array[Vector3]) -> float:
 	for i in range(1, points.size()):
 		total += straight_distance(points[i - 1], points[i])
 	return total
+
+
+## Irregular island coastline in XZ (Vector2 = x,z). Clockwise, closed by renderer.
+## Shaped around POI spread — not a rectangle.
+static func island_coastline() -> PackedVector2Array:
+	return PackedVector2Array([
+		Vector2(-400, -4200),   ## north tip near Reels
+		Vector2(900, -4300),
+		Vector2(2200, -3600),
+		Vector2(3400, -1800),
+		Vector2(4100, 200),     ## east lobe near Mile
+		Vector2(4000, 2200),
+		Vector2(3600, 3800),    ## SE toward Fields / Bluffs
+		Vector2(2800, 4300),
+		Vector2(1200, 4200),
+		Vector2(-200, 3400),
+		Vector2(-1600, 2600),   ## SW toward Grove
+		Vector2(-2500, 1400),
+		Vector2(-2400, 200),
+		Vector2(-1800, -800),
+		Vector2(-900, -2200),
+		Vector2(-400, -4200),
+	])
+
+
+static func is_on_island(world: Vector3, margin: float = 0.0) -> bool:
+	return Geometry2D.is_point_in_polygon(
+		Vector2(world.x, world.z),
+		_inflated_coast(margin) if margin != 0.0 else island_coastline()
+	)
+
+
+static func _inflated_coast(margin: float) -> PackedVector2Array:
+	## Simple radial inflate from centroid for exclusion checks.
+	var poly := island_coastline()
+	var c := Vector2.ZERO
+	for p in poly:
+		c += p
+	c /= float(poly.size())
+	var out := PackedVector2Array()
+	for p in poly:
+		var d := p - c
+		out.append(c + d.normalized() * (d.length() + margin))
+	return out
+
+
+## Building / pad exclusion radii for vegetation (world XZ).
+static func hub_exclusion_zones() -> Array[Dictionary]:
+	return [
+		{"pos": PLEASANT_PARK, "radius": 95.0},
+		{"pos": GREASE_GROVE, "radius": 70.0},
+		{"pos": MIRROR_MERE, "radius": 75.0},
+		{"pos": MARKET_MILE, "radius": 85.0},
+		{"pos": SALTY_SPRINGS, "radius": 70.0},
+		{"pos": RISKY_REELS, "radius": 80.0},
+		{"pos": FATAL_FIELDS, "radius": 90.0},
+	]
+
+
+static func road_clearance() -> float:
+	## Half-width keep-out from road centerline for grass/trees.
+	return 9.0

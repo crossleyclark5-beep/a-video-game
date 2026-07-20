@@ -1,7 +1,7 @@
 class_name BuildingInteriorController
 extends Node
-## Enter/exit: soft move, roof fade, shell cutaway, camera tighten, interior load.
-## Player stays in the same adventure scene — never kicked to Home.
+## Enter/exit + multi-floor visibility for any building height.
+## Player always sees the floor they occupy; camera rises with the story.
 
 @export var camera_rig_path: NodePath
 @export var interior_container_path: NodePath
@@ -13,6 +13,8 @@ var _active: BuildingVolume = null
 var _loaded_interior: Node3D = null
 var _current_floor_index: int = 0
 var _transitioning: bool = false
+var _interior_light: OmniLight3D = null
+var _floors: Array[BuildingFloor] = []
 
 
 func _ready() -> void:
@@ -51,8 +53,12 @@ func enter_building(building: BuildingVolume, actor: Node) -> void:
 		await _soft_move_actor(actor as Node3D, building.get_interior_entry_position())
 	_snap_companion_to_player(actor)
 	_current_floor_index = 0
+	_apply_floor_visibility(0)
+	_sync_camera_to_floor(0)
+	_ensure_interior_light(true)
 	EventBus.building_interior_loaded.emit(building.building_id)
-	EventBus.ui_notification_requested.emit("Inside %s" % building.display_name, 1.6)
+	var fname := _floor_label(0)
+	EventBus.ui_notification_requested.emit("Inside %s · %s" % [building.display_name, fname], 1.8)
 	_transitioning = false
 
 
@@ -62,13 +68,17 @@ func exit_building(actor: Node) -> void:
 	_transitioning = true
 	var building := _active
 	var building_id := building.building_id
+	_ensure_interior_light(false)
 	_fade_roofs(building, 1.0)
 	_unload_interior()
 	_set_interior_camera(false, building.exterior_zoom)
+	_clear_camera_floor()
 	if actor is Node3D:
 		await _soft_move_actor(actor as Node3D, building.get_exterior_exit_position())
 	building.set_occupied(false)
 	_active = null
+	_floors.clear()
+	_current_floor_index = 0
 	InputManager.set_context(InputManager.Context.OVERWORLD)
 	_snap_companion_to_player(actor)
 	EventBus.building_exited.emit(building_id)
@@ -77,9 +87,17 @@ func exit_building(actor: Node) -> void:
 
 
 func go_to_floor(floor_index: int, actor: Node3D, spawn: Vector3) -> void:
-	_current_floor_index = floor_index
+	if _transitioning or _active == null:
+		return
+	_transitioning = true
+	## Reveal destination floor before the move so the player never vanishes.
+	_apply_floor_visibility(floor_index)
+	_sync_camera_to_floor(floor_index)
 	await _soft_move_actor(actor, spawn)
-	EventBus.ui_notification_requested.emit("Floor: %d" % floor_index, 1.2)
+	_current_floor_index = floor_index
+	_snap_companion_to_player(actor)
+	EventBus.ui_notification_requested.emit(_floor_label(floor_index), 1.4)
+	_transitioning = false
 
 
 func get_active_building() -> BuildingVolume:
@@ -90,12 +108,15 @@ func get_current_floor_index() -> int:
 	return _current_floor_index
 
 
+func get_floor_count() -> int:
+	return _floors.size()
+
+
 func is_inside() -> bool:
 	return _active != null
 
 
 func _soft_move_actor(actor: Node3D, dest: Vector3) -> void:
-	## Short ease — feels like stepping through the door, not a scene cut.
 	if actor == null or not is_instance_valid(actor):
 		return
 	if actor.global_position.distance_to(dest) < 0.2:
@@ -161,6 +182,26 @@ func _set_interior_camera(inside: bool, zoom: float) -> void:
 		_camera_rig.call("set_zoom_size", zoom)
 
 
+func _sync_camera_to_floor(floor_index: int) -> void:
+	if _camera_rig == null:
+		return
+	var fl := _find_floor(floor_index)
+	var ground := _find_floor(0)
+	var relative := 0.0
+	if fl and ground:
+		relative = fl.get_focus_height() - ground.get_focus_height()
+	elif fl:
+		relative = fl.global_position.y
+	if _camera_rig.has_method("set_floor_focus_height"):
+		_camera_rig.call("set_floor_focus_height", relative)
+	_place_interior_light(fl)
+
+
+func _clear_camera_floor() -> void:
+	if _camera_rig and _camera_rig.has_method("set_floor_focus_height"):
+		_camera_rig.call("set_floor_focus_height", 0.0)
+
+
 func _load_interior(building: BuildingVolume) -> void:
 	_unload_interior()
 	if building.interior_scene == null or _interior_container == null:
@@ -168,11 +209,84 @@ func _load_interior(building: BuildingVolume) -> void:
 	_loaded_interior = building.interior_scene.instantiate()
 	_interior_container.add_child(_loaded_interior)
 	if _loaded_interior is Node3D:
-		## Match house rotation + position so rooms line up with the door.
 		(_loaded_interior as Node3D).global_transform = building.global_transform
+	_collect_floors()
+	## Default: only ground story until stairs are used.
+	_apply_floor_visibility(0)
 
 
 func _unload_interior() -> void:
 	if _loaded_interior and is_instance_valid(_loaded_interior):
 		_loaded_interior.queue_free()
 	_loaded_interior = null
+	_floors.clear()
+
+
+func _collect_floors() -> void:
+	_floors.clear()
+	if _loaded_interior == null:
+		return
+	for child in _loaded_interior.find_children("*", "BuildingFloor", true, false):
+		if child is BuildingFloor:
+			_floors.append(child as BuildingFloor)
+	_floors.sort_custom(func(a: BuildingFloor, b: BuildingFloor) -> bool:
+		return a.floor_index < b.floor_index
+	)
+
+
+func _apply_floor_visibility(active_index: int) -> void:
+	if _floors.is_empty():
+		_collect_floors()
+	for fl in _floors:
+		if fl.floor_index == active_index:
+			fl.set_floor_state(BuildingFloor.FloorState.ACTIVE)
+		elif fl.floor_index < active_index:
+			fl.set_floor_state(BuildingFloor.FloorState.BELOW)
+		else:
+			fl.set_floor_state(BuildingFloor.FloorState.ABOVE)
+
+
+func _find_floor(index: int) -> BuildingFloor:
+	for fl in _floors:
+		if fl.floor_index == index:
+			return fl
+	return null
+
+
+func _floor_label(index: int) -> String:
+	var fl := _find_floor(index)
+	if fl and not fl.floor_name.is_empty():
+		return fl.floor_name
+	if index <= 0:
+		return "Ground Floor"
+	return "Floor %d" % (index + 1)
+
+
+func _ensure_interior_light(on: bool) -> void:
+	if not on:
+		if _interior_light and is_instance_valid(_interior_light):
+			_interior_light.queue_free()
+		_interior_light = null
+		return
+	if _interior_light and is_instance_valid(_interior_light):
+		return
+	if _loaded_interior == null:
+		return
+	_interior_light = OmniLight3D.new()
+	_interior_light.name = "InteriorFill"
+	_interior_light.light_color = Color(1.0, 0.95, 0.85)
+	_interior_light.light_energy = 1.35
+	_interior_light.omni_range = 14.0
+	_interior_light.shadow_enabled = false
+	_loaded_interior.add_child(_interior_light)
+	_place_interior_light(_find_floor(_current_floor_index))
+
+
+func _place_interior_light(fl: BuildingFloor) -> void:
+	if _interior_light == null or not is_instance_valid(_interior_light):
+		return
+	var y := 2.4
+	if fl:
+		## Local Y above the occupied story so light travels with floor switches.
+		y = fl.position.y + 2.4
+	_interior_light.position = Vector3(0, y, 0)
