@@ -37,6 +37,30 @@ static func major_markers() -> Array[Dictionary]:
 			"mystery_label": "Town",
 		},
 		{
+			"id": &"grease_grove",
+			"discovery_id": &"grease_grove_welcome",
+			"pos": GrasslandLayout.GREASE_GROVE,
+			"kind": IconKind.LANDMARK,
+			"label": "Grease Grove",
+			"mystery_label": "Plaza",
+		},
+		{
+			"id": &"mirror_mere",
+			"discovery_id": &"mirror_mere_welcome",
+			"pos": GrasslandLayout.MIRROR_MERE,
+			"kind": IconKind.WATER,
+			"label": "Mirror Mere",
+			"mystery_label": "Lake",
+		},
+		{
+			"id": &"market_mile",
+			"discovery_id": &"market_mile_welcome",
+			"pos": GrasslandLayout.MARKET_MILE,
+			"kind": IconKind.TOWN,
+			"label": "Market Mile",
+			"mystery_label": "Shops",
+		},
+		{
 			"id": &"salty_springs",
 			"discovery_id": &"salty_springs_welcome",
 			"pos": GrasslandLayout.SALTY_SPRINGS,
@@ -162,6 +186,7 @@ static func landmark_markers() -> Array[Dictionary]:
 static func terrain_features() -> Array[Dictionary]:
 	## Static map paint (not discovery-gated).
 	return [
+		{"kind": IconKind.WATER, "pos": GrasslandLayout.MIRROR_MERE, "radius": 48.0},
 		{"kind": IconKind.WATER, "pos": Vector3(1280.0, 0.0, -1200.0), "radius": 28.0},
 		{"kind": IconKind.WATER, "pos": Vector3(490.0, 0.0, 4552.0), "radius": 36.0},
 		{"kind": IconKind.MOUNTAIN, "pos": Vector3(-420.0, 0.0, 80.0), "radius": 55.0},
@@ -175,6 +200,9 @@ static func road_polylines() -> Array:
 		GrasslandLayout.path_park_to_salty(),
 		GrasslandLayout.path_park_to_reels(),
 		GrasslandLayout.path_park_to_fields(),
+		GrasslandLayout.path_park_to_mere(),
+		GrasslandLayout.path_park_to_mile(),
+		GrasslandLayout.path_park_to_grove(),
 	]
 
 

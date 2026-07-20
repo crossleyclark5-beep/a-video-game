@@ -18,6 +18,9 @@ static func build(root: Node3D) -> Dictionary:
 		&"expansion_points": [],
 		&"poi_centers": {
 			&"pleasant_park": GrasslandLayout.PLEASANT_PARK,
+			&"grease_grove": GrasslandLayout.GREASE_GROVE,
+			&"mirror_mere": GrasslandLayout.MIRROR_MERE,
+			&"market_mile": GrasslandLayout.MARKET_MILE,
 			&"salty_springs": GrasslandLayout.SALTY_SPRINGS,
 			&"risky_reels": GrasslandLayout.RISKY_REELS,
 			&"fatal_fields": GrasslandLayout.FATAL_FIELDS,
@@ -26,6 +29,9 @@ static func build(root: Node3D) -> Dictionary:
 
 	_add_region_ground(root)
 	_add_pleasant_park(root, result)
+	GreaseGroveBuilder.build_at(root, GrasslandLayout.GREASE_GROVE, result)
+	MirrorMereBuilder.build_at(root, GrasslandLayout.MIRROR_MERE, result)
+	MarketMileBuilder.build_at(root, GrasslandLayout.MARKET_MILE, result)
 	SaltySpringsBuilder.build_at(root, GrasslandLayout.SALTY_SPRINGS, result)
 	FatalFieldsBuilder.build_at(root, GrasslandLayout.FATAL_FIELDS, result)
 	RiskyReelsBuilder.build_at(root, GrasslandLayout.RISKY_REELS, result)

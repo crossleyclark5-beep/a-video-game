@@ -10,6 +10,9 @@ static func build_all(root: Node3D, result: Dictionary) -> void:
 	_build_path(corridors, result, "ToSaltySprings", GrasslandLayout.path_park_to_salty(), WorldPalette.PATH, true)
 	_build_path(corridors, result, "ToRiskyReels", GrasslandLayout.path_park_to_reels(), WorldPalette.ROAD, false)
 	_build_path(corridors, result, "ToFatalFields", GrasslandLayout.path_park_to_fields(), WorldPalette.DIRT, true)
+	_build_path(corridors, result, "ToMirrorMere", GrasslandLayout.path_park_to_mere(), WorldPalette.ROAD, false)
+	_build_path(corridors, result, "ToMarketMile", GrasslandLayout.path_park_to_mile(), WorldPalette.ROAD, false)
+	_build_path(corridors, result, "ToGreaseGrove", GrasslandLayout.path_park_to_grove(), WorldPalette.PATH, true)
 	_add_journey_landmarks(corridors, result)
 
 

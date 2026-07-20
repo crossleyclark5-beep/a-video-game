@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"grease_grove_welcome"
+display_name = "Grease Grove Welcome"
+description = "East approach into Grease Grove."
+category = 0
+region_id = &"grassland"
+short_blurb = "East approach into Grease Grove."
+bits_reward = 18
+map_hint = "Grove approach"
+creature_xp_reward = 7
+is_secret = false

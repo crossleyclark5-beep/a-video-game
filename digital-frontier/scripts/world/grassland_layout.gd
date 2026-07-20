@@ -3,8 +3,11 @@ extends RefCounted
 ## Canonical Grassland Region coordinates and travel paths.
 ## Relative placement mirrors OG Athena geography (original art, not franchise IP):
 ##   Pleasant Park = NW heart / start
+##   Grease Grove  = west fast-food suburb
+##   Mirror Mere   = central lake + island
+##   Market Mile   = east retail strip
 ##   Risky Reels   = NE drive-in
-##   Salty Springs = south-central hill town (between Park and Fields)
+##   Salty Springs = south-central hill town
 ##   Fatal Fields  = further south farm
 ## Distances sized for PlayerController.WALK_SPEED (6.5 u/s).
 
@@ -12,18 +15,21 @@ const WALK_SPEED := 6.5
 
 ## POI world centers (X, Z) — Y is ground. +Z = south, -Z = north, +X = east.
 const PLEASANT_PARK := Vector3(0.0, 0.0, 0.0)
+const GREASE_GROVE := Vector3(-550.0, 0.0, 350.0) ## West of Park (~1.7 min)
+const MIRROR_MERE := Vector3(1150.0, 0.0, -350.0) ## ENE of Park (~3.1 min)
+const MARKET_MILE := Vector3(1900.0, 0.0, 450.0) ## East of Park (~5.0 min)
 const RISKY_REELS := Vector3(2800.0, 0.0, -2700.0) ## NE of Park (~10 min)
 const SALTY_SPRINGS := Vector3(900.0, 0.0, 1270.0) ## SSE of Park (~4 min)
 const FATAL_FIELDS := Vector3(500.0, 0.0, 4600.0) ## South of Salty (~12 min from Park)
 
 ## Region bounds for base terrain / camera far plane.
-const REGION_MIN := Vector3(-800.0, 0.0, -3400.0)
+const REGION_MIN := Vector3(-900.0, 0.0, -3400.0)
 const REGION_MAX := Vector3(3400.0, 0.0, 5200.0)
 
 ## Expansion hooks for future continents / chapters.
 const EXPAND_NORTH := Vector3(200.0, 0.0, -3300.0)
 const EXPAND_EAST := Vector3(3300.0, 0.0, -2700.0)
-const EXPAND_WEST := Vector3(-700.0, 0.0, 200.0)
+const EXPAND_WEST := Vector3(-850.0, 0.0, 200.0)
 const EXPAND_SOUTH := Vector3(500.0, 0.0, 5100.0)
 
 
@@ -70,6 +76,35 @@ static func path_park_to_fields() -> Array[Vector3]:
 		Vector3(680.0, 0.0, 3100.0),
 		Vector3(560.0, 0.0, 3900.0),
 		FATAL_FIELDS,
+	]
+
+
+static func path_park_to_mere() -> Array[Vector3]:
+	return [
+		Vector3(40.0, 0.0, -20.0),
+		Vector3(320.0, 0.0, -80.0),
+		Vector3(680.0, 0.0, -180.0),
+		Vector3(980.0, 0.0, -280.0),
+		MIRROR_MERE,
+	]
+
+
+static func path_park_to_mile() -> Array[Vector3]:
+	return [
+		Vector3(40.0, 0.0, 30.0),
+		Vector3(420.0, 0.0, 120.0),
+		Vector3(900.0, 0.0, 250.0),
+		Vector3(1400.0, 0.0, 360.0),
+		MARKET_MILE,
+	]
+
+
+static func path_park_to_grove() -> Array[Vector3]:
+	return [
+		Vector3(-30.0, 0.0, 20.0),
+		Vector3(-180.0, 0.0, 120.0),
+		Vector3(-360.0, 0.0, 240.0),
+		GREASE_GROVE,
 	]
 
 
