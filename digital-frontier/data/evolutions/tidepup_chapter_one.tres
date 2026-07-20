@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="EvolutionPathData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/evolution_path_data.gd" id="1_path"]
+
+[resource]
+script = ExtResource("1_path")
+id = &"tidepup_chapter_one"
+species_id = &"tidepup"
+from_stage = 0
+to_stage = 1
+form_display_name = "Tidemaul"
+blurb = "Tide that rose with the first chapter’s victory."
+need_level = 5
+need_friendship = 35.0
+need_battles_won = 1
+need_world_flag = &"chapter_grassland_cleared"
+stat_bias = {
+"hp": 1.1,
+"attack": 1.05,
+"defense": 1.1,
+"speed": 1.0
+}
+priority = 80

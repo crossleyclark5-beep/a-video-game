@@ -54,6 +54,8 @@ func _infer_role(npc_id: StringName) -> int:
 			return NpcCatalog.Role.EXPLORER
 		&"park_guide":
 			return NpcCatalog.Role.STORY
+		&"park_kid", &"park_elder", &"park_villager":
+			return NpcCatalog.Role.VILLAGER
 		_:
 			return NpcCatalog.Role.VILLAGER
 

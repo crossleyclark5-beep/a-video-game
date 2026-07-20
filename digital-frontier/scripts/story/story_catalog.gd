@@ -11,6 +11,11 @@ static func beat_lines(beat_id: StringName) -> PackedStringArray:
 				"Something older than the parks is waking in the code-grass.",
 				"Your partner feels it too — a pulse under the meadow.",
 			])
+		&"chapter_open":
+			return PackedStringArray([
+				"This is Chapter One of the Digital Frontier.",
+				"Pleasant Park is only the first porch light.",
+			])
 		&"alpha_shadow":
 			return PackedStringArray([
 				"Glitch Alpha wasn’t random. Something herded it toward the road.",
@@ -44,6 +49,8 @@ static func beat_title(beat_id: StringName) -> String:
 	match beat_id:
 		&"frontier_whisper":
 			return "A Whisper in the Grass"
+		&"chapter_open":
+			return "Chapter One"
 		&"alpha_shadow":
 			return "Shadow on the Road"
 		&"warden_dream":

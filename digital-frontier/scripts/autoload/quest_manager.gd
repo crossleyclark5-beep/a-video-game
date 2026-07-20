@@ -333,6 +333,18 @@ func _pretty_target(raw: String) -> String:
 			return "Ranger Trail Cache"
 		"hollow_warning_stone":
 			return "Hollow Warning Stone"
+		"hollow_root_gate":
+			return "Root Gate"
+		"hollow_approach":
+			return "Hollow Approach"
+		"hollow_seal_west":
+			return "West Root Seal"
+		"hollow_seal_east":
+			return "East Root Seal"
+		"fuel_clerk":
+			return "Fuel Clerk"
+		"fuel_prep_sign":
+			return "Prep Notice"
 		"meadow_clearing":
 			return "Meadow Clearing"
 		"heal_field_salve":
