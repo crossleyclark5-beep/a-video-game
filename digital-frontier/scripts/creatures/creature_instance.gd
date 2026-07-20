@@ -47,9 +47,33 @@ var personality: Dictionary = {
 	"affectionate": 50.0,
 	"lazy": 35.0,
 	"brave": 45.0,
+	"stubborn": 40.0,
+	"protective": 50.0,
+	"energetic": 65.0,
+	"calm": 45.0,
 }
 
 var unlocked_skin_ids: PackedStringArray = PackedStringArray(["default"])
+
+## Companion identity systems — same creature across Home + Adventure.
+var memories: Array = []  ## Array of CompanionMemory dictionaries
+var battle_history: Dictionary = {
+	"wins": 0,
+	"losses": 0,
+	"strikes": 0,
+	"bosses_defeated": 0,
+	"last_enemy": "",
+}
+## Dominant raising path: care | train | explore | battle
+var training_style: StringName = &"care"
+var training_counts: Dictionary = {
+	"care": 0,
+	"train": 0,
+	"explore": 0,
+	"battle": 0,
+}
+var evolution_path_id: StringName = &""
+var first_adventure_done: bool = false
 
 
 static func create_from_species(species: CreatureData, custom_nickname: String = "") -> CreatureInstance:
@@ -64,21 +88,25 @@ static func create_from_species(species: CreatureData, custom_nickname: String =
 	inst.stats = species.base_stats.duplicate(true)
 	if inst.stats.is_empty():
 		inst.stats = {"hp": 40, "attack": 7, "defense": 5, "speed": 10}
-	inst.personality = species.default_personality.duplicate(true)
-	if inst.personality.is_empty():
-		inst.personality = {
-			"playful": 55.0,
-			"curious": 60.0,
-			"affectionate": 50.0,
-			"lazy": 35.0,
-			"brave": 45.0,
-		}
+	inst.personality = CompanionPersonality.ensure_axes(species.default_personality.duplicate(true))
 	inst.hunger = 75.0
 	inst.happiness = 72.0
 	inst.energy = 85.0
 	inst.friendship = 25.0
 	inst.health = 100.0
 	inst.unlocked_skin_ids = PackedStringArray([String(inst.skin_id)])
+	inst.memories = []
+	inst.battle_history = {
+		"wins": 0,
+		"losses": 0,
+		"strikes": 0,
+		"bosses_defeated": 0,
+		"last_enemy": "",
+	}
+	inst.training_style = &"care"
+	inst.training_counts = {"care": 0, "train": 0, "explore": 0, "battle": 0}
+	inst.evolution_path_id = &""
+	inst.first_adventure_done = false
 	return inst
 
 
@@ -117,25 +145,88 @@ func add_experience(amount: int) -> Dictionary:
 
 
 func get_personality(trait_id: String, default: float = 50.0) -> float:
+	personality = CompanionPersonality.ensure_axes(personality)
 	return float(personality.get(trait_id, default))
+
+
+func get_primary_trait() -> StringName:
+	return CompanionPersonality.primary_trait(personality)
+
+
+func get_battle_style() -> StringName:
+	return CompanionPersonality.battle_style(personality)
+
+
+func record_training(style: StringName, amount: int = 1) -> void:
+	var key := String(style)
+	if not training_counts.has(key):
+		training_counts[key] = 0
+	training_counts[key] = int(training_counts[key]) + amount
+	## Dominant style = most practiced raising path.
+	var best := &"care"
+	var best_n := -1
+	for k in training_counts.keys():
+		var n := int(training_counts[k])
+		if n > best_n:
+			best_n = n
+			best = StringName(str(k))
+	training_style = best
+
+
+func add_memory(entry: Dictionary) -> void:
+	memories = CompanionMemory.push(memories, entry)
+
+
+func has_memory(memory_id: StringName) -> bool:
+	return CompanionMemory.has_id(memories, memory_id)
+
+
+func record_battle_result(won: bool, enemy_id: StringName = &"", is_boss: bool = false) -> void:
+	if won:
+		battle_history["wins"] = int(battle_history.get("wins", 0)) + 1
+		if is_boss:
+			battle_history["bosses_defeated"] = int(battle_history.get("bosses_defeated", 0)) + 1
+	else:
+		battle_history["losses"] = int(battle_history.get("losses", 0)) + 1
+	if enemy_id != &"":
+		battle_history["last_enemy"] = String(enemy_id)
+	record_training(&"battle", 1)
+
+
+func record_strike() -> void:
+	battle_history["strikes"] = int(battle_history.get("strikes", 0)) + 1
+	record_training(&"battle", 1)
+
+
+func get_battles_won() -> int:
+	return int(battle_history.get("wins", 0))
 
 
 func get_stat(stat_id: String, default: float = 0.0) -> float:
 	return float(stats.get(stat_id, default))
 
 
+func get_strike_power() -> float:
+	## Adventure melee damage — grows with attack + level + battle style.
+	var atk := get_stat("attack", 8.0)
+	var power := 8.0 + atk * 0.85 + float(level) * 1.35
+	match get_battle_style():
+		&"aggressive":
+			power *= 1.18
+		&"swift":
+			power *= 1.08
+		&"tank":
+			power *= 0.95
+		&"opportunist":
+			power *= 1.12
+		&"steady":
+			power *= 1.05
+	return power
+
+
 func get_walk_speed_multiplier() -> float:
-	## Mood + personality modulate home locomotion.
-	var mult := 1.0
-	if energy < 30.0:
-		mult *= 0.65
-	elif happiness > 75.0:
-		mult *= 1.15
-	if happiness < 35.0:
-		mult *= 0.75
-	mult *= lerpf(0.85, 1.2, get_personality("curious") / 100.0)
-	mult *= lerpf(1.1, 0.75, get_personality("lazy") / 100.0)
-	return clampf(mult, 0.45, 1.4)
+	## Mood + personality modulate home / adventure locomotion.
+	return CompanionPersonality.adventure_speed_mult(personality, energy, happiness)
 
 
 func get_behavior_bias() -> StringName:
@@ -204,6 +295,12 @@ func to_dict() -> Dictionary:
 		&"evolution_stage": evolution_stage,
 		&"personality": personality.duplicate(true),
 		&"unlocked_skin_ids": Array(unlocked_skin_ids),
+		&"memories": memories.duplicate(true),
+		&"battle_history": battle_history.duplicate(true),
+		&"training_style": String(training_style),
+		&"training_counts": training_counts.duplicate(true),
+		&"evolution_path_id": String(evolution_path_id),
+		&"first_adventure_done": first_adventure_done,
 	}
 
 
@@ -228,10 +325,22 @@ static func from_dict(data: Dictionary) -> CreatureInstance:
 	inst.evolution_stage = int(data.get(&"evolution_stage", data.get("evolution_stage", 0)))
 	var per = data.get(&"personality", data.get("personality", {}))
 	if per is Dictionary:
-		inst.personality = (per as Dictionary).duplicate(true)
+		inst.personality = CompanionPersonality.ensure_axes((per as Dictionary).duplicate(true))
 	var skins = data.get(&"unlocked_skin_ids", data.get("unlocked_skin_ids", ["default"]))
 	if skins is Array:
 		inst.unlocked_skin_ids = PackedStringArray(skins)
+	var mem = data.get(&"memories", data.get("memories", []))
+	if mem is Array:
+		inst.memories = (mem as Array).duplicate(true)
+	var bh = data.get(&"battle_history", data.get("battle_history", {}))
+	if bh is Dictionary:
+		inst.battle_history = (bh as Dictionary).duplicate(true)
+	inst.training_style = StringName(str(data.get(&"training_style", data.get("training_style", "care"))))
+	var tc = data.get(&"training_counts", data.get("training_counts", {}))
+	if tc is Dictionary:
+		inst.training_counts = (tc as Dictionary).duplicate(true)
+	inst.evolution_path_id = StringName(str(data.get(&"evolution_path_id", data.get("evolution_path_id", ""))))
+	inst.first_adventure_done = bool(data.get(&"first_adventure_done", data.get("first_adventure_done", false)))
 	inst.clamp_needs()
 	return inst
 

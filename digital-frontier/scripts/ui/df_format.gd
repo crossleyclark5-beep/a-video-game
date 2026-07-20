@@ -86,6 +86,23 @@ static func _quest_card(qid: StringName, is_story: bool) -> String:
 static func collection_sheet() -> String:
 	var lines: PackedStringArray = PackedStringArray()
 	lines.append(DFStyle.header_bb("COLLECTION DATABASE", WorldPalette.UI_CYAN))
+	## Partner identity — same creature as Adventure.
+	if CreatureManager.has_chosen_partner():
+		lines.append(DFStyle.color_tag(WorldPalette.UI_ACCENT, "■ YOUR PARTNER"))
+		var snap := CreatureManager.get_needs_snapshot()
+		var hist: Dictionary = snap.get("battle_history", {})
+		var body := "Lv.%d · %s · %s\nBond %d · Style %s · Battles %dW/%dL\n%s" % [
+			int(snap.get("level", 1)),
+			snap.get("stage_name", ""),
+			snap.get("primary_trait_label", ""),
+			int(snap.get("friendship", 0)),
+			snap.get("battle_style", ""),
+			int(hist.get("wins", 0)),
+			int(hist.get("losses", 0)),
+			snap.get("memory_summary", ""),
+		]
+		lines.append(DFStyle.card_bb(String(snap.get("display_name", "Partner")), body, true, "PARTNER"))
+		lines.append("")
 	var disc := CollectionManager.get_discovery_progress()
 	lines.append(DFStyle.color_tag(WorldPalette.UI_LIME, "Locations  %d / %d" % [disc.x, disc.y]))
 	var idx := CollectionManager.get_creature_index_progress()
@@ -99,9 +116,9 @@ static func collection_sheet() -> String:
 			lines.append(DFStyle.card_bb("????", "Signal locked — keep exploring", false, "???"))
 			continue
 		var meta := String(e.get(&"rarity_label", ""))
-		var body := "%s · %s · seen ×%d" % [e.get(&"habitat", ""), e.get(&"temperament_label", ""), e.get(&"count", 0)]
+		var body2 := "%s · %s · seen ×%d" % [e.get(&"habitat", ""), e.get(&"temperament_label", ""), e.get(&"count", 0)]
 		var wl := "W%d/L%d" % [e.get(&"battles_won", 0), e.get(&"battles_lost", 0)]
-		lines.append(DFStyle.card_bb(String(e.get(&"name", "")), body + " · " + wl, false, meta))
+		lines.append(DFStyle.card_bb(String(e.get(&"name", "")), body2 + " · " + wl, false, meta))
 	lines.append("")
 	var raw := CollectionManager.get_journal_text()
 	var section := ""

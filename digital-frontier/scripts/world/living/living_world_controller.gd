@@ -74,12 +74,13 @@ func try_combat_strike() -> bool:
 			best = node as Node3D
 	if best == null:
 		return false
-	var atk := 10.0 + float(CreatureManager.get_level()) * 1.5
+	var atk := CreatureManager.get_strike_power()
 	if best.has_method("apply_damage"):
 		best.call("apply_damage", atk, _player)
 	EventBus.sfx_play_requested.emit(&"battle_hit", best.global_position)
 	EventBus.combat_strike.emit(_player, best)
 	## Companion bond tick for fighting together.
+	CreatureManager.record_companion_strike()
 	CreatureManager.grant_adventure_bond(0.4, "")
 	return true
 

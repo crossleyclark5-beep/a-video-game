@@ -16,6 +16,7 @@ var _loot_tables: Dictionary = {}
 var _discoverables: Dictionary = {}
 var _achievements: Dictionary = {}
 var _abilities: Dictionary = {}
+var _evolutions: Dictionary = {}
 
 
 func _initialize_manager() -> void:
@@ -31,11 +32,13 @@ func _initialize_manager() -> void:
 	_scan_directory(GameConstants.DATA_DISCOVERABLES, _discoverables)
 	_scan_directory(GameConstants.DATA_ACHIEVEMENTS, _achievements)
 	_scan_directory(GameConstants.DATA_ABILITIES, _abilities)
+	_scan_directory(GameConstants.DATA_EVOLUTIONS, _evolutions)
 	_log(
-		"Indexed %d regions, %d creatures, %d items, %d quests, %d loot, %d discoverables, %d achievements, %d abilities"
+		"Indexed %d regions, %d creatures, %d items, %d quests, %d loot, %d discoverables, %d achievements, %d abilities, %d evolutions"
 		% [
 			_regions.size(), _creatures.size(), _items.size(), _quests.size(),
 			_loot_tables.size(), _discoverables.size(), _achievements.size(), _abilities.size(),
+			_evolutions.size(),
 		]
 	)
 
@@ -105,6 +108,10 @@ func get_ability(id: StringName) -> CreatureAbilityData:
 	return _abilities.get(id)
 
 
+func get_evolution_path(id: StringName) -> EvolutionPathData:
+	return _evolutions.get(id)
+
+
 func get_all_regions() -> Array:
 	return _regions.values()
 
@@ -129,6 +136,24 @@ func get_all_abilities() -> Array:
 	return _abilities.values()
 
 
+func get_all_evolution_paths() -> Array:
+	return _evolutions.values()
+
+
+func get_evolution_paths_for(species_id: StringName, from_stage: int = -1) -> Array:
+	var out: Array = []
+	for path in _evolutions.values():
+		if path is EvolutionPathData:
+			var p := path as EvolutionPathData
+			if p.species_id != species_id:
+				continue
+			if from_stage >= 0 and p.from_stage != from_stage:
+				continue
+			out.append(p)
+	out.sort_custom(func(a: EvolutionPathData, b: EvolutionPathData) -> bool: return a.priority > b.priority)
+	return out
+
+
 func get_all_items() -> Array:
 	return _items.values()
 
@@ -147,4 +172,5 @@ func has_id(category: StringName, id: StringName) -> bool:
 		&"discoverable": return _discoverables.has(id)
 		&"achievement": return _achievements.has(id)
 		&"ability": return _abilities.has(id)
+		&"evolution": return _evolutions.has(id)
 		_: return false

@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="EvolutionPathData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/evolution_path_data.gd" id="1_path"]
+
+[resource]
+script = ExtResource("1_path")
+id = &"emberling_striker"
+species_id = &"emberling"
+from_stage = 0
+to_stage = 1
+form_display_name = "Emberaptor · Striker"
+blurb = "Battle-hardened — flame brightens with every win."
+need_level = 8
+need_friendship = 30.0
+need_battles_won = 3
+need_training_style = &"battle"
+need_trait = &"brave"
+need_trait_min = 55.0
+stat_bias = {
+"hp": 0.98,
+"attack": 1.15,
+"defense": 0.95,
+"speed": 1.05
+}
+priority = 25

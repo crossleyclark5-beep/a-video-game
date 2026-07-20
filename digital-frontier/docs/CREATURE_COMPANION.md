@@ -1,97 +1,53 @@
-# Creature Companion Foundation
+# Creature Companion System
 
-Digital Frontier companions are living friends — data-driven instances with personality, needs, growth, and modular presentation.
+The partner is one living `CreatureInstance` shared across Digi-Pet Home and Adventure.
 
-## Architecture
+## Identity
 
-```
-CreatureData (.tres)          species template (stats, personality, skins, abilities)
-        │
-        ▼
-CreatureInstance              runtime owned creature (needs, XP, skin, evolution)
-        │
-        ▼
-CreatureManager (autoload)    owns active instance + collection dict
-        │
-   ┌────┴────────────────────┐
-   ▼                         ▼
-Home CompanionActor     AdventureCompanionActor (follow / sense / Y)
-   + CompanionVisual          + CompanionVisual (shared look)
-```
+| Field | Notes |
+|---|---|
+| Name | Nickname (rename via `CreatureManager.rename_companion`) |
+| Personality | Axes + primary trait (Brave, Playful, Curious, Calm, Energetic, Stubborn, Protective) |
+| Level / XP | Shared growth |
+| Health / Energy / Happiness / Friendship | Care needs |
+| Evolution stage + path | Branching `EvolutionPathData` |
+| Battle history | Wins / losses / strikes / bosses |
+| Memories | Capped list of shared moments |
 
-| Module | Path |
-|--------|------|
-| Species template | `resources/definitions/creature_data.gd` |
-| Abilities | `resources/definitions/creature_ability_data.gd` + `data/abilities/` |
-| Runtime instance | `scripts/creatures/creature_instance.gd` |
-| Ownership / care | `scripts/autoload/creature_manager.gd` |
-| Visual + anims | `scripts/home/companion_visual.gd` |
-| Home AI | `scripts/home/companion_actor.gd` |
-| Adventure partner | `scripts/adventure/adventure_companion_actor.gd` |
+## Personality → behavior
 
-Starter species: **Sparkbit** (`data/creatures/sparkbit.tres`) — digital fantasy spirit, not a realistic animal. Ability: **Secret Sense**.
+`CompanionPersonality` drives:
 
-See `docs/CREATURE_ADVENTURE.md` for overworld partner behavior.
+- Dialogue / Y-button talk lines
+- Follow side, weave, distance
+- Sense radius
+- Adventure speed when tired/happy
+- Device battle style (aggressive, tank, swift, …)
 
-## Tracked instance fields
+## Interactions
 
-- Name / species / instance id
-- Level + experience
-- Hunger, happiness, energy, friendship, health
-- Stats (hp / attack / defense / speed)
-- Skin id + unlocked skins
-- Evolution stage
-- Personality axes: playful, curious, affectionate, lazy, brave
+Home **Interact** (and Adventure **Y**):
 
-Nothing gameplay-critical is hardcoded on the actor mesh.
+- Talk — personality line + bond
+- Comfort — when sad/tired
+- Celebrate — after victories
+- Feed / Train / Heal — classic care
 
-## Animations (CompanionVisual.Anim)
+## Evolution branches
 
-| Anim | Use |
-|------|-----|
-| IDLE | Breathing, look-around |
-| WALK | Home locomotion |
-| SLEEP | Bed / low energy |
-| EAT | Food bowl |
-| HAPPY | Play / excited |
-| SAD | Low mood |
-| HUNGRY | Searching / waiting near food |
-| STRETCH | Wake |
-| PET | Player pet reaction |
+Data in `res://data/evolutions/`. Example Emberling stage 0→1:
 
-Add new enum values + match branches — the actor only calls `set_anim`.
+- **Guardian** — care + protective
+- **Striker** — battles + brave
+- **Scout** — explore + curious
+- **Classic** — level/friendship fallback
 
-## AI behavior
+Auto-picks highest priority qualifying path on growth.
 
-Driven by `CreatureInstance.get_behavior_bias()` + personality:
+## Follower
 
-- High happiness / playful → more wander + toy visits
-- Low happiness → sleep more, move slower
-- Hungry → walk to bowl, hungry sniff anim
-- Click creature or Pet button → pet reaction + heart burst + SFX event
+`AdventureCompanionActor`: soft orbit follow, obstacle sidestep, face player when close, caution near bosses, weather barks, discovery/battle memories.
 
-## Player interactions
+## Smoke
 
-| Action | Effect |
-|--------|--------|
-| Pet | Happiness + friendship + XP; pet anim + particles |
-| Feed | Hunger restore + XP |
-| Play | Happiness; energy cost |
-| Rest | Energy restore |
-| Train | Friendship + XP (growth feel) |
-| Status | Detailed readout; creature faces / acknowledges |
-| Click body | Same as Pet |
-
-## Persistence (home ↔ adventure)
-
-`CreatureManager.export_state()` saves the full `captured` instance map + active id.
-Adventure grants XP + bond, and spawns `AdventureCompanionActor` so the same friend walks beside you outdoors.
-Returning home loads the same needs / level / personality / friendship.
-
-## Future hooks (ready, not built)
-
-- Multiple creatures in `_captured` / `_party`
-- Trading (serialize `CreatureInstance.to_dict()`)
-- Evolution (`evolution_stage` + `evolution_chain_id` on species)
-- Skins (`skin_id` / `available_skin_ids` / visual profile id)
-- Water / flight abilities (data kinds exist; runtime later)
+`res://scenes/devtools/creature_companion_smoke.tscn`

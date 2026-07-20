@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="EvolutionPathData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/evolution_path_data.gd" id="1_path"]
+
+[resource]
+script = ExtResource("1_path")
+id = &"sparkbit_volt"
+species_id = &"sparkbit"
+from_stage = 0
+to_stage = 1
+form_display_name = "Sparkbolt · Volt"
+blurb = "Energetic raising crackles into a quicker bolt form."
+need_level = 8
+need_friendship = 30.0
+need_training_style = &"train"
+need_trait = &"energetic"
+need_trait_min = 55.0
+stat_bias = {
+"hp": 0.95,
+"attack": 1.08,
+"defense": 0.92,
+"speed": 1.18
+}
+priority = 20

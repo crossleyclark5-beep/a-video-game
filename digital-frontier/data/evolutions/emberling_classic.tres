@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="EvolutionPathData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/evolution_path_data.gd" id="1_path"]
+
+[resource]
+script = ExtResource("1_path")
+id = &"emberling_classic"
+species_id = &"emberling"
+from_stage = 0
+to_stage = 1
+form_display_name = "Emberaptor"
+blurb = "The familiar flame form — balanced growth."
+need_level = 8
+need_friendship = 35.0
+need_battles_won = 0
+need_training_style = &""
+need_trait = &""
+need_trait_min = 0.0
+stat_bias = {
+"hp": 1.0,
+"attack": 1.0,
+"defense": 1.0,
+"speed": 1.0
+}
+priority = 5

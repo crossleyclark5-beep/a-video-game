@@ -323,7 +323,7 @@ func _refresh() -> void:
 		_name_label.text = "%s  ·  %s" % [nick, stage]
 	else:
 		_name_label.text = nick
-	_mood_label.text = CreatureManager.get_mood_label()
+	_mood_label.text = "%s · %s" % [CreatureManager.get_mood_label(), CreatureManager.get_primary_trait_label()]
 	_level_label.text = "Lv.%d  ·  XP %d%%" % [
 		CreatureManager.get_level(),
 		int(CreatureManager.get_xp_progress() * 100.0),
