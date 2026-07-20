@@ -26,4 +26,4 @@ func _register_ui_layers() -> void:
 
 func _start_game() -> void:
 	# Phase 1: start at Home so the companion loop is obvious.
-	await SceneManager.change_scene(GameConstants.SCENE_HOME, false)
+	await SceneManager.change_scene(String(GameConstants.SCENE_HOME), false)

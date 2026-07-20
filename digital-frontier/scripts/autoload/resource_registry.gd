@@ -29,9 +29,11 @@ func _initialize_manager() -> void:
 
 
 func _scan_directory(path: String, target: Dictionary) -> void:
+	if not DirAccess.dir_exists_absolute(path):
+		# Optional content folders may be empty at the start of the project.
+		return
 	var dir := DirAccess.open(path)
 	if dir == null:
-		push_warning("ResourceRegistry: cannot open %s" % path)
 		return
 	dir.list_dir_begin()
 	var file_name := dir.get_next()

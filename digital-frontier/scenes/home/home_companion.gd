@@ -25,7 +25,7 @@ func _refresh_status() -> void:
 
 
 func _on_adventure_pressed() -> void:
-	SceneManager.change_scene(GameConstants.SCENE_GAME_WORLD, true)
+	SceneManager.change_scene(String(GameConstants.SCENE_GAME_WORLD), true)
 
 
 func _on_feed_pressed() -> void:

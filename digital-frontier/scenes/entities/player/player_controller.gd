@@ -36,5 +36,4 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 	if InputManager.is_action_just_pressed(&"go_home"):
-		EventBus.scene_transition_started.emit(&"adventure", &"home")
-		SceneManager.change_scene(GameConstants.SCENE_HOME, true)
+		SceneManager.change_scene(String(GameConstants.SCENE_HOME), true)
