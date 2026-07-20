@@ -21,14 +21,14 @@ shadow_enabled = false
 
 [node name="CameraRig" type="Node3D" parent="."]
 script = ExtResource("2_camera")
-follow_distance = Vector3(0, 16, 16)
+follow_distance = Vector3(0, 18, 18)
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig"]
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 0, 0)
 projection = 1
-size = 18.0
+size = 16.0
 current = true
-far = 200.0
+far = 250.0
 
 [node name="HUD" type="CanvasLayer" parent="."]
 layer = 10

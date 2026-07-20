@@ -21,7 +21,7 @@ func _ready() -> void:
 	EventBus.region_load_requested.emit(&"pleasant_park")
 	_wire_interactables()
 	_spawn_player()
-	_set_hint("WASD move · E interact · H home · Explore Pleasant Park!")
+	_refresh_default_hint()
 
 
 func _clear_placeholder_geometry() -> void:
@@ -118,16 +118,10 @@ func _enter_house(house: Node3D) -> void:
 	if roof:
 		var tween := create_tween()
 		tween.tween_property(roof, "modulate:a", 0.0, 0.35)
-	# Move player slightly inside
 	if _player:
-		_player.global_position = house.global_position + Vector3(0.0, 0.15, 0.5)
-	# Zoom camera a bit
+		_player.global_position = house.to_global(Vector3(0.0, 0.15, 0.2))
 	if camera_rig.has_method("set_zoom_size"):
-		camera_rig.call("set_zoom_size", 12.0)
-	elif camera_rig.get_node_or_null("Camera3D"):
-		var cam: Camera3D = camera_rig.get_node("Camera3D")
-		var tween_cam := create_tween()
-		tween_cam.tween_property(cam, "size", 12.0, 0.35)
+		camera_rig.call("set_zoom_size", 11.0)
 	_set_hint("Inside %s — press E at the door to leave" % house.name)
 	EventBus.building_interior_loaded.emit(StringName(house.name))
 
@@ -141,14 +135,12 @@ func _exit_house() -> void:
 		var tween := create_tween()
 		tween.tween_property(roof, "modulate:a", 1.0, 0.35)
 	if _player:
-		_player.global_position = house.global_position + Vector3(0.0, 0.15, 5.0)
-	if camera_rig.get_node_or_null("Camera3D"):
-		var cam: Camera3D = camera_rig.get_node("Camera3D")
-		var tween_cam := create_tween()
-		tween_cam.tween_property(cam, "size", 18.0, 0.35)
+		_player.global_position = house.to_global(Vector3(0.0, 0.15, 5.5))
+	if camera_rig.has_method("set_zoom_size"):
+		camera_rig.call("set_zoom_size", 16.0)
 	_inside_house = null
 	InputManager.set_context(InputManager.Context.OVERWORLD)
-	_set_hint("Back outside — explore Pleasant Park!")
+	_refresh_default_hint()
 
 
 func _set_hint(text: String) -> void:
@@ -157,4 +149,4 @@ func _set_hint(text: String) -> void:
 
 
 func _refresh_default_hint() -> void:
-	_set_hint("WASD move · E interact · H home · Explore Pleasant Park!")
+	_set_hint("WASD move · E interact · scroll/+- zoom · H home · Pleasant Park")

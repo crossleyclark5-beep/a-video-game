@@ -24,10 +24,11 @@ Your game folder on this PC:
 - **Feed** / **Play** / **Rest** to care for them
 - **Go on Adventure** (or press Enter)
 
-**Adventure — Pleasant Park**
-- Walk the suburban town: central park, gazebo, sports field, houses, fuel stop
-- **WASD** move · **E** open chests / enter Brick House or Green House · **H** home
-- Roofs fade when you go inside
+**Adventure — Pleasant Park (upgraded)**
+- Stylized suburban town: roads, sidewalks, park, fountain, houses, fuel stop
+- Humanoid player with idle/walk motion
+- **WASD** move · **E** chests/houses · **scroll** or **+/-** zoom · **H** home
+- Enter Brick House / Green House — roof fades, you can walk inside
 
 ---
 
