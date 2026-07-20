@@ -35,7 +35,7 @@ static func from_building_id(building_id: StringName, kind: StringName) -> int:
 		return Style.RUSTIC
 	if kind == InteriorKinds.OFFICE or kind == InteriorKinds.TOWER:
 		return Style.MODERN
-	var h := abs(hash(String(building_id))) % 5
+	var h: int = absi(hash(String(building_id))) % 5
 	match h:
 		0:
 			return Style.WEALTHY
