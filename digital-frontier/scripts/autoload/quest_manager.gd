@@ -33,6 +33,10 @@ func get_active_quest_ids() -> Array:
 	return _active_quests.keys()
 
 
+func get_completed_count() -> int:
+	return _completed_quests.size()
+
+
 func get_quest_status_line() -> String:
 	if _active_quests.is_empty():
 		if not _completed_quests.is_empty():

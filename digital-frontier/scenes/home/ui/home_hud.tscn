@@ -271,10 +271,10 @@ visible = false
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -260.0
-offset_top = 110.0
-offset_right = -16.0
-offset_bottom = 280.0
+offset_left = -320.0
+offset_top = 96.0
+offset_right = -12.0
+offset_bottom = 360.0
 grow_horizontal = 0
 
 [node name="InvMargin" type="MarginContainer" parent="InventoryPanel"]
@@ -284,12 +284,15 @@ theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 10
 
-[node name="InventoryLabel" type="Label" parent="InventoryPanel/InvMargin"]
+[node name="InventoryLabel" type="RichTextLabel" parent="InventoryPanel/InvMargin"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 140)
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
+bbcode_enabled = true
+fit_content = false
+scroll_active = true
+theme_override_font_sizes/normal_font_size = 14
 text = "Pack empty"
-autowrap_mode = 3
 
 [connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/CareRow/PetButton" to="." method="_on_pet_pressed"]
 [connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/CareRow/FeedButton" to="." method="_on_feed_pressed"]

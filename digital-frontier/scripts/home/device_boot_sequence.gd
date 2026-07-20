@@ -89,7 +89,7 @@ func _finish() -> void:
 func _build() -> void:
 	var bg := ColorRect.new()
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.color = Color(0.04, 0.05, 0.06)
+	bg.color = WorldPalette.UI_NAVY.darkened(0.35)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 
@@ -99,8 +99,8 @@ func _build() -> void:
 	_logo.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_logo.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_logo.offset_top = -40
-	_logo.add_theme_font_size_override("font_size", 42)
-	_logo.add_theme_color_override("font_color", Color(0.55, 0.95, 0.7))
+	_logo.add_theme_font_size_override("font_size", 44)
+	_logo.add_theme_color_override("font_color", WorldPalette.UI_CYAN)
 	_logo.modulate.a = 0.0
 	_logo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_logo)
@@ -111,10 +111,10 @@ func _build() -> void:
 	_sub.set_anchors_preset(Control.PRESET_CENTER)
 	_sub.offset_top = 36
 	_sub.offset_bottom = 60
-	_sub.offset_left = -200
-	_sub.offset_right = 200
-	_sub.add_theme_font_size_override("font_size", 16)
-	_sub.add_theme_color_override("font_color", Color(0.7, 0.78, 0.72))
+	_sub.offset_left = -220
+	_sub.offset_right = 220
+	_sub.add_theme_font_size_override("font_size", 17)
+	_sub.add_theme_color_override("font_color", WorldPalette.UI_ACCENT)
 	_sub.visible = false
 	_sub.modulate.a = 0.0
 	_sub.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -122,7 +122,7 @@ func _build() -> void:
 
 	_scan = ColorRect.new()
 	_scan.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_scan.color = Color(0.2, 0.9, 0.55, 0.12)
+	_scan.color = Color(WorldPalette.UI_CYAN.r, WorldPalette.UI_CYAN.g, WorldPalette.UI_CYAN.b, 0.14)
 	_scan.visible = false
 	_scan.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_scan)

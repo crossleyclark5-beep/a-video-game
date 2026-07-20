@@ -22,7 +22,8 @@ signal care_requested(action: StringName)
 @onready var _bar_health: ProgressBar = %BarHealth
 @onready var _adventure_btn: Button = %AdventureButton
 @onready var _inventory_panel: Control = %InventoryPanel
-@onready var _inventory_label: Label = %InventoryLabel
+@onready var _inventory_label: RichTextLabel = %InventoryLabel
+var _inventory_mode: StringName = &"pack"
 
 var _refresh_timer: float = 0.0
 var _inventory_open: bool = false
@@ -79,6 +80,11 @@ func _unhandled_input(_event: InputEvent) -> void:
 		adventure_pressed.emit()
 		get_viewport().set_input_as_handled()
 		return
+	## Select → Settings
+	if InputManager.is_action_just_pressed(&"pause_menu"):
+		DeviceSettings.present(self)
+		get_viewport().set_input_as_handled()
+		return
 	## Y → quick interact
 	if InputManager.is_action_just_pressed(&"creature_action"):
 		care_requested.emit(&"interact")
@@ -89,8 +95,10 @@ func _unhandled_input(_event: InputEvent) -> void:
 	if InputManager.is_action_just_pressed(&"ui_cancel"):
 		if _inventory_open:
 			_inventory_open = false
+			_inventory_mode = &"pack"
 			_inventory_panel.visible = false
 			_status_label.text = "Ready."
+			EventBus.sfx_play_requested.emit(&"ui_cancel", Vector3.ZERO)
 			get_viewport().set_input_as_handled()
 		return
 	## D-pad / stick UI move focus
@@ -236,69 +244,52 @@ func _update_hint() -> void:
 	var focused := ""
 	if not _focus_entries.is_empty():
 		focused = String(_focus_entries[_focus_index][&"id"]).capitalize()
-	_hint_label.text = "D-pad move  ·  %s %s  ·  %s back  ·  %s Adventure  ·  %s Pet" % [
+	_hint_label.text = "D-pad  ·  %s %s  ·  %s back  ·  %s Adventure  ·  Select settings" % [
 		InputManager.get_action_glyph(&"ui_confirm"),
 		focused,
 		InputManager.get_action_glyph(&"ui_cancel"),
 		InputManager.get_action_glyph(&"device_menu"),
-		InputManager.get_action_glyph(&"creature_action"),
 	]
+	DFStyle.apply_label_cyan(_hint_label, DFStyle.FONT_HINT)
 
 
 func _apply_device_chrome() -> void:
-	## Square ink/paper handheld chrome — matches adventure Field Unit.
-	var panel_style := StyleBoxFlat.new()
-	panel_style.bg_color = WorldPalette.UI_PAPER
-	panel_style.set_corner_radius_all(0)
-	panel_style.content_margin_left = 4
-	panel_style.content_margin_right = 4
-	panel_style.content_margin_top = 4
-	panel_style.content_margin_bottom = 4
-	panel_style.border_width_left = 3
-	panel_style.border_width_right = 3
-	panel_style.border_width_top = 3
-	panel_style.border_width_bottom = 3
-	panel_style.border_color = WorldPalette.UI_BORDER
-
+	## Digital Frontier Field Unit chrome — shared with Adventure / Shop.
 	for path in ["TopBar", "NeedsPanel", "BottomBar", "InventoryPanel"]:
 		var node := get_node_or_null(path) as PanelContainer
 		if node:
-			node.add_theme_stylebox_override("panel", panel_style.duplicate())
+			if path == "InventoryPanel":
+				DFStyle.apply_sheet(node)
+			elif path == "BottomBar":
+				DFStyle.apply_panel(node, true)
+			else:
+				DFStyle.apply_panel(node, false)
 
-	_normal_btn_style = StyleBoxFlat.new()
-	_normal_btn_style.bg_color = WorldPalette.UI_INK
-	_normal_btn_style.set_corner_radius_all(0)
-	_normal_btn_style.content_margin_left = 10
-	_normal_btn_style.content_margin_right = 10
-	_normal_btn_style.content_margin_top = 8
-	_normal_btn_style.content_margin_bottom = 8
-	_normal_btn_style.border_width_bottom = 3
-	_normal_btn_style.border_color = WorldPalette.UI_ACCENT
-
-	_focus_style = _normal_btn_style.duplicate()
-	_focus_style.bg_color = WorldPalette.UI_ACCENT
-	_focus_style.border_color = WorldPalette.UI_INK
-	_focus_style.border_width_left = 3
-	_focus_style.border_width_right = 3
-	_focus_style.border_width_top = 3
-	_focus_style.border_width_bottom = 3
-
-	var btn_hover := _normal_btn_style.duplicate()
-	btn_hover.bg_color = WorldPalette.UI_INK.lightened(0.15)
+	_normal_btn_style = DFStyle.button_normal()
+	_focus_style = DFStyle.button_focus()
+	var btn_hover := DFStyle.button_hover()
 
 	for button in _find_buttons(self):
-		button.focus_mode = Control.FOCUS_ALL
-		button.add_theme_stylebox_override("normal", _normal_btn_style.duplicate())
+		DFStyle.apply_button(button, false)
 		button.add_theme_stylebox_override("hover", btn_hover.duplicate())
-		button.add_theme_stylebox_override("pressed", btn_hover.duplicate())
-		button.add_theme_stylebox_override("focus", _focus_style.duplicate())
-		button.add_theme_color_override("font_color", WorldPalette.UI_PAPER)
-		button.add_theme_font_size_override("font_size", 16)
 
-	var adv := _focus_style.duplicate()
-	adv.bg_color = WorldPalette.UI_ACCENT
-	_adventure_btn.add_theme_stylebox_override("normal", adv)
-	_adventure_btn.add_theme_color_override("font_color", WorldPalette.UI_INK)
+	DFStyle.apply_button(_adventure_btn, true)
+	_adventure_btn.add_theme_font_size_override("font_size", 18)
+
+	DFStyle.apply_label_ink(_name_label, DFStyle.FONT_TITLE)
+	DFStyle.apply_label_cyan(_mood_label, DFStyle.FONT_BODY)
+	DFStyle.apply_label_ink(_level_label, DFStyle.FONT_BODY)
+	DFStyle.apply_label_ink(_status_label, DFStyle.FONT_HINT)
+	DFStyle.apply_label_accent(_bits_label, DFStyle.FONT_SHEET)
+	DFStyle.apply_label_ink(_time_label, DFStyle.FONT_HINT)
+	DFStyle.apply_progress(_bar_xp, WorldPalette.UI_GOLD)
+	DFStyle.apply_progress(_bar_hunger, WorldPalette.UI_ACCENT)
+	DFStyle.apply_progress(_bar_happy, WorldPalette.UI_CYAN)
+	DFStyle.apply_progress(_bar_energy, WorldPalette.UI_LIME)
+	DFStyle.apply_progress(_bar_friend, WorldPalette.UI_PURPLE)
+	DFStyle.apply_progress(_bar_health, WorldPalette.UI_DANGER)
+	if _inventory_label:
+		DFStyle.apply_rich_sheet(_inventory_label)
 
 
 func _find_buttons(node: Node) -> Array[Button]:
@@ -361,9 +352,12 @@ func _refresh() -> void:
 
 
 func _refresh_inventory_text() -> void:
-	if _inventory_open and _inventory_label.text.begins_with("==="):
-		return  ## collection journal open
-	_inventory_label.text = InventoryManager.get_pack_text()
+	if not _inventory_open:
+		return
+	if _inventory_mode == &"journal":
+		_inventory_label.text = DFFormat.collection_sheet()
+	else:
+		_inventory_label.text = DFFormat.pack_sheet()
 
 
 func _on_notification(message: String, _duration: float) -> void:
@@ -385,17 +379,26 @@ func _on_collection_pressed() -> void:
 
 func show_collection_journal() -> void:
 	_inventory_open = true
+	_inventory_mode = &"journal"
 	_inventory_panel.visible = true
-	_inventory_label.add_theme_font_size_override("font_size", 15)
-	_inventory_label.text = CollectionManager.get_journal_text()
+	_refresh_inventory_text()
 	_status_label.text = CollectionManager.get_summary_line()
+	DFStyle.slide_in(_inventory_panel, 12.0, 0.18)
+	EventBus.sfx_play_requested.emit(&"menu_beep", Vector3.ZERO)
 
 
 func _on_inventory_pressed() -> void:
-	_inventory_open = not _inventory_open
-	_inventory_panel.visible = _inventory_open
-	if _inventory_open:
-		_refresh_inventory_text()
+	if _inventory_open and _inventory_mode == &"pack":
+		_inventory_open = false
+		_inventory_panel.visible = false
+		EventBus.sfx_play_requested.emit(&"ui_cancel", Vector3.ZERO)
+		return
+	_inventory_open = true
+	_inventory_mode = &"pack"
+	_inventory_panel.visible = true
+	_refresh_inventory_text()
+	DFStyle.slide_in(_inventory_panel, 12.0, 0.18)
+	EventBus.sfx_play_requested.emit(&"menu_beep", Vector3.ZERO)
 
 
 func _on_pet_pressed() -> void:

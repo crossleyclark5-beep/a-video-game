@@ -62,7 +62,8 @@ func open(shop_id: StringName = ShopManager.SHOP_ID_HOME) -> void:
 	UIManager.push_modal(&"shop")
 	_rebuild_list()
 	_refresh()
-	EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
+	DFStyle.slide_in(_root, 16.0, 0.2)
+	EventBus.sfx_play_requested.emit(&"menu_beep", Vector3.ZERO)
 
 
 func close() -> void:
@@ -73,7 +74,7 @@ func close() -> void:
 	set_process(false)
 	set_process_input(false)
 	UIManager.pop_modal()
-	EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
+	EventBus.sfx_play_requested.emit(&"ui_cancel", Vector3.ZERO)
 
 
 func is_shop_open() -> bool:
@@ -136,73 +137,71 @@ func _build_ui() -> void:
 	_root = PanelContainer.new()
 	_root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_root.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.1, 0.12, 0.96)
-	style.border_color = Color(0.35, 0.55, 0.45, 1.0)
-	style.set_border_width_all(3)
-	style.set_corner_radius_all(6)
-	style.content_margin_left = 12
-	style.content_margin_right = 12
-	style.content_margin_top = 10
-	style.content_margin_bottom = 10
-	_root.add_theme_stylebox_override("panel", style)
+	DFStyle.apply_sheet(_root)
 	margin.add_child(_root)
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 6)
+	vbox.add_theme_constant_override("separation", 8)
 	_root.add_child(vbox)
 
 	var header := HBoxContainer.new()
 	vbox.add_child(header)
 	_title = Label.new()
-	_title.text = "FIELD UNIT SHOP"
+	_title.text = "◆ FIELD UNIT SHOP"
 	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_title.add_theme_font_size_override("font_size", 22)
-	_title.add_theme_color_override("font_color", Color(0.92, 0.95, 0.88))
+	DFStyle.apply_label_cyan(_title, DFStyle.FONT_TITLE)
 	header.add_child(_title)
 	_bits = Label.new()
-	_bits.add_theme_font_size_override("font_size", 20)
-	_bits.add_theme_color_override("font_color", Color(0.95, 0.82, 0.28))
+	DFStyle.apply_label_accent(_bits, DFStyle.FONT_SHEET)
 	header.add_child(_bits)
 
+	var keeper := Label.new()
+	keeper.text = "Shopkeeper Bit · “Got the goods — got the Bits?”"
+	DFStyle.apply_label_paper(keeper, DFStyle.FONT_HINT)
+	keeper.add_theme_color_override("font_color", WorldPalette.UI_MUTED.lightened(0.25))
+	vbox.add_child(keeper)
+
+	var accent := ColorRect.new()
+	accent.custom_minimum_size = Vector2(0, 3)
+	accent.color = WorldPalette.UI_ACCENT
+	vbox.add_child(accent)
+
 	_cat_label = Label.new()
-	_cat_label.add_theme_font_size_override("font_size", 16)
-	_cat_label.add_theme_color_override("font_color", Color(0.55, 0.85, 0.7))
+	DFStyle.apply_label_cyan(_cat_label, DFStyle.FONT_BODY)
 	vbox.add_child(_cat_label)
 
 	var body := HBoxContainer.new()
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	body.add_theme_constant_override("separation", 10)
+	body.add_theme_constant_override("separation", 12)
 	vbox.add_child(body)
 
 	_list = RichTextLabel.new()
-	_list.bbcode_enabled = true
 	_list.fit_content = false
 	_list.scroll_active = true
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_list.custom_minimum_size = Vector2(220, 200)
+	DFStyle.apply_rich_sheet(_list)
 	body.add_child(_list)
 
 	_detail = RichTextLabel.new()
-	_detail.bbcode_enabled = true
 	_detail.fit_content = false
 	_detail.scroll_active = true
 	_detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_detail.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_detail.custom_minimum_size = Vector2(220, 200)
+	DFStyle.apply_rich_sheet(_detail)
 	body.add_child(_detail)
 
 	_flash = Label.new()
 	_flash.visible = false
-	_flash.add_theme_font_size_override("font_size", 15)
-	_flash.add_theme_color_override("font_color", Color(0.95, 0.9, 0.55))
+	DFStyle.apply_label_accent(_flash, DFStyle.FONT_BODY)
 	vbox.add_child(_flash)
 
 	_hint = Label.new()
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_hint.add_theme_font_size_override("font_size", 13)
-	_hint.add_theme_color_override("font_color", Color(0.7, 0.75, 0.7))
+	DFStyle.apply_label_paper(_hint, DFStyle.FONT_HINT)
+	_hint.add_theme_color_override("font_color", WorldPalette.UI_MUTED.lightened(0.2))
 	vbox.add_child(_hint)
 
 
@@ -276,16 +275,16 @@ func _rebuild_list() -> void:
 
 
 func _refresh() -> void:
-	_bits.text = "%d Bits" % InventoryManager.get_bits()
+	_bits.text = "◆ %d Bits" % InventoryManager.get_bits()
 	var shop_name := "Home Catalog" if _shop_id == ShopManager.SHOP_ID_HOME else "Market Mile"
 	if _mode == ViewMode.BROWSE:
-		_title.text = "SHOP · %s" % shop_name
+		_title.text = "◆ SHOP · %s" % shop_name
 		var cat: ItemData.ShopCategory = CATEGORIES[_category_index]
-		_cat_label.text = "◀ %s ▶   (L/R or shoulders)" % ShopManager.category_label(cat)
-		_hint.text = "↑↓ browse  ·  A buy  ·  X owned pack  ·  B close"
+		_cat_label.text = "◀ %s ▶" % ShopManager.category_label(cat)
+		_hint.text = "↑↓ browse  ·  L/R category  ·  A buy  ·  X owned  ·  B close"
 		_fill_browse()
 	else:
-		_title.text = "OWNED · Pack"
+		_title.text = "◆ OWNED · Pack"
 		_cat_label.text = "Your items — A to use / equip"
 		_hint.text = "↑↓ browse  ·  A use/equip  ·  X back to shop  ·  B close"
 		_fill_owned()
@@ -293,38 +292,44 @@ func _refresh() -> void:
 
 func _fill_browse() -> void:
 	var lines: PackedStringArray = PackedStringArray()
+	lines.append(DFStyle.header_bb("STOCK", WorldPalette.UI_ACCENT))
 	if _items.is_empty():
-		lines.append("[i]No stock in this category.[/i]")
+		lines.append(DFStyle.color_tag(WorldPalette.UI_MUTED, "No stock in this category."))
 	else:
 		for i in _items.size():
 			var d: ItemData = _items[i]
 			var owned := ""
 			if d.is_unique and ShopManager.is_owned_unique(d.id):
-				owned = " [OWNED]"
+				owned = " OWNED"
 			var can := ShopManager.can_buy(d.id)
-			var price_col := "#c8e6a0" if can else "#e08070"
-			var sel := "▸ " if i == _item_index else "  "
-			lines.append("%s%s — [color=%s]%d Bits[/color]%s" % [sel, d.display_name, price_col, d.buy_value, owned])
+			var price := "%d Bits%s" % [d.buy_value, owned]
+			var blurb := d.shop_blurb if not d.shop_blurb.is_empty() else ShopManager.category_label(d.shop_category)
+			var card := DFStyle.card_bb(d.display_name, blurb, i == _item_index, price)
+			if not can and i == _item_index:
+				card += "\n    " + DFStyle.color_tag(WorldPalette.UI_DANGER, "Can't afford / locked")
+			lines.append(card)
 	_list.text = "\n".join(lines)
 
 	if _items.is_empty() or _item_index >= _items.size():
-		_detail.text = "Pick a category with stock."
+		_detail.text = DFStyle.header_bb("DETAIL", WorldPalette.UI_CYAN) + DFStyle.color_tag(WorldPalette.UI_MUTED, "Pick a category with stock.")
 		return
 	var cur: ItemData = _items[_item_index]
-	var blurb := cur.shop_blurb if not cur.shop_blurb.is_empty() else ShopManager.category_label(cur.shop_category)
-	_detail.text = "[b]%s[/b]\n%s\n\n%s\n\nPrice: [color=#f0d050]%d Bits[/color]\nYou have: %d" % [
-		cur.display_name,
-		blurb,
-		cur.description,
-		cur.buy_value,
+	var blurb2 := cur.shop_blurb if not cur.shop_blurb.is_empty() else ShopManager.category_label(cur.shop_category)
+	_detail.text = "%s[b]%s[/b]\n%s\n\n%s\n\n%s\nYou own: %d" % [
+		DFStyle.header_bb("ITEM CARD", WorldPalette.UI_CYAN),
+		DFStyle.color_tag(WorldPalette.UI_GOLD, cur.display_name),
+		DFStyle.color_tag(WorldPalette.UI_CYAN, blurb2),
+		DFStyle.color_tag(WorldPalette.UI_SHEET_TEXT, cur.description),
+		DFStyle.color_tag(WorldPalette.UI_ACCENT, "Price  %d Bits" % cur.buy_value),
 		InventoryManager.get_quantity(cur.id),
 	]
 
 
 func _fill_owned() -> void:
 	var lines: PackedStringArray = PackedStringArray()
+	lines.append(DFStyle.header_bb("YOUR PACK", WorldPalette.UI_LIME))
 	if _owned_ids.is_empty():
-		lines.append("[i]Nothing in the pack yet.[/i]")
+		lines.append(DFStyle.color_tag(WorldPalette.UI_MUTED, "Nothing in the pack yet."))
 	else:
 		for i in _owned_ids.size():
 			var iid: StringName = _owned_ids[i]
@@ -333,13 +338,12 @@ func _fill_owned() -> void:
 			var qty := InventoryManager.get_quantity(iid)
 			var eq := ""
 			if d and d.equip_slot != &"" and ShopManager.get_equipped(d.equip_slot) == iid:
-				eq = " [E]"
-			var sel := "▸ " if i == _item_index else "  "
-			lines.append("%s%s ×%d%s" % [sel, label, qty, eq])
+				eq = " EQP"
+			lines.append(DFStyle.card_bb(label, d.description.substr(0, mini(40, d.description.length())) if d else "", i == _item_index, "×%d%s" % [qty, eq]))
 	_list.text = "\n".join(lines)
 
 	if _owned_ids.is_empty() or _item_index >= _owned_ids.size():
-		_detail.text = "Buy something at the shop first."
+		_detail.text = DFStyle.header_bb("DETAIL", WorldPalette.UI_CYAN) + DFStyle.color_tag(WorldPalette.UI_MUTED, "Buy something at the shop first.")
 		return
 	var cur_id: StringName = _owned_ids[_item_index]
 	var cur2: ItemData = ResourceRegistry.get_item(cur_id)
@@ -347,13 +351,23 @@ func _fill_owned() -> void:
 		_detail.text = String(cur_id)
 		return
 	var action := "Equip" if cur2.equip_slot != &"" else ("Use" if cur2.use_effect_id != &"" else "Hold")
-	_detail.text = "[b]%s[/b]\n%s\n\nA: %s" % [cur2.display_name, cur2.description, action]
+	_detail.text = "%s[b]%s[/b]\n%s\n\n%s" % [
+		DFStyle.header_bb("ITEM CARD", WorldPalette.UI_LIME),
+		DFStyle.color_tag(WorldPalette.UI_GOLD, cur2.display_name),
+		DFStyle.color_tag(WorldPalette.UI_SHEET_TEXT, cur2.description),
+		DFStyle.color_tag(WorldPalette.UI_ACCENT, "A: %s" % action),
+	]
 
 
 func _flash_msg(msg: String) -> void:
 	if _flash == null:
 		return
-	_flash.text = msg
+	_flash.text = "★ " + msg
 	_flash.visible = true
 	_flash_timer = 2.2
+	DFStyle.pulse_modulate(_flash, WorldPalette.UI_LIME)
 	EventBus.ui_notification_requested.emit(msg, 2.0)
+	if msg.to_lower().contains("bought") or msg.to_lower().contains("purchased") or msg.to_lower().begins_with("got"):
+		EventBus.sfx_play_requested.emit(&"ui_purchase", Vector3.ZERO)
+	else:
+		EventBus.sfx_play_requested.emit(&"ui_confirm", Vector3.ZERO)

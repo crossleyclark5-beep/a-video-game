@@ -38,22 +38,25 @@ func _draw() -> void:
 		return
 	var bounds := RegionMapCatalog.region_bounds()
 	if frame_map:
-		draw_rect(rect, WorldPalette.UI_BORDER)
+		draw_rect(rect, WorldPalette.UI_NAVY)
 		rect = rect.grow(-3.0)
 	## Ocean / off-island wash.
-	draw_rect(rect, Color(0.22, 0.42, 0.62))
+	draw_rect(rect, Color(0.12, 0.22, 0.42))
 	## Island land mass (actual coastline, not a rectangle).
 	var island := _island_map_poly(rect, bounds)
 	if island.size() >= 3:
-		draw_colored_polygon(island, Color(0.40, 0.58, 0.34))
+		draw_colored_polygon(island, Color(0.38, 0.58, 0.36))
 		## Soft beach rim.
-		draw_polyline(island, Color(0.78, 0.72, 0.48, 0.85), 2.0, true)
+		draw_polyline(island, Color(0.85, 0.72, 0.42, 0.9), 2.5, true)
 	_draw_explored_wash(rect, bounds, island)
 	_draw_terrain(rect, bounds)
 	_draw_roads(rect, bounds)
 	_draw_markers(rect, bounds)
 	_draw_player(rect, bounds)
-	draw_rect(rect, WorldPalette.UI_BORDER, false, 2.0)
+	## Cyan device frame.
+	draw_rect(rect, WorldPalette.UI_CYAN, false, 2.5)
+	if frame_map:
+		draw_rect(Rect2(rect.position + Vector2(2, 2), rect.size - Vector2(4, 4)), WorldPalette.UI_ACCENT, false, 1.0)
 
 
 func _island_map_poly(map_rect: Rect2, bounds: Rect2) -> PackedVector2Array:
