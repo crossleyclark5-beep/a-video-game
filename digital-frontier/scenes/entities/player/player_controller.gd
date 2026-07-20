@@ -6,6 +6,7 @@ const RUN_SPEED := 10.5
 const ACCELERATION := 30.0
 const DECELERATION := 36.0
 const ROTATION_SPEED := 14.0
+const GRAVITY := 32.0
 const FOOTSTEP_WALK_INTERVAL := 0.38
 const FOOTSTEP_RUN_INTERVAL := 0.26
 
@@ -21,6 +22,9 @@ var _run_held: bool = false
 
 func _ready() -> void:
 	add_to_group(GameConstants.GROUP_PLAYER)
+	floor_max_angle = deg_to_rad(48.0)
+	floor_snap_length = 0.4
+	floor_stop_on_slope = false
 	_setup_footstep_stream()
 
 
@@ -59,7 +63,12 @@ func _physics_process(delta: float) -> void:
 	var accel := ACCELERATION if has_input else DECELERATION
 	velocity.x = move_toward(velocity.x, target_velocity.x, accel * delta)
 	velocity.z = move_toward(velocity.z, target_velocity.z, accel * delta)
-	velocity.y = 0.0
+
+	## Gravity + floor snap so hills/ramps work; steep mountain faces remain unclimbable.
+	if not is_on_floor():
+		velocity.y -= GRAVITY * delta
+	elif velocity.y < 0.0:
+		velocity.y = 0.0
 
 	var planar := Vector2(velocity.x, velocity.z).length()
 	var speed_ratio := clampf(planar / RUN_SPEED, 0.0, 1.0)
@@ -74,6 +83,13 @@ func _physics_process(delta: float) -> void:
 		)
 
 	move_and_slide()
+	## Soft slide-back when pushing into a steep mountain face.
+	if not is_on_floor() and get_slide_collision_count() > 0 and has_input:
+		var col := get_slide_collision(0)
+		if col and col.get_normal().y < 0.45:
+			velocity.x *= 0.7
+			velocity.z *= 0.7
+			global_position += col.get_normal() * 0.05
 	_update_footsteps(delta, planar, running, can_move)
 
 	## Home: keyboard H, or Select held + B (handheld chord).

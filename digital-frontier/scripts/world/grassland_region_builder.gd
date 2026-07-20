@@ -30,6 +30,8 @@ static func build(root: Node3D) -> Dictionary:
 	FatalFieldsBuilder.build_at(root, GrasslandLayout.FATAL_FIELDS, result)
 	RiskyReelsBuilder.build_at(root, GrasslandLayout.RISKY_REELS, result)
 	RegionCorridorBuilder.build_all(root, result)
+	RegionTerrainBuilder.build(root, result)
+	RegionVegetationBuilder.build(root)
 	_add_expansion_points(root, result)
 	_add_region_welcome(root)
 	return result

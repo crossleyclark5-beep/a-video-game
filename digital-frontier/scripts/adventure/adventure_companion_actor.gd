@@ -222,6 +222,8 @@ func _tick_follow(delta: float) -> void:
 	_face_direction(dir, delta)
 	var before := global_position
 	move_and_slide()
+	## Keep companion locked to player elevation on hills / trails.
+	global_position.y = move_toward(global_position.y, target.y, 12.0 * delta)
 	## If barely moving while needing to catch up, count stuck frames then snap.
 	if dist > 2.0 and before.distance_to(global_position) < 0.02:
 		_stuck_frames += 1

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"north_pass"
+display_name = "North Pass"
+description = "Stone pass toward Risky Reels."
+category = 0
+region_id = &"grassland"
+short_blurb = "Stone pass toward Risky Reels."
+bits_reward = 16
+map_hint = "NE road pass"
+creature_xp_reward = 7
+is_secret = false

@@ -112,6 +112,9 @@ func _spawn_player() -> void:
 	_player.global_position = spawn
 	if camera_rig.has_method("set_target"):
 		camera_rig.call("set_target", _player)
+	if _device_hud and _device_hud.has_method("bind_player"):
+		_device_hud.call("bind_player", _player)
+	WorldManager.mark_explored_at(spawn)
 
 
 func _spawn_companion() -> void:
@@ -131,6 +134,7 @@ func _save_checkpoint() -> void:
 	if not _player.is_inside_tree():
 		return
 	WorldManager.set_player_checkpoint(_player.global_position)
+	WorldManager.mark_explored_at(_player.global_position)
 
 
 func _bind_prompt() -> void:
