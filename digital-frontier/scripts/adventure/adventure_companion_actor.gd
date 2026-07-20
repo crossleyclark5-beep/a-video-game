@@ -49,6 +49,8 @@ func _ready() -> void:
 	EventBus.chest_opened.connect(_on_chest_opened)
 	EventBus.building_interior_loaded.connect(_on_building_changed)
 	EventBus.building_exited.connect(_on_building_changed)
+	EventBus.creature_discovered.connect(_on_creature_discovered)
+	EventBus.hostile_defeated.connect(_on_hostile_defeated_react)
 	_apply_species_tuning()
 
 
@@ -74,7 +76,13 @@ func warp_near_player(player: Node3D = null) -> void:
 func get_notice_prompt() -> String:
 	if _state != State.NOTICE or _notice_target == null:
 		return ""
-	return InputManager.format_prompt("Ask %s" % CreatureManager.get_companion_nickname(), &"creature_action")
+	match _notice_kind:
+		&"danger":
+			return InputManager.format_prompt("%s warns of danger!" % CreatureManager.get_companion_nickname(), &"creature_action")
+		&"creature":
+			return InputManager.format_prompt("%s spotted wildlife!" % CreatureManager.get_companion_nickname(), &"creature_action")
+		_:
+			return InputManager.format_prompt("Ask %s" % CreatureManager.get_companion_nickname(), &"creature_action")
 
 
 func has_active_notice() -> bool:
@@ -399,6 +407,20 @@ func _try_sense() -> void:
 			best_kind = &"discoverable"
 			best_id = disc.location_id
 
+	## Sense nearby wild ecosystem creatures (nature ability prefers rare).
+	for node2 in get_tree().get_nodes_in_group(EcosystemCreature.GROUP):
+		if not (node2 is EcosystemCreature):
+			continue
+		var eco := node2 as EcosystemCreature
+		var d2 := global_position.distance_to(eco.global_position)
+		if d2 > best_dist:
+			continue
+		if ability.kind == CreatureAbilityData.Kind.SENSE_NATURE or eco.rarity >= EcosystemCatalog.Rarity.RARE or eco.is_hostile:
+			best = eco
+			best_dist = d2
+			best_kind = &"creature" if not eco.is_hostile else &"danger"
+			best_id = eco.species_id
+
 	if best == null:
 		return
 	_raise_notice(best, best_kind, best_id, ability)
@@ -480,6 +502,19 @@ func _on_location_discovered(location_id: StringName) -> void:
 	CreatureManager.grant_adventure_bond(bond, "")
 	## Location memory flag for collection feel.
 	WorldManager.set_world_flag(StringName("memory_%s" % String(location_id)), true)
+
+
+func _on_creature_discovered(species_id: StringName, rarity: int) -> void:
+	_play_react(CompanionVisual.Anim.DISCOVERY if rarity >= EcosystemCatalog.Rarity.RARE else CompanionVisual.Anim.CURIOUS)
+	var msg := "%s is excited!" % CreatureManager.get_companion_nickname()
+	if rarity >= EcosystemCatalog.Rarity.RARE:
+		msg = "%s leaps — a rare signal!" % CreatureManager.get_companion_nickname()
+	EventBus.ui_notification_requested.emit(msg, 2.0)
+	CreatureManager.grant_adventure_bond(0.8 if rarity < EcosystemCatalog.Rarity.RARE else 2.0, "")
+
+
+func _on_hostile_defeated_react(_species_id: StringName = &"", _pos: Vector3 = Vector3.ZERO) -> void:
+	_play_react(CompanionVisual.Anim.HAPPY)
 
 
 func _on_chest_opened(_chest_id: StringName, rarity: StringName) -> void:

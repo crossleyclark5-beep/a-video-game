@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/quest_data.gd" id="1_quest"]
+
+[resource]
+script = ExtResource("1_quest")
+id = &"index_novice"
+display_name = "Index Novice"
+description = "Log three wild species in the Creature Index, then report to the Meadow Researcher."
+quest_type = 1
+prerequisite_quest_ids = PackedStringArray("first_steps")
+reward_item_ids = PackedStringArray("crystal_dust")
+reward_quantities = PackedInt32Array(3)
+reward_bits = 55
+stages = Array[Dictionary]([{
+"type": "discover_creature",
+"target_id": "any",
+"count": 3
+}, {
+"type": "talk",
+"target_id": "meadow_researcher",
+"count": 1
+}])
+start_npc_id = &"meadow_researcher"
+turn_in_npc_id = &"meadow_researcher"

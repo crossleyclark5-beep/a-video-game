@@ -88,8 +88,20 @@ static func collection_sheet() -> String:
 	lines.append(DFStyle.header_bb("COLLECTION DATABASE", WorldPalette.UI_CYAN))
 	var disc := CollectionManager.get_discovery_progress()
 	lines.append(DFStyle.color_tag(WorldPalette.UI_LIME, "Locations  %d / %d" % [disc.x, disc.y]))
+	var idx := CollectionManager.get_creature_index_progress()
+	lines.append(DFStyle.color_tag(WorldPalette.UI_GOLD, "Creature Index  %d / %d" % [idx.x, idx.y]))
 	if CollectionManager.has_method("get_summary_line"):
-		lines.append(DFStyle.color_tag(WorldPalette.UI_GOLD, CollectionManager.get_summary_line()))
+		lines.append(DFStyle.color_tag(WorldPalette.UI_MUTED.lightened(0.35), CollectionManager.get_summary_line()))
+	lines.append("")
+	lines.append(DFStyle.color_tag(WorldPalette.UI_ACCENT, "■ CREATURE INDEX"))
+	for e in CollectionManager.get_creature_index_entries():
+		if not e.get(&"discovered", false):
+			lines.append(DFStyle.card_bb("????", "Signal locked — keep exploring", false, "???"))
+			continue
+		var meta := String(e.get(&"rarity_label", ""))
+		var body := "%s · %s · seen ×%d" % [e.get(&"habitat", ""), e.get(&"temperament_label", ""), e.get(&"count", 0)]
+		var wl := "W%d/L%d" % [e.get(&"battles_won", 0), e.get(&"battles_lost", 0)]
+		lines.append(DFStyle.card_bb(String(e.get(&"name", "")), body + " · " + wl, false, meta))
 	lines.append("")
 	var raw := CollectionManager.get_journal_text()
 	var section := ""
@@ -99,11 +111,43 @@ static func collection_sheet() -> String:
 			continue
 		if t.begins_with("==") or t.begins_with("--"):
 			section = t.replace("=", "").replace("-", "").strip_edges()
+			if section.to_upper().contains("CREATURE INDEX"):
+				continue  ## Already rendered above as cards.
 			if not section.is_empty():
 				lines.append("")
 				lines.append(DFStyle.color_tag(WorldPalette.UI_ACCENT, "■ %s" % section.to_upper()))
 			continue
+		if section.to_upper().contains("CREATURE INDEX"):
+			continue
 		lines.append(DFStyle.card_bb(t, "", false, "◆"))
+	return "\n".join(lines)
+
+
+static func creature_index_sheet() -> String:
+	var lines: PackedStringArray = PackedStringArray()
+	lines.append(DFStyle.header_bb("CREATURE INDEX", WorldPalette.UI_GOLD))
+	var idx := CollectionManager.get_creature_index_progress()
+	lines.append(DFStyle.color_tag(WorldPalette.UI_LIME, "Field log  %d / %d" % [idx.x, idx.y]))
+	lines.append(DFStyle.color_tag(WorldPalette.UI_MUTED, "Discover wild species · day, night, and weather change who appears."))
+	lines.append("")
+	for e in CollectionManager.get_creature_index_entries():
+		if not e.get(&"discovered", false):
+			lines.append(DFStyle.card_bb("????", "Keep walking — something new waits over the next hill", false, "LOCKED"))
+			continue
+		var when := ""
+		var unix := int(e.get(&"first_unix", 0))
+		if unix > 0:
+			when = "First seen logged"
+		var body := "%s · %s\n    %s · %s · encounters ×%d · battles %d/%d" % [
+			e.get(&"habitat", ""),
+			e.get(&"temperament_label", ""),
+			e.get(&"blurb", ""),
+			when,
+			e.get(&"count", 0),
+			e.get(&"battles_won", 0),
+			e.get(&"battles_lost", 0),
+		]
+		lines.append(DFStyle.card_bb(String(e.get(&"name", "")), body, false, String(e.get(&"rarity_label", ""))))
 	return "\n".join(lines)
 
 

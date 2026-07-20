@@ -30,6 +30,10 @@ signal player_respawned(position: Vector3)
 signal combat_strike(attacker: Node, target: Node)
 signal combat_hit(attacker: Node, target: Node, amount: float)
 signal hostile_defeated(species_id: StringName, position: Vector3)
+signal creature_discovered(species_id: StringName, rarity: int)
+signal creature_sighted(species_id: StringName)
+signal day_phase_changed(phase: int)
+signal weather_changed(weather_id: StringName)
 
 # --- Save / load ---
 signal save_requested(slot: int)

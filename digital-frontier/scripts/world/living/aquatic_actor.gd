@@ -20,6 +20,7 @@ var _visual: Node3D = null
 var _timer: float = 0.0
 var _attack_cd: float = 0.0
 var _rng := RandomNumberGenerator.new()
+var _indexed: bool = false
 
 
 func setup(def: Dictionary, player: Node3D, bounds: AABB, origin: Vector3) -> void:
@@ -38,6 +39,7 @@ func setup(def: Dictionary, player: Node3D, bounds: AABB, origin: Vector3) -> vo
 	_build_visual(def)
 	_pick_target()
 	add_to_group(GROUP)
+	add_to_group(GameConstants.GROUP_CREATURES)
 	if hostile:
 		add_to_group(HostileCreatureActor.GROUP)
 
@@ -71,12 +73,23 @@ func _process(delta: float) -> void:
 	_attack_cd = maxf(0.0, _attack_cd - delta)
 	if _timer <= 0.0:
 		_pick_target()
-	if hostile and _player and is_instance_valid(_player):
+	if _player and is_instance_valid(_player):
 		var d := global_position.distance_to(_player.global_position)
-		if d < 10.0:
+		if d < 12.0 and not _indexed:
+			_indexed = true
+			CollectionManager.record_creature_sighting({
+				&"id": species_id,
+				&"name": display_name,
+				&"blurb": "Aquatic life of the Grassland waters.",
+				&"rarity": EcosystemCatalog.Rarity.COMMON if not hostile else EcosystemCatalog.Rarity.UNCOMMON,
+				&"rarity_label": "Common" if not hostile else "Uncommon",
+				&"habitat": "Water",
+				&"temperament_label": "Aggressive" if hostile else "Passive",
+			}, global_position, true)
+		if hostile and d < 10.0:
 			_target = _player.global_position
 			_target.y = clampf(_target.y, _bounds.position.y + 0.2, _bounds.end.y - 0.2)
-		if d < 1.8 and _attack_cd <= 0.0:
+		if hostile and d < 1.8 and _attack_cd <= 0.0:
 			_attack_cd = 1.3
 			var health := _player.get_node_or_null("PlayerHealth")
 			if health and health.has_method("apply_damage"):
