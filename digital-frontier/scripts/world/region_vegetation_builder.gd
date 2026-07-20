@@ -69,19 +69,67 @@ static func _clearing_safe(parent: Node3D, center: Vector3, seed_i: int) -> void
 
 
 static func _tree_clump(parent: Node3D, center: Vector3, count: int, seed_i: int) -> void:
+	## Imperfect cluster — not a perfect ring. Density toward the center, gaps at the edge.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(seed_i) * 7919 + 41
 	for j in count:
-		var ang := float(j) * 2.1 + float(seed_i) * 0.15
-		var r := 2.5 + float(j % 3) * 2.2
-		var p := center + Vector3(cos(ang) * r, 0.0, sin(ang) * r)
-		_pixel_tree_safe(parent, p, 0.8 + float((j + seed_i) % 5) * 0.1, seed_i + j)
+		var ang := rng.randf() * TAU
+		var r := rng.randf_range(0.8, 2.2 + float(j % 4) * 1.9)
+		## Slight radial bias so clumps read as groves, not grids.
+		if j < count / 2:
+			r *= 0.72
+		var p := center + Vector3(cos(ang) * r + rng.randf_range(-0.6, 0.6), 0.0, sin(ang) * r + rng.randf_range(-0.6, 0.6))
+		_pixel_tree_safe(parent, p, 0.72 + rng.randf() * 0.48, seed_i + j)
+	## Satellite saplings / undergrowth offset from the main mass.
+	if count >= 4:
+		var sat := center + Vector3(rng.randf_range(6.0, 11.0) * (1.0 if seed_i % 2 == 0 else -1.0), 0, rng.randf_range(-4.0, 4.0))
+		_pixel_tree_safe(parent, sat, 0.65 + rng.randf() * 0.2, seed_i + 90)
+		_bush_cluster_safe(parent, sat + Vector3(2.0, 0, -1.5), 2, seed_i + 91)
+	if seed_i % 3 == 0:
+		_fallen_log(parent, center + Vector3(rng.randf_range(-2.5, 2.5), 0, rng.randf_range(-2.5, 2.5)), seed_i)
+	if seed_i % 2 == 0:
+		_leaf_litter(parent, center, seed_i)
 
 
 static func _clearing(parent: Node3D, center: Vector3, seed_i: int) -> void:
-	StylizedMesh.add_box(parent, Vector3(14, 0.04, 14), WorldPalette.GRASS_LIGHT, center + Vector3(0, 0.03, 0), "Clearing_%d" % seed_i, false, 1.0, &"grass")
-	for j in 6:
-		var ang := float(j) * TAU / 6.0
-		_pixel_tree_safe(parent, center + Vector3(cos(ang) * 9.0, 0, sin(ang) * 9.0), 0.9, seed_i + j)
-	StylizedMesh.add_box(parent, Vector3(0.35, 0.2, 0.3), WorldPalette.ROCK, center + Vector3(1.5, 0.1, -1.0), "ClearRock", false, 1.0, &"dirt")
+	## Soft meadow oval — trees around the rim with intentional gaps (path / view lines).
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(seed_i) * 4523 + 7
+	StylizedMesh.add_box(parent, Vector3(14, 0.04, 12), WorldPalette.GRASS_LIGHT, center + Vector3(0, 0.03, 0), "Clearing_%d" % seed_i, false, 1.0, &"grass")
+	for j in 7:
+		## Skip one slot so the ring isn't a perfect fence.
+		if j == (seed_i % 7):
+			continue
+		var ang := float(j) * TAU / 7.0 + rng.randf_range(-0.22, 0.22)
+		var r := 8.2 + rng.randf_range(-1.2, 1.8)
+		_pixel_tree_safe(parent, center + Vector3(cos(ang) * r, 0, sin(ang) * r), 0.82 + rng.randf() * 0.25, seed_i + j)
+	StylizedMesh.add_box(parent, Vector3(0.4, 0.22, 0.35), WorldPalette.ROCK, center + Vector3(1.5, 0.12, -1.0), "ClearRock", false, 1.0, &"dirt")
+	_flower_scatter_safe(parent, center + Vector3(-2.0, 0, 1.5), seed_i + 3)
+	if seed_i % 2 == 0:
+		_fallen_log(parent, center + Vector3(-3.5, 0, 2.0), seed_i + 11)
+
+
+static func _fallen_log(parent: Node3D, pos: Vector3, seed_i: int) -> void:
+	if not _placement_ok(pos, false):
+		return
+	var log := Node3D.new()
+	log.name = "FallenLog_%d" % seed_i
+	log.position = pos
+	log.rotation_degrees.y = float(seed_i * 37 % 360)
+	parent.add_child(log)
+	StylizedMesh.add_box(log, Vector3(2.2, 0.28, 0.32), WorldPalette.TRUNK.darkened(0.08), Vector3(0, 0.16, 0), "Log", false, 1.0, &"wood")
+	StylizedMesh.add_box(log, Vector3(0.35, 0.12, 0.35), WorldPalette.LEAF_DARK, Vector3(0.6, 0.28, 0.05), "Moss", false, 1.0, &"leaf")
+
+
+static func _leaf_litter(parent: Node3D, center: Vector3, seed_i: int) -> void:
+	## Cheap ground detail — few boxes, not particle spam.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(seed_i) * 1301 + 3
+	for i in 4:
+		var p := center + Vector3(rng.randf_range(-3.5, 3.5), 0, rng.randf_range(-3.5, 3.5))
+		if not _placement_ok(p, false):
+			continue
+		StylizedMesh.add_box(parent, Vector3(0.45 + rng.randf() * 0.3, 0.03, 0.35 + rng.randf() * 0.25), WorldPalette.LEAF_DARK.darkened(0.1), p + Vector3(0, 0.04, 0), "Leaves_%d_%d" % [seed_i, i], false, 1.0, &"leaf")
 
 
 static func _pixel_tree_safe(parent: Node3D, pos: Vector3, scale_v: float, idx: int) -> void:
@@ -217,6 +265,17 @@ static func _build_special_clearings(parent: Node3D) -> void:
 	_tree_clump(meadow, Vector3(10, 0, -2), 4, 89)
 	RegionPropKit.add_discoverable(meadow, &"meadow_clearing", "Meadow Clearing", Vector3(0, 0.6, 0), 12, "Wildflowers lean toward Risky Reels.")
 
+	## Wetland fringe at stream — denser low plants, not a second forest.
+	var wet := Node3D.new()
+	wet.name = "StreamWetland"
+	wet.position = GrasslandLayout.LANDMARK_STREAM_CROSSING
+	parent.add_child(wet)
+	_bush_cluster_safe(wet, Vector3(-10, 0, 6), 6, 301)
+	_bush_cluster_safe(wet, Vector3(12, 0, -5), 5, 302)
+	_flower_scatter_safe(wet, Vector3(-6, 0, -8), 303)
+	_rock_scatter_safe(wet, Vector3(8, 0, 7), 304)
+	_leaf_litter(wet, Vector3(0, 0, 9), 305)
+
 
 static func result_chest_safe(parent: Node3D, chest_name: String, pos: Vector3) -> void:
 	RegionPropKit.build_chest(parent, chest_name, pos, ChestInteractable.Rarity.NORMAL, 24.0, "Search the hollow")
@@ -253,6 +312,35 @@ static func _build_wilderness_fill(parent: Node3D) -> void:
 		_grass_patch_safe(fill, c + Vector3(4, 0, 4), 12.0, 160, 900 + i)
 		if i % 2 == 0:
 			_flower_scatter_safe(fill, c + Vector3(-4, 0, 6), 1000 + i)
+		## Trail marker / camp — sparse exploration rewards, never on roads.
+		if i % 4 == 0:
+			_trail_marker(fill, c + Vector3(-12, 0, 6), 1100 + i)
+		if i % 5 == 0:
+			_camp_nook(fill, c + Vector3(8, 0, -14), 1200 + i)
+
+
+static func _trail_marker(parent: Node3D, pos: Vector3, seed_i: int) -> void:
+	if not _placement_ok(pos, false):
+		return
+	var m := Node3D.new()
+	m.name = "TrailMarker_%d" % seed_i
+	m.position = pos
+	parent.add_child(m)
+	StylizedMesh.add_box(m, Vector3(0.12, 1.1, 0.12), WorldPalette.WOOD.darkened(0.15), Vector3(0, 0.55, 0), "Post", false, 1.0, &"wood")
+	StylizedMesh.add_box(m, Vector3(0.55, 0.28, 0.08), Color(0.75, 0.55, 0.3), Vector3(0.2, 0.95, 0), "Sign", false, 1.0, &"wood")
+
+
+static func _camp_nook(parent: Node3D, pos: Vector3, seed_i: int) -> void:
+	if not _placement_ok(pos, false):
+		return
+	var camp := Node3D.new()
+	camp.name = "CampNook_%d" % seed_i
+	camp.position = pos
+	parent.add_child(camp)
+	StylizedMesh.add_box(camp, Vector3(2.4, 0.04, 2.4), WorldPalette.DIRT.lightened(0.05), Vector3(0, 0.03, 0), "ClearDirt", false, 1.0, &"dirt")
+	StylizedMesh.add_box(camp, Vector3(0.7, 0.2, 0.7), WorldPalette.ROCK, Vector3(0, 0.12, 0), "FireRing", false, 1.0, &"dirt")
+	StylizedMesh.add_box(camp, Vector3(1.2, 0.25, 0.35), WorldPalette.WOOD, Vector3(0.9, 0.2, 0.6), "LogSeat", false, 1.0, &"wood")
+	StylizedMesh.add_box(camp, Vector3(0.35, 0.45, 0.35), Color(0.45, 0.35, 0.25), Vector3(-0.8, 0.3, -0.5), "Pack", false, 1.0, &"wood")
 
 
 static func _build_pine_ridges(parent: Node3D) -> void:
@@ -336,6 +424,10 @@ static func _placement_ok(world: Vector3, for_tree: bool) -> bool:
 				return false
 	return true
 
+
+static func placement_allowed(world: Vector3, for_tree: bool = true) -> bool:
+	## Shared guard for corridor / prop systems.
+	return _placement_ok(world, for_tree)
 
 static func _dist_point_to_segment(p: Vector3, a: Vector3, b: Vector3) -> float:
 	var ap := Vector2(p.x - a.x, p.z - a.z)

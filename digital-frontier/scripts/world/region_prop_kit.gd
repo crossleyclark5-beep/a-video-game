@@ -195,6 +195,7 @@ static func make_enterable_building(
 	house.set("building_id", StringName(building_name.to_snake_case()))
 	house.set("display_name", building_name)
 	house.set("interior_kind", kind)
+	house.set("interior_personality", InteriorPersonality.from_building_id(StringName(building_name.to_snake_case()), kind))
 	house.set("interior_scene", null)
 	house.set("exterior_zoom", 14.5)
 	house.set("interior_zoom", 9.2 if kind != InteriorKinds.TOWER else 8.5)

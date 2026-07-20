@@ -522,13 +522,10 @@ static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 			NodePath("Chimney"),
 			NodePath("ChimneyCap"),
 		])
-		## Every enterable house gets a real interior room to explore.
+		## Residential shells stay HOUSE — personality tells the lived-in story.
 		var kind: StringName = spec.get("kind", InteriorKinds.HOUSE)
-		if style == &"modern":
-			kind = InteriorKinds.OFFICE
-		elif style == &"ranch":
-			kind = InteriorKinds.APARTMENT
 		house.set("interior_kind", kind)
+		house.set("interior_personality", InteriorPersonality.from_style_name(style))
 		house.set("interior_scene", null)
 		if house.has_method("bind_door_now"):
 			house.call("bind_door_now")

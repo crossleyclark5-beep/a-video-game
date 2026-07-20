@@ -7,6 +7,7 @@ extends Node3D
 ## Handcrafted interior override. When null, ModularInteriorBuilder uses interior_kind.
 @export var interior_scene: PackedScene
 @export var interior_kind: StringName = &"house"
+@export var interior_personality: int = -1  ## InteriorPersonality.Style or -1 = derive
 @export var exterior_zoom: float = 14.5
 @export var interior_zoom: float = 9.5
 @export var roof_paths: Array[NodePath] = []
@@ -47,8 +48,8 @@ func is_occupied() -> bool:
 
 
 func set_occupied(value: bool) -> void:
-	_occupied = value
 	## Keep the door interactable — Exit must always work on handheld.
+	_occupied = value
 	if _door:
 		_door.enabled = true
 		_door.once = false
@@ -95,7 +96,10 @@ func resolve_interior() -> Node3D:
 	## Prefer unique handcrafted scenes; otherwise generate a themed modular room.
 	if interior_scene != null:
 		return interior_scene.instantiate() as Node3D
-	return ModularInteriorBuilder.build(interior_kind, building_id)
+	var personality := interior_personality
+	if personality < 0:
+		personality = InteriorPersonality.from_building_id(building_id, interior_kind)
+	return ModularInteriorBuilder.build(interior_kind, building_id, 0, personality)
 
 
 func _on_door_interacted(actor: Node) -> void:
