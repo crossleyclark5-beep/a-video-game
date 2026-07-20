@@ -11,7 +11,7 @@ func _ready() -> void:
 	super._ready()
 	if npc_id == &"":
 		npc_id = StringName(name.to_snake_case())
-	prompt_text = "Press E to talk"
+	prompt_verb = "Talk"
 
 
 func _on_interact(_actor: Node) -> void:

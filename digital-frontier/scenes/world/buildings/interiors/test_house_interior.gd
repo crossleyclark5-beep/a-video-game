@@ -53,7 +53,7 @@ func _build_visuals() -> void:
 	chest.position = Vector3(-2.4, 0.45, -2.2)
 	chest.loot_item_id = &"hex_shard"
 	chest.loot_quantity = 2
-	chest.prompt_text = "Press E to open hidden chest"
+	chest.prompt_verb = "Open hidden chest"
 	_upstairs.add_child(chest)
 	_add_chest_mesh(chest)
 

@@ -17,40 +17,44 @@ Your game folder on this PC:
 
 ---
 
-## Core loop
+## This is a handheld game
 
-**Home** → care for Sparkbit → **Adventure** → explore → discover / chests / quests → Bits & creature XP → **H** Home → Collection → prepare again.
+Digital Frontier is designed for a **custom handheld** (physical buttons, small screen).  
+Keyboard in the editor is only a fallback so you can test without the device.
 
-Progress **autosaves** when you leave Home or Adventure (including your world position).
+Full map: `docs/HANDHELD_FIRST.md`
+
+### Controls (pad labels)
+
+| Button | Action |
+|--------|--------|
+| Stick / D-pad | Move · menu focus |
+| **A** | Interact / confirm |
+| **B** | Cancel / close |
+| **X** | Cycle Field Unit tabs |
+| **Y** | Creature (pet at Home) |
+| **Start** | Field Unit · Adventure from Home |
+| **Select** | Pause · Select+B = Home |
+| **L** | Run (hold) |
+| **R** | Map peek |
+
+Editor fallbacks: WASD, E/Space=A, Esc=B, Tab=Start, Q=X, C=Y, M=R, Shift=L, H=Home
 
 ---
 
-## What you can do now
+## Core loop
 
-**Home — Sparkbit companion**
-- Pet / Feed / Rest / Play / Train
-- Status, Bits, Pack, **Collection** (explorer journal)
-- **Adventure** (Enter)
-- Shop is a placeholder (Bits ledger is ready for it)
+**Home** → care for Sparkbit (D-pad + A) → **Start** Adventure → explore → discover / chests / quests → **Select+B** or **H** Home → Collection → again.
 
-**Adventure — Pleasant Park**
-- **Field Unit HUD:** Tab Pack · M Map · J Quests · C Log · B Bits · Esc close
-- **First Steps:** welcome sign → chest → Park Guide
-- Follow-ups: **Park Explorer**, **Secret Seeker**, **Spark Snack**
-- Chests: normal / rare / legendary — loot, Bits, XP, open animation + SFX
-- Common chests can **respawn** after 24h (framework ready)
-- Discover landmarks; secrets in bush / bleachers / alley behind fuel stop
-- Enter **Brick House** (interior + upstairs rare chest)
-
-Controls: WASD · Shift run · E interact · scroll zoom · H home
+Autosave on scene change (including world position).
 
 ---
 
 ## Docs
 
-- `docs/ADVENTURE_FOUNDATION.md` — exploration / collection / ledger / device HUD
-- `docs/GAMEPLAY_FOUNDATION.md` — earlier spine
-- `docs/CREATURE_COMPANION.md` — companion care
+- `docs/HANDHELD_FIRST.md` — button map + philosophy  
+- `docs/ADVENTURE_FOUNDATION.md` — exploration systems  
+- `docs/CREATURE_COMPANION.md` — companion care  
 
 ---
 

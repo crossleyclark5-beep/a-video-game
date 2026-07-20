@@ -52,15 +52,11 @@ func set_zoom_size(size: float, immediate: bool = false) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	## Zoom is optional on handheld — Prefer fixed framing. Keep wheel for PC editor only.
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			set_zoom_size(_target_zoom - zoom_step)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			set_zoom_size(_target_zoom + zoom_step)
-	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_EQUAL or event.keycode == KEY_KP_ADD:
-			set_zoom_size(_target_zoom - zoom_step)
-		elif event.keycode == KEY_MINUS or event.keycode == KEY_KP_SUBTRACT:
 			set_zoom_size(_target_zoom + zoom_step)
 
 

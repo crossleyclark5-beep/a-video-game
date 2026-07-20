@@ -23,7 +23,7 @@ func _ready() -> void:
 func _bind_door() -> void:
 	_door = get_node_or_null("DoorInteractable") as Interactable
 	if _door:
-		_door.prompt_text = "Press E to enter %s" % display_name
+		_door.prompt_verb = "Enter %s" % display_name
 		if not _door.interacted.is_connected(_on_door_interacted):
 			_door.interacted.connect(_on_door_interacted)
 
@@ -36,9 +36,7 @@ func set_occupied(value: bool) -> void:
 	_occupied = value
 	if _door:
 		_door.enabled = not value
-		_door.prompt_text = (
-			"Press E to exit" if value else "Press E to enter %s" % display_name
-		)
+		_door.prompt_verb = "Exit" if value else "Enter %s" % display_name
 
 
 func get_roof_meshes() -> Array[MeshInstance3D]:

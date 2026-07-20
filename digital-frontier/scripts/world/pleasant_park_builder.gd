@@ -383,7 +383,7 @@ static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 		var door := Interactable.new()
 		door.name = "DoorInteractable"
 		door.position = Vector3(0, 1.0, 4.2)
-		door.prompt_text = "Press E to enter %s" % house_name
+		door.prompt_verb = "Enter %s" % house_name
 		var shape := CollisionShape3D.new()
 		var box := BoxShape3D.new()
 		box.size = Vector3(2.8, 2.6, 2.4)
@@ -828,7 +828,7 @@ static func _add_exploration_pois(root: Node3D, result: Dictionary) -> void:
 	root.add_child(pois)
 	StylizedMesh.add_box(pois, Vector3(3.5, 2.2, 1.0), Color(0.34, 0.36, 0.40), Vector3(34, 1.1, 6), "AlleyWall", true, 0.8)
 	var secret := _build_chest(pois, "SecretAlleyChest", Vector3(34, 0, 8), ChestInteractable.Rarity.LEGENDARY)
-	(secret as ChestInteractable).prompt_text = "Press E to open legendary stash"
+	(secret as ChestInteractable).prompt_verb = "Open legendary stash"
 	result[&"chests"].append(secret)
 
 	var bush := Node3D.new()
@@ -839,7 +839,7 @@ static func _add_exploration_pois(root: Node3D, result: Dictionary) -> void:
 	StylizedMesh.add_sphere(bush, 0.7, Color(0.22, 0.52, 0.25), Vector3(0.5, 0.55, 0.2), "BushB", 12, 8, 0.85)
 	var bush_chest := _build_chest(bush, "BushChest", Vector3(0, 0, 0), ChestInteractable.Rarity.RARE)
 	bush_chest.position = Vector3(0, 0.35, 0)
-	(bush_chest as ChestInteractable).prompt_text = "Press E to search the bushes"
+	(bush_chest as ChestInteractable).prompt_verb = "Search the bushes"
 	result[&"chests"].append(bush_chest)
 
 	var plaque := DiscoverableInteractable.new()
@@ -858,7 +858,7 @@ static func _add_exploration_pois(root: Node3D, result: Dictionary) -> void:
 	pois.add_child(plaque)
 
 	var field_chest := _build_chest(pois, "BleacherChest", Vector3(11, 0, 26), ChestInteractable.Rarity.RARE)
-	(field_chest as ChestInteractable).prompt_text = "Press E to check under the bleachers"
+	(field_chest as ChestInteractable).prompt_verb = "Check under the bleachers"
 	result[&"chests"].append(field_chest)
 
 	## Landmark discoveries

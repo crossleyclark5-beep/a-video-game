@@ -1,5 +1,5 @@
 extends CharacterBody3D
-## Adventure player — walk/run, interaction agent, shadow, footsteps.
+## Adventure player — stick/D-pad move, A interact, L run, Select+B home.
 
 const WALK_SPEED := 6.5
 const RUN_SPEED := 10.5
@@ -21,20 +21,11 @@ var _run_held: bool = false
 
 func _ready() -> void:
 	add_to_group(GameConstants.GROUP_PLAYER)
-	_ensure_run_action()
 	_setup_footstep_stream()
 
 
 func get_interaction_agent() -> InteractionAgent:
 	return _interaction_agent
-
-
-func _ensure_run_action() -> void:
-	if not InputMap.has_action(&"run"):
-		InputMap.add_action(&"run")
-		var ev := InputEventKey.new()
-		ev.physical_keycode = KEY_SHIFT
-		InputMap.action_add_event(&"run", ev)
 
 
 func _setup_footstep_stream() -> void:
@@ -53,7 +44,7 @@ func _physics_process(delta: float) -> void:
 		ctx == InputManager.Context.OVERWORLD
 		or ctx == InputManager.Context.BUILDING_INTERIOR
 	)
-	_run_held = can_move and Input.is_action_pressed(&"run")
+	_run_held = can_move and InputManager.is_action_pressed(&"run")
 	var input_v := Vector2.ZERO
 	if can_move:
 		input_v = InputManager.get_move_vector()
@@ -85,8 +76,22 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_update_footsteps(delta, planar, running, can_move)
 
-	if InputManager.is_action_just_pressed(&"go_home"):
-		SceneManager.change_scene(String(GameConstants.SCENE_HOME), true)
+	## Home: keyboard H, or Select held + B (handheld chord).
+	if can_move:
+		if InputManager.is_action_just_pressed(&"go_home"):
+			_go_home()
+		elif InputManager.is_action_pressed(&"pause_menu") and InputManager.is_action_just_pressed(&"ui_cancel"):
+			_go_home()
+		elif InputManager.is_action_just_pressed(&"creature_action"):
+			EventBus.ui_notification_requested.emit(
+				"%s is with you. Care for them at Home." % CreatureManager.get_companion_nickname(),
+				2.2,
+			)
+			DeviceService.pulse_led_for_mood(CreatureManager.get_mood_label())
+
+
+func _go_home() -> void:
+	SceneManager.change_scene(String(GameConstants.SCENE_HOME), true)
 
 
 func _update_footsteps(delta: float, planar_speed: float, running: bool, can_move: bool) -> void:

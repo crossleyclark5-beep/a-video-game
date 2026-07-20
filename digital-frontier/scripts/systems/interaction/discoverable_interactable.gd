@@ -16,9 +16,9 @@ func _ready() -> void:
 		location_id = StringName(name.to_snake_case())
 	_apply_data_defaults()
 	once = false
-	prompt_text = "Press E to inspect"
+	prompt_verb = "Inspect"
 	if WorldManager.is_location_discovered(location_id):
-		prompt_text = "Press E to look around"
+		prompt_verb = "Look around"
 
 
 func _apply_data_defaults() -> void:
@@ -61,7 +61,8 @@ func _on_interact(_actor: Node) -> void:
 		InventoryManager.grant_rewards(rewards, bits, reason)
 		if xp > 0:
 			CreatureManager.grant_adventure_experience(xp)
-		prompt_text = "Press E to look around"
+		DeviceService.notify_event(&"location_discovered")
+		prompt_verb = "Look around"
 	var msg := discover_message
 	if msg.is_empty() and data:
 		msg = data.description

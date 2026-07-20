@@ -49,11 +49,13 @@ func _cache_lid() -> void:
 func _apply_rarity_prompt() -> void:
 	match rarity:
 		Rarity.RARE:
-			prompt_text = "Press E to open rare chest"
+			prompt_verb = "Open rare chest"
 		Rarity.LEGENDARY:
-			prompt_text = "Press E to open legendary chest"
+			prompt_verb = "Open legendary chest"
 		_:
-			prompt_text = "Press E to open chest"
+			prompt_verb = "Open chest"
+	if WorldManager.is_chest_opened(chest_id):
+		prompt_verb = "Empty"
 
 
 func can_interact(actor: Node) -> bool:
@@ -104,6 +106,7 @@ func _on_interact(_actor: Node) -> void:
 	WorldManager.set_chest_opened(chest_id, true)
 	EventBus.chest_opened.emit(chest_id, StringName(_rarity_key()))
 	EventBus.sfx_play_requested.emit(&"chest_open", global_position)
+	DeviceService.notify_event(&"chest_open")
 	if creature_xp_on_open > 0:
 		CreatureManager.grant_adventure_experience(creature_xp_on_open)
 	_mark_opened(true)
@@ -175,7 +178,7 @@ func _mark_opened(just_opened: bool) -> void:
 	enabled = respawn_hours > 0.0  ## Respawnable chests stay in the interact system.
 	if WorldManager.is_chest_opened(chest_id):
 		enabled = false
-		prompt_text = "Empty"
+		prompt_verb = "Empty"
 	for child in get_children():
 		if child is MeshInstance3D:
 			var shade := Color(0.45, 0.45, 0.45)
