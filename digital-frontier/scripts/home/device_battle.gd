@@ -113,11 +113,25 @@ func _start_fight() -> void:
 func _player_turn(move: StringName) -> void:
 	_busy = 0.85
 	_round += 1
-	var dmg := 14 + randi_range(0, 8)
+	var style := CreatureManager.get_battle_style()
+	var atk := int(CreatureManager.get_stats().get("attack", 8))
+	var dmg := 10 + atk + randi_range(0, 6)
 	if move == &"special":
-		dmg = 20 + randi_range(0, 10)
-		_status.text = "%s used SPECIAL!" % CreatureManager.get_companion_nickname()
+		dmg = 16 + atk + randi_range(0, 8)
+		match style:
+			&"aggressive":
+				dmg = int(float(dmg) * 1.25)
+			&"swift":
+				dmg = int(float(dmg) * 1.1)
+			&"opportunist":
+				dmg = int(float(dmg) * 1.15)
+		_status.text = "%s used SPECIAL (%s)!" % [CreatureManager.get_companion_nickname(), style]
 	else:
+		match style:
+			&"tank":
+				dmg = int(float(dmg) * 0.9)
+			&"steady":
+				dmg = int(float(dmg) * 1.05)
 		_status.text = "%s attacked!" % CreatureManager.get_companion_nickname()
 	_player_sprite.set_anim(PixelCreatureSprite.Anim.ATTACK)
 	_enemy_sprite.set_anim(PixelCreatureSprite.Anim.HURT)
@@ -131,6 +145,10 @@ func _player_turn(move: StringName) -> void:
 	## Enemy counter.
 	_busy = 0.85
 	var edmg := 10 + randi_range(0, 10)
+	var def := int(CreatureManager.get_stats().get("defense", 6))
+	edmg = maxi(4, edmg - int(def * 0.35))
+	if style == &"tank":
+		edmg = maxi(3, int(float(edmg) * 0.75))
 	_enemy_sprite.set_anim(PixelCreatureSprite.Anim.ATTACK)
 	_player_sprite.set_anim(PixelCreatureSprite.Anim.HURT)
 	_player_hp = maxi(0, _player_hp - edmg)
@@ -149,6 +167,7 @@ func _finish_battle(won: bool) -> void:
 	_won = won
 	_phase = Phase.RESULT
 	_busy = 0.0
+	CreatureManager.record_companion_battle(won, StringName(_enemy_name.to_snake_case()), false)
 	if won:
 		_player_sprite.set_anim(PixelCreatureSprite.Anim.HAPPY)
 		_enemy_sprite.set_anim(PixelCreatureSprite.Anim.SAD)
@@ -156,14 +175,14 @@ func _finish_battle(won: bool) -> void:
 		var bits := 18 + _round * 3
 		CreatureManager.grant_adventure_experience(xp)
 		InventoryManager.add_bits(bits, true, "Device battle", "battle")
-		CreatureManager.pet()
-		_result_text = "WIN! +%d XP · +%d Bits" % [xp, bits]
+		CreatureManager.celebrate()
+		_result_text = "WIN! +%d XP · +%d Bits · Bond up" % [xp, bits]
 		EventBus.sfx_play_requested.emit(&"battle_win", Vector3.ZERO)
 		DeviceService.notify_event(&"quest_complete")
 		CollectionManager.record_rare_find("Device battle victory", _enemy_name)
 	else:
 		_player_sprite.set_anim(PixelCreatureSprite.Anim.SAD)
-		_result_text = "Loss… train harder, then rematch."
+		_result_text = "Loss… comfort %s, train, then rematch." % CreatureManager.get_companion_nickname()
 		EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
 	_status.text = _result_text
 	_hint.text = "A / B — return"

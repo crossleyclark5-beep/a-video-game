@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="EvolutionPathData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/evolution_path_data.gd" id="1_path"]
+
+[resource]
+script = ExtResource("1_path")
+id = &"tidepup_tideguard"
+species_id = &"tidepup"
+from_stage = 0
+to_stage = 1
+form_display_name = "Tidemaul · Tideguard"
+blurb = "Calm waters and stubborn loyalty — a guardian tide."
+need_level = 8
+need_friendship = 35.0
+need_training_style = &"care"
+need_trait = &"calm"
+need_trait_min = 50.0
+stat_bias = {
+"hp": 1.12,
+"attack": 0.96,
+"defense": 1.1,
+"speed": 0.94
+}
+priority = 20

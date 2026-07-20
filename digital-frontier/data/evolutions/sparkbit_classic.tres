@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="EvolutionPathData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/evolution_path_data.gd" id="1_path"]
+
+[resource]
+script = ExtResource("1_path")
+id = &"sparkbit_classic"
+species_id = &"sparkbit"
+from_stage = 0
+to_stage = 1
+form_display_name = "Sparkbolt"
+blurb = "Standard spark ascension."
+need_level = 8
+need_friendship = 35.0
+stat_bias = {
+"hp": 1.0,
+"attack": 1.0,
+"defense": 1.0,
+"speed": 1.0
+}
+priority = 5

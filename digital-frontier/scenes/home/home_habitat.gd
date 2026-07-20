@@ -166,6 +166,7 @@ func _on_adventure() -> void:
 	if _lcd:
 		_lcd.play_transition_leave()
 	EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
+	CreatureManager.note_adventure_deploy()
 	SaveManager.request_autosave()
 	await get_tree().create_timer(0.55).timeout
 	if _transition:

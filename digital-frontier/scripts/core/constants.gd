@@ -32,6 +32,7 @@ const DATA_LOOT := &"res://data/tables/loot/"
 const DATA_DISCOVERABLES := &"res://data/discoverables/"
 const DATA_ACHIEVEMENTS := &"res://data/achievements/"
 const DATA_ABILITIES := &"res://data/abilities/"
+const DATA_EVOLUTIONS := &"res://data/evolutions/"
 
 ## Default save slot used by autosave.
 const AUTOSAVE_SLOT := 0

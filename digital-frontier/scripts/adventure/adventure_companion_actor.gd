@@ -3,6 +3,7 @@ extends CharacterBody3D
 ## Overworld creature partner — follows the player, shows personality, senses secrets.
 ##
 ## Reads CreatureManager for mood/speed; never owns XP/needs. Handheld: Y asks them.
+## Same CreatureInstance as Digi-Pet Home — one partner, two presentations.
 
 enum State {
 	FOLLOW,
@@ -10,6 +11,7 @@ enum State {
 	NOTICE,
 	LEAD,
 	REACT,
+	CAUTION,
 }
 
 const BASE_SPEED := 7.2
@@ -24,6 +26,7 @@ var _state: State = State.FOLLOW
 var _idle_timer: float = 0.0
 var _look_timer: float = 1.2
 var _sense_timer: float = 1.5
+var _world_react_timer: float = 2.5
 var _cooldown: float = 0.0
 var _notice_target: Node3D = null
 var _notice_kind: StringName = &""
@@ -34,14 +37,16 @@ var _follow_distance: float = 1.85
 var _follow_lag: float = 0.32
 var _side_sign: float = 1.0
 var _stuck_frames: int = 0
+var _orbit_phase: float = 0.0
+var _last_weather: StringName = &""
 
 
 func _ready() -> void:
 	add_to_group(&"adventure_companion")
-	## Float over the world — do not grind into static props or floors.
+	## Float over the world — soft follow with personality orbit; snap if separated.
 	motion_mode = MOTION_MODE_FLOATING
 	collision_layer = 8  ## entities
-	collision_mask = 0   ## soft follow; snap/teleport if separated
+	collision_mask = 0
 	floor_snap_length = 0.0
 	_build_collision()
 	_build_visual()
@@ -51,6 +56,7 @@ func _ready() -> void:
 	EventBus.building_exited.connect(_on_building_changed)
 	EventBus.creature_discovered.connect(_on_creature_discovered)
 	EventBus.hostile_defeated.connect(_on_hostile_defeated_react)
+	EventBus.npc_dialogue_ended.connect(_on_npc_talked)
 	_apply_species_tuning()
 
 
@@ -81,6 +87,8 @@ func get_notice_prompt() -> String:
 			return InputManager.format_prompt("%s warns of danger!" % CreatureManager.get_companion_nickname(), &"creature_action")
 		&"creature":
 			return InputManager.format_prompt("%s spotted wildlife!" % CreatureManager.get_companion_nickname(), &"creature_action")
+		&"boss":
+			return InputManager.format_prompt("%s is wary…" % CreatureManager.get_companion_nickname(), &"creature_action")
 		_:
 			return InputManager.format_prompt("Ask %s" % CreatureManager.get_companion_nickname(), &"creature_action")
 
@@ -90,24 +98,34 @@ func has_active_notice() -> bool:
 
 
 func request_creature_action() -> void:
-	## Y button — confirm notice, or affectionate check-in.
+	## Y button — confirm notice, celebrate, comfort, or talk.
 	if has_active_notice():
 		_confirm_notice()
 		return
+	if CreatureManager.consume_celebrate_pending():
+		_play_react(CompanionVisual.Anim.HAPPY)
+		var msg := CreatureManager.celebrate()
+		EventBus.ui_notification_requested.emit(msg, 2.6)
+		return
+	var mood := CreatureManager.get_mood()
+	if mood == CreatureManager.Mood.TIRED or mood == CreatureManager.Mood.SAD or CreatureManager.get_happiness() < 35.0:
+		_play_react(CompanionVisual.Anim.PET)
+		var comfort := CreatureManager.comfort()
+		EventBus.ui_notification_requested.emit(comfort, 2.6)
+		DeviceService.notify_event(&"creature_care")
+		return
 	_play_react(CompanionVisual.Anim.PET)
-	CreatureManager.grant_adventure_bond(1.2, "%s feels closer" % CreatureManager.get_companion_nickname())
+	var talk := CreatureManager.talk()
 	DeviceService.notify_event(&"creature_care")
-	EventBus.ui_notification_requested.emit(
-		"%s: \"%s\"" % [CreatureManager.get_companion_nickname(), _personality_quip()],
-		2.4,
-	)
+	EventBus.ui_notification_requested.emit(talk, 2.6)
 
 
 func play_combat_assist() -> void:
 	_play_react(CompanionVisual.Anim.HAPPY)
+	var quip := CreatureManager.get_partner_quip(&"victory")
 	EventBus.ui_notification_requested.emit(
-		"%s strikes!" % CreatureManager.get_companion_nickname(),
-		1.1,
+		"%s strikes! \"%s\"" % [CreatureManager.get_companion_nickname(), quip],
+		1.3,
 	)
 
 
@@ -142,9 +160,11 @@ func _apply_species_tuning() -> void:
 	if species:
 		_follow_distance = species.follow_distance
 		_follow_lag = species.follow_lag
-	_side_sign = 1.0 if CreatureManager.get_behavior_bias() != &"sleep" else -1.0
-	if CreatureManager.get_active_instance():
-		_side_sign = 1.0 if CreatureManager.get_active_instance().get_personality("playful") >= 50.0 else -1.0
+	var inst := CreatureManager.get_active_instance()
+	if inst:
+		_side_sign = CompanionPersonality.follow_side_bias(inst.personality)
+	else:
+		_side_sign = 1.0
 
 
 func _physics_process(delta: float) -> void:
@@ -154,6 +174,8 @@ func _physics_process(delta: float) -> void:
 	_cooldown = maxf(0.0, _cooldown - delta)
 	_sense_timer -= delta
 	_look_timer -= delta
+	_world_react_timer -= delta
+	_orbit_phase += delta
 
 	match _state:
 		State.FOLLOW:
@@ -163,17 +185,25 @@ func _physics_process(delta: float) -> void:
 				_try_sense()
 			if _look_timer <= 0.0:
 				_idle_look()
+			if _world_react_timer <= 0.0:
+				_world_react_timer = 2.8
+				_tick_world_awareness()
 		State.IDLE:
 			_tick_idle(delta)
 			if _sense_timer <= 0.0:
 				_sense_timer = 1.1
 				_try_sense()
+			if _world_react_timer <= 0.0:
+				_world_react_timer = 2.8
+				_tick_world_awareness()
 		State.NOTICE:
 			_tick_notice(delta)
 		State.LEAD:
 			_tick_lead(delta)
 		State.REACT:
 			_tick_react(delta)
+		State.CAUTION:
+			_tick_caution(delta)
 
 	_update_visual_motion()
 
@@ -193,8 +223,22 @@ func _desired_follow_pos() -> Vector3:
 	var side := _player.global_transform.basis.x
 	side.y = 0.0
 	side = side.normalized() * _side_sign
+	## Soft personality orbit — playful partners weave a little; calm ones hold steady.
+	var weave := 0.0
+	var inst := CreatureManager.get_active_instance()
+	if inst:
+		var playful := inst.get_personality("playful")
+		var calm := inst.get_personality("calm")
+		weave = sin(_orbit_phase * lerpf(1.2, 2.4, playful / 100.0)) * lerpf(0.08, 0.42, playful / 100.0)
+		weave *= lerpf(1.0, 0.35, calm / 100.0)
 	var lag_boost := 1.0 + clampf(_follow_lag, 0.0, 0.8)
-	var offset := back * (_follow_distance * lag_boost) + side * 0.55
+	## Protective partners stay slightly closer.
+	var dist := _follow_distance
+	if inst and inst.get_primary_trait() == &"protective":
+		dist *= 0.88
+	elif inst and inst.get_primary_trait() == &"curious":
+		dist *= 1.06
+	var offset := back * (dist * lag_boost) + side * (0.55 + weave)
 	var pos := _player.global_position + offset
 	pos.y = _player.global_position.y + 0.08
 	return pos
@@ -202,6 +246,8 @@ func _desired_follow_pos() -> Vector3:
 
 func _tick_follow(delta: float) -> void:
 	var target := _desired_follow_pos()
+	## Soft obstacle sidestep: if a static body sits between companion and target, bias sideways.
+	target = _soft_avoid(target)
 	var to_target := target - global_position
 	to_target.y = 0.0
 	var dist := to_target.length()
@@ -214,6 +260,11 @@ func _tick_follow(delta: float) -> void:
 		velocity = velocity.move_toward(Vector3.ZERO, ACCEL * delta)
 		_idle_timer += delta
 		_stuck_frames = 0
+		## Face the player when close — feels like a companion, not a shadow.
+		var to_player := _player.global_position - global_position
+		to_player.y = 0.0
+		if to_player.length_squared() > 0.01:
+			_face_direction(to_player.normalized(), delta)
 		if _idle_timer > 1.4:
 			_state = State.IDLE
 			_idle_timer = 0.0
@@ -240,7 +291,6 @@ func _tick_follow(delta: float) -> void:
 	move_and_slide()
 	## Keep companion locked to player elevation on hills / trails.
 	global_position.y = move_toward(global_position.y, target.y, 12.0 * delta)
-	## If barely moving while needing to catch up, count stuck frames then snap.
 	if dist > 2.0 and before.distance_to(global_position) < 0.02:
 		_stuck_frames += 1
 		if _stuck_frames >= STUCK_FRAMES_LIMIT:
@@ -249,6 +299,112 @@ func _tick_follow(delta: float) -> void:
 			_stuck_frames = 0
 	else:
 		_stuck_frames = 0
+
+
+func _soft_avoid(target: Vector3) -> Vector3:
+	## Cheap handheld-friendly avoidance using a short ray toward the follow slot.
+	var space := get_world_3d().direct_space_state
+	if space == null:
+		return target
+	var from := global_position + Vector3(0, 0.4, 0)
+	var to := target + Vector3(0, 0.4, 0)
+	var query := PhysicsRayQueryParameters3D.create(from, to)
+	query.collision_mask = 1  ## world static
+	query.exclude = [get_rid()]
+	var hit := space.intersect_ray(query)
+	if hit.is_empty():
+		return target
+	var normal: Vector3 = hit.get("normal", Vector3.UP)
+	normal.y = 0.0
+	if normal.length_squared() < 0.01:
+		normal = _player.global_transform.basis.x
+		normal.y = 0.0
+	normal = normal.normalized()
+	return target + normal * 0.85 * _side_sign
+
+
+func _tick_world_awareness() -> void:
+	## React to bosses, weather, and nearby danger without spamming.
+	if _state == State.NOTICE or _state == State.LEAD or _state == State.REACT:
+		return
+	## Boss proximity → caution.
+	for node in get_tree().get_nodes_in_group(RegionBossActor.GROUP):
+		if node is Node3D and is_instance_valid(node):
+			if global_position.distance_to((node as Node3D).global_position) < 22.0:
+				_enter_caution(node as Node3D, &"boss")
+				return
+	for node2 in get_tree().get_nodes_in_group(MiniBossActor.GROUP):
+		if node2 is Node3D and is_instance_valid(node2):
+			if global_position.distance_to((node2 as Node3D).global_position) < 18.0:
+				_enter_caution(node2 as Node3D, &"boss")
+				return
+	## Weather shift bark.
+	var weather := WorldAtmosphere.current_weather_id()
+	if weather != _last_weather and _last_weather != &"":
+		_react_weather(weather)
+	_last_weather = weather
+
+
+func _enter_caution(target: Node3D, kind: StringName) -> void:
+	_notice_target = target
+	_notice_kind = kind
+	_notice_id = &"caution"
+	_state = State.CAUTION
+	_react_timer = 2.2
+	if _visual:
+		_visual.set_anim(CompanionVisual.Anim.CURIOUS)
+	var quip := CreatureManager.get_partner_quip(&"danger")
+	EventBus.ui_notification_requested.emit(
+		"%s: \"%s\"" % [CreatureManager.get_companion_nickname(), quip],
+		2.4,
+	)
+	EventBus.sfx_play_requested.emit(&"creature_status", global_position)
+
+
+func _tick_caution(delta: float) -> void:
+	## Hang closer to the player, facing the threat.
+	var soft := _desired_follow_pos()
+	## Pull tighter when protective.
+	if CreatureManager.get_primary_trait() == &"protective":
+		soft = soft.lerp(_player.global_position, 0.35)
+	var to_soft := soft - global_position
+	to_soft.y = 0.0
+	if to_soft.length() > 0.4:
+		var dir := to_soft.normalized()
+		velocity.x = move_toward(velocity.x, dir.x * 3.0, ACCEL * delta)
+		velocity.z = move_toward(velocity.z, dir.z * 3.0, ACCEL * delta)
+	else:
+		velocity = velocity.move_toward(Vector3.ZERO, ACCEL * delta)
+	velocity.y = 0.0
+	move_and_slide()
+	if is_instance_valid(_notice_target):
+		var look := _notice_target.global_position - global_position
+		look.y = 0.0
+		if look.length_squared() > 0.01:
+			_face_direction(look.normalized(), delta)
+	_react_timer -= delta
+	if _react_timer <= 0.0 or not is_instance_valid(_notice_target):
+		_clear_notice()
+		_state = State.FOLLOW
+
+
+func _react_weather(weather: StringName) -> void:
+	var line := ""
+	match weather:
+		&"rain", &"storm":
+			line = "Rain… stay close."
+			if _visual:
+				_visual.set_anim(CompanionVisual.Anim.CURIOUS)
+		&"clear", &"sunny":
+			line = "Nice light!"
+			if _visual:
+				_visual.set_anim(CompanionVisual.Anim.HAPPY)
+		_:
+			return
+	EventBus.ui_notification_requested.emit(
+		"%s: \"%s\"" % [CreatureManager.get_companion_nickname(), line],
+		1.8,
+	)
 
 
 func _on_building_changed(_building_id: StringName = &"") -> void:
@@ -373,7 +529,7 @@ func _try_sense() -> void:
 		radius += species.sense_radius_bonus
 	## Curious creatures sense a little farther.
 	if CreatureManager.get_active_instance():
-		radius *= lerpf(0.9, 1.2, CreatureManager.get_active_instance().get_personality("curious") / 100.0)
+		radius *= CompanionPersonality.sense_radius_mult(CreatureManager.get_active_instance().personality)
 
 	var best: Node3D = null
 	var best_dist := radius
@@ -500,8 +656,17 @@ func _on_location_discovered(location_id: StringName) -> void:
 	if species:
 		bond = species.adventure_bond_on_discover
 	CreatureManager.grant_adventure_bond(bond, "")
-	## Location memory flag for collection feel.
 	WorldManager.set_world_flag(StringName("memory_%s" % String(location_id)), true)
+	CreatureManager.record_memory(
+		StringName("loc_%s" % String(location_id)),
+		CompanionMemory.Kind.DISCOVERY,
+		"Discovered %s together" % String(location_id).replace("_", " ").capitalize(),
+		PackedStringArray(["discovery", String(location_id)]),
+	)
+	EventBus.ui_notification_requested.emit(
+		"%s: \"%s\"" % [CreatureManager.get_companion_nickname(), CreatureManager.get_partner_quip(&"discover")],
+		2.0,
+	)
 
 
 func _on_creature_discovered(species_id: StringName, rarity: int) -> void:
@@ -509,12 +674,25 @@ func _on_creature_discovered(species_id: StringName, rarity: int) -> void:
 	var msg := "%s is excited!" % CreatureManager.get_companion_nickname()
 	if rarity >= EcosystemCatalog.Rarity.RARE:
 		msg = "%s leaps — a rare signal!" % CreatureManager.get_companion_nickname()
+		CreatureManager.record_memory(
+			StringName("rare_%s" % String(species_id)),
+			CompanionMemory.Kind.DISCOVERY,
+			"Saw rare %s together" % String(species_id).replace("_", " "),
+			PackedStringArray(["rare", String(species_id)]),
+		)
 	EventBus.ui_notification_requested.emit(msg, 2.0)
 	CreatureManager.grant_adventure_bond(0.8 if rarity < EcosystemCatalog.Rarity.RARE else 2.0, "")
 
 
-func _on_hostile_defeated_react(_species_id: StringName = &"", _pos: Vector3 = Vector3.ZERO) -> void:
+func _on_hostile_defeated_react(species_id: StringName = &"", _pos: Vector3 = Vector3.ZERO) -> void:
 	_play_react(CompanionVisual.Anim.HAPPY)
+	var is_boss := species_id == &"hollow_warden" or species_id == &"glitch_alpha"
+	CreatureManager.record_companion_battle(true, species_id, is_boss)
+	if is_boss:
+		EventBus.ui_notification_requested.emit(
+			"%s: \"%s\"" % [CreatureManager.get_companion_nickname(), CreatureManager.get_partner_quip(&"victory")],
+			2.4,
+		)
 
 
 func _on_chest_opened(_chest_id: StringName, rarity: StringName) -> void:
@@ -525,7 +703,24 @@ func _on_chest_opened(_chest_id: StringName, rarity: StringName) -> void:
 		bond = species.adventure_bond_on_chest
 	if rarity == &"rare" or rarity == &"legendary":
 		bond *= 1.4
+		CreatureManager.record_memory(
+			StringName("chest_%s" % String(_chest_id)),
+			CompanionMemory.Kind.DISCOVERY,
+			"Opened a %s chest together" % String(rarity),
+			PackedStringArray(["chest", String(rarity)]),
+		)
 	CreatureManager.grant_adventure_bond(bond, "")
+
+
+func _on_npc_talked(npc_id: StringName) -> void:
+	## Soft social reaction — protective/curious partners chirp after talks.
+	if CreatureManager.get_primary_trait() == &"curious" or CreatureManager.get_friendship() > 40.0:
+		if _visual and (_state == State.FOLLOW or _state == State.IDLE):
+			_play_react(CompanionVisual.Anim.CURIOUS)
+		CreatureManager.grant_adventure_bond(0.3, "")
+		var inst := CreatureManager.get_active_instance()
+		if npc_id == &"field_ranger" and inst and not inst.has_memory(&"met_ranger"):
+			CreatureManager.record_memory(&"met_ranger", CompanionMemory.Kind.STORY, "Met the Field Ranger together", PackedStringArray(["story", "npc"]))
 
 
 func _face_direction(dir: Vector3, delta: float) -> void:
@@ -541,22 +736,11 @@ func _update_visual_motion() -> void:
 	var planar := Vector2(velocity.x, velocity.z).length()
 	_visual.set_walk_amount(clampf(planar / BASE_SPEED, 0.0, 1.0))
 	if _state == State.FOLLOW and planar > 0.4:
-		if planar > 5.5:
+		if CreatureManager.get_mood() == CreatureManager.Mood.TIRED:
+			_visual.set_anim(CompanionVisual.Anim.WALK)
+		elif planar > 5.5:
 			_visual.set_anim(CompanionVisual.Anim.RUN)
 		else:
 			_visual.set_anim(CompanionVisual.Anim.WALK)
-
-
-func _personality_quip() -> String:
-	var bias := CreatureManager.get_behavior_bias()
-	match bias:
-		&"playful":
-			return "Let's keep going!"
-		&"explore":
-			return "Something interesting is near…"
-		&"sleep":
-			return "Just a little longer out here…"
-		&"eat":
-			return "Adventure snacks later?"
-		_:
-			return "I'm with you."
+	elif _state == State.IDLE and CreatureManager.get_mood() == CreatureManager.Mood.TIRED:
+		_visual.set_anim(CompanionVisual.Anim.SLEEP)
