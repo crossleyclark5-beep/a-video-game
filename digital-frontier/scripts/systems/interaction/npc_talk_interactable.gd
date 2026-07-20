@@ -1,6 +1,6 @@
 class_name NpcTalkInteractable
 extends Interactable
-## Field Unit dialogue card — quest-aware lines via ChapterCast when available.
+## Field Unit dialogue — memory-aware lines via NPCManager + ChapterCast.
 
 @export var npc_id: StringName = &""
 @export var npc_display_name: String = "Someone"
@@ -15,11 +15,7 @@ func _ready() -> void:
 
 
 func _on_interact(_actor: Node) -> void:
-	var lines := ChapterCast.lines_for(npc_id)
-	if lines.is_empty():
-		lines = dialogue_lines
-	if lines.is_empty():
-		lines = PackedStringArray(["…"])
+	var lines := NPCManager.get_talk_lines(npc_id, dialogue_lines)
 	var host := get_tree().current_scene if get_tree() else null
 	if host == null:
 		host = get_tree().root

@@ -11,13 +11,54 @@ static func lines_for(npc_id: StringName) -> PackedStringArray:
 			return _field_ranger()
 		&"meadow_researcher":
 			return _meadow_researcher()
+		&"lost_scout":
+			return _lost_scout()
+		&"park_villager":
+			return _park_villager()
 		&"fuel_clerk":
 			return PackedStringArray([
 				"Bits spend fine here — Field Salve’ll get you back on your feet.",
 				"Heard growls from Pine Hollow. Stock up if you’re heading north.",
 			])
+		&"road_merchant":
+			return PackedStringArray([
+				"Rumors cost extra. Salves don’t.",
+				"Market Mile opens wider once the roads feel safe.",
+			])
 		_:
 			return PackedStringArray()
+
+
+static func _lost_scout() -> PackedStringArray:
+	if QuestManager.is_quest_active(&"lost_trail"):
+		return PackedStringArray([
+			"You found me… I followed lights with no footprints.",
+			"Tell the Ranger — something’s herding travelers north.",
+		])
+	if NPCManager.has_memory(&"lost_scout", &"rescued"):
+		return PackedStringArray([
+			"Still catching my breath. Those lights… weren’t friendly.",
+			"Pine Hollow isn’t just a landmark. It’s a door.",
+		])
+	return PackedStringArray([
+		"Am I still on the map? The markers lied to me.",
+	])
+
+
+static func _park_villager() -> PackedStringArray:
+	if QuestManager.is_quest_active(&"village_shield"):
+		return PackedStringArray([
+			"Glitchmites keep nosing the park fences!",
+			"Clear a few near town, then come tell me we’re safe.",
+		])
+	if NPCManager.has_memory(&"park_villager", &"village_safe"):
+		return PackedStringArray([
+			"Kids are playing outside again. That’s because of you.",
+		])
+	return PackedStringArray([
+		"Pleasant Park feels safer with you around.",
+		"My cousin saw a moose near Pine Hollow!",
+	])
 
 
 static func _park_guide() -> PackedStringArray:
@@ -53,11 +94,20 @@ static func _park_guide() -> PackedStringArray:
 
 
 static func _field_ranger() -> PackedStringArray:
+	if QuestManager.is_quest_active(&"lost_trail"):
+		return PackedStringArray([
+			"A scout went missing on the Pine Hollow road.",
+			"Find them, then report back — something’s wrong with the trail.",
+		])
+	if QuestManager.is_quest_active(&"strange_static"):
+		return PackedStringArray([
+			"Read the warning stone near Hollow, then clear hostiles nearby.",
+			"Strange static. Not weather. Not wildlife.",
+		])
 	if QuestManager.is_quest_active(&"grassland_call"):
 		return PackedStringArray([
-			"Field Ranger reporting. Glitch Alpha is nesting on the trail to Pine Hollow.",
-			"Defeat it, then meet me in spirit — the Hollow itself is stirring.",
-			"Y strikes when enemies are close. Don’t fight alone — your partner helps.",
+			"Field Ranger reporting. Glitch Alpha nests toward Pine Hollow.",
+			"Defeat it — the Hollow itself is stirring.",
 		])
 	if QuestManager.is_quest_active(&"pine_threat"):
 		return PackedStringArray([
@@ -65,8 +115,8 @@ static func _field_ranger() -> PackedStringArray:
 		])
 	if QuestManager.is_quest_active(&"hollow_challenge"):
 		return PackedStringArray([
-			"Pine Hollow’s Warden isn’t a bigger mite — it’s old code in living wood.",
-			"Stock salve. Watch its phases. Come back a legend.",
+			"The Warden isn’t a bigger mite — old code in living wood.",
+			"Stock salve. Watch its phases.",
 		])
 	if QuestManager.is_quest_completed(&"hollow_challenge"):
 		return PackedStringArray([
@@ -80,17 +130,22 @@ static func _field_ranger() -> PackedStringArray:
 
 
 static func _meadow_researcher() -> PackedStringArray:
+	if QuestManager.is_quest_active(&"injured_signal"):
+		return PackedStringArray([
+			"A creature-signal flickered near the ranger trail — hurt, scared.",
+			"Find the trail cache, bring Field Salve notes, then talk to me.",
+		])
 	if QuestManager.is_quest_active(&"wildlife_watch") or QuestManager.is_quest_active(&"index_novice"):
 		return PackedStringArray([
-			"Wildlife migrates with the digital tide — log everything in your Index!",
+			"Wildlife migrates with the digital tide — log everything!",
 			"Morning birds, night moths… each hour changes who you’ll meet.",
 		])
 	if QuestManager.is_quest_completed(&"hollow_challenge"):
 		return PackedStringArray([
 			"Your Index after the Warden fight? Fascinating data.",
-			"Side studies never end — that’s the joy of field research.",
+			"Side studies never end — that’s field research.",
 		])
 	return PackedStringArray([
 		"Rabbits flee at eight meters — fascinating!",
-		"Record every species. Completing the Index is an adventure of its own.",
+		"Record every species. The Index is an adventure itself.",
 	])

@@ -72,6 +72,10 @@ signal npc_dialogue_started(npc_id: StringName)
 signal npc_dialogue_ended(npc_id: StringName)
 signal npc_state_changed(npc_id: StringName)
 
+# --- Story ---
+signal story_beat_started(beat_id: StringName)
+signal story_beat_finished(beat_id: StringName)
+
 # --- Vehicles ---
 signal vehicle_entered(vehicle_id: StringName)
 signal vehicle_exited(vehicle_id: StringName)

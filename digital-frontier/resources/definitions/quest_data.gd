@@ -7,6 +7,8 @@ enum QuestType {
 	SIDE,
 	DAILY,
 	HIDDEN,
+	EXPLORATION,
+	CREATURE,
 }
 
 @export var quest_type: QuestType = QuestType.SIDE

@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/quest_data.gd" id="1_quest"]
+
+[resource]
+script = ExtResource("1_quest")
+id = &"strange_static"
+display_name = "Strange Static"
+description = "Investigate the Hollow warning stone, clear hostile static nearby, and report what the land is whispering."
+quest_type = 4
+prerequisite_quest_ids = PackedStringArray("grassland_call")
+reward_item_ids = PackedStringArray("hex_shard")
+reward_quantities = PackedInt32Array(2)
+reward_bits = 60
+stages = Array[Dictionary]([{
+"type": "discover",
+"target_id": "hollow_warning_stone",
+"count": 1
+}, {
+"type": "defeat",
+"target_id": "any",
+"count": 2
+}, {
+"type": "talk",
+"target_id": "field_ranger",
+"count": 1
+}])
+start_npc_id = &"field_ranger"
+turn_in_npc_id = &"field_ranger"
