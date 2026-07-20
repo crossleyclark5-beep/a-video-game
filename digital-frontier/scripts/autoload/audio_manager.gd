@@ -38,6 +38,20 @@ func _build_placeholder_sfx() -> void:
 	_sfx_streams[&"achievement"] = _make_chord([523.25, 659.25, 783.99], 0.28, 0.28)
 	_sfx_streams[&"ui_blip"] = _make_beep(440.0, 0.05, 0.2)
 	_sfx_streams[&"quest"] = _make_beep(392.0, 0.14, 0.28)
+	_sfx_streams[&"boot_chime"] = _make_chord([392.0, 523.25, 659.25], 0.35, 0.3)
+	_sfx_streams[&"menu_beep"] = _make_beep(494.0, 0.06, 0.22)
+	_sfx_streams[&"partner_select"] = _make_chord([523.25, 659.25, 784.0], 0.4, 0.32)
+	_sfx_streams[&"battle_start"] = _make_beep(220.0, 0.18, 0.35)
+	_sfx_streams[&"battle_hit"] = _make_beep(180.0, 0.07, 0.4)
+	_sfx_streams[&"battle_win"] = _make_chord([523.25, 659.25, 880.0], 0.45, 0.3)
+	_sfx_streams[&"evolve"] = _make_chord([349.23, 440.0, 554.37, 698.46], 0.55, 0.28)
+	_sfx_streams[&"creature_feed"] = _make_beep(600.0, 0.08, 0.22)
+	_sfx_streams[&"creature_pet"] = _make_beep(720.0, 0.07, 0.2)
+	_sfx_streams[&"creature_train"] = _make_beep(340.0, 0.1, 0.25)
+	_sfx_streams[&"creature_rest"] = _make_beep(280.0, 0.14, 0.2)
+	_sfx_streams[&"creature_heal"] = _make_beep(760.0, 0.12, 0.22)
+	_sfx_streams[&"creature_play"] = _make_beep(640.0, 0.09, 0.22)
+	_sfx_streams[&"creature_status"] = _make_beep(500.0, 0.06, 0.18)
 
 
 func _apply_volume_settings() -> void:

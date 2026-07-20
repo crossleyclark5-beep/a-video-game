@@ -32,6 +32,8 @@ func _ready() -> void:
 			ok = false
 
 	InventoryManager.add_bits(100, false, "smoke", "test")
+	if not CreatureManager.has_chosen_partner():
+		CreatureManager.select_partner(&"emberling")
 	var before := InventoryManager.get_bits()
 	print("Buy: ", ShopManager.buy(&"food_berry_ration"), " bits=", InventoryManager.get_bits())
 	if InventoryManager.get_bits() >= before:

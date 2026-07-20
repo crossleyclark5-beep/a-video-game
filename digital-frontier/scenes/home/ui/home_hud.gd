@@ -5,6 +5,7 @@ extends CanvasLayer
 signal adventure_pressed
 signal shop_pressed
 signal collection_pressed
+signal battle_pressed
 signal care_requested(action: StringName)
 
 @onready var _name_label: Label = %CreatureName
@@ -34,7 +35,12 @@ var _normal_btn_style: StyleBoxFlat = null
 
 func _ready() -> void:
 	_inventory_panel.visible = false
+	## Digi-pet: status meters live behind Status sheet, not a permanent RPG sidebar.
+	var needs := get_node_or_null("NeedsPanel") as Control
+	if needs:
+		needs.visible = false
 	_apply_device_chrome()
+	_relabel_digipet_buttons()
 	_build_focus_strip()
 	_ensure_hint_label()
 	if not EventBus.companion_state_changed.is_connected(_refresh):
@@ -47,15 +53,35 @@ func _ready() -> void:
 	_apply_focus_visual()
 
 
+func _relabel_digipet_buttons() -> void:
+	## Core digi-pet loop labels (classic companion device feel).
+	var map := {
+		"BottomBar/BottomMargin/BottomCol/CareRow/PetButton": "Interact",
+		"BottomBar/BottomMargin/BottomCol/CareRow/FeedButton": "Feed",
+		"BottomBar/BottomMargin/BottomCol/CareRow/RestButton": "Heal",
+		"BottomBar/BottomMargin/BottomCol/CareRow/PlayButton": "Train",
+		"BottomBar/BottomMargin/BottomCol/CareRow/TrainButton": "Status",
+		"BottomBar/BottomMargin/BottomCol/CareRow/StatusButton": "Battle",
+		"BottomBar/BottomMargin/BottomCol/NavRow/InventoryButton": "Pack",
+		"BottomBar/BottomMargin/BottomCol/NavRow/CollectionButton": "Journal",
+		"BottomBar/BottomMargin/BottomCol/NavRow/ShopButton": "Shop",
+		"BottomBar/BottomMargin/BottomCol/NavRow/AdventureButton": "Adventure",
+	}
+	for path in map.keys():
+		var btn := get_node_or_null(path) as Button
+		if btn:
+			btn.text = map[path]
+
+
 func _unhandled_input(_event: InputEvent) -> void:
 	## Start / Enter → Adventure
 	if InputManager.is_action_just_pressed(&"go_adventure") or InputManager.is_action_just_pressed(&"device_menu"):
 		adventure_pressed.emit()
 		get_viewport().set_input_as_handled()
 		return
-	## Y → quick pet
+	## Y → quick interact
 	if InputManager.is_action_just_pressed(&"creature_action"):
-		care_requested.emit(&"pet")
+		care_requested.emit(&"interact")
 		DeviceService.notify_event(&"creature_care")
 		get_viewport().set_input_as_handled()
 		return
@@ -83,8 +109,9 @@ func _unhandled_input(_event: InputEvent) -> void:
 
 func _build_focus_strip() -> void:
 	_focus_entries.clear()
+	## Care strip + device destinations — Adventure is the gateway out.
 	var order: Array[StringName] = [
-		&"pet", &"feed", &"rest", &"play", &"train", &"status",
+		&"interact", &"feed", &"heal", &"train", &"status", &"battle",
 		&"pack", &"collection", &"shop", &"adventure",
 	]
 	for id in order:
@@ -96,7 +123,6 @@ func _build_focus_strip() -> void:
 			&"button": btn,
 			&"callable": _callable_for(id),
 		})
-	## Prefer Adventure as default focus so Start isn't the only path.
 	for i in _focus_entries.size():
 		if _focus_entries[i][&"id"] == &"adventure":
 			_focus_index = i
@@ -104,13 +130,14 @@ func _build_focus_strip() -> void:
 
 
 func _find_button_for(id: StringName) -> Button:
+	## Remap digi-pet ids onto existing button nodes.
 	var path_map := {
-		&"pet": "BottomBar/BottomMargin/BottomCol/CareRow/PetButton",
+		&"interact": "BottomBar/BottomMargin/BottomCol/CareRow/PetButton",
 		&"feed": "BottomBar/BottomMargin/BottomCol/CareRow/FeedButton",
-		&"rest": "BottomBar/BottomMargin/BottomCol/CareRow/RestButton",
-		&"play": "BottomBar/BottomMargin/BottomCol/CareRow/PlayButton",
-		&"train": "BottomBar/BottomMargin/BottomCol/CareRow/TrainButton",
-		&"status": "BottomBar/BottomMargin/BottomCol/CareRow/StatusButton",
+		&"heal": "BottomBar/BottomMargin/BottomCol/CareRow/RestButton",
+		&"train": "BottomBar/BottomMargin/BottomCol/CareRow/PlayButton",
+		&"status": "BottomBar/BottomMargin/BottomCol/CareRow/TrainButton",
+		&"battle": "BottomBar/BottomMargin/BottomCol/CareRow/StatusButton",
 		&"pack": "BottomBar/BottomMargin/BottomCol/NavRow/InventoryButton",
 		&"collection": "BottomBar/BottomMargin/BottomCol/NavRow/CollectionButton",
 		&"shop": "BottomBar/BottomMargin/BottomCol/NavRow/ShopButton",
@@ -125,18 +152,18 @@ func _find_button_for(id: StringName) -> Button:
 
 func _callable_for(id: StringName) -> Callable:
 	match id:
-		&"pet":
+		&"interact":
 			return _on_pet_pressed
 		&"feed":
 			return _on_feed_pressed
-		&"rest":
-			return _on_rest_pressed
-		&"play":
-			return _on_play_pressed
+		&"heal":
+			return _on_heal_pressed
 		&"train":
-			return _on_train_pressed
+			return _on_care_train_pressed
 		&"status":
-			return _on_status_pressed
+			return _on_show_status_pressed
+		&"battle":
+			return _on_battle_pressed
 		&"pack":
 			return _on_inventory_pressed
 		&"collection":
@@ -371,31 +398,54 @@ func _on_inventory_pressed() -> void:
 		_refresh_inventory_text()
 
 
+func _on_pet_pressed() -> void:
+	care_requested.emit(&"interact")
+	DeviceService.notify_event(&"creature_care")
+
+
 func _on_feed_pressed() -> void:
 	care_requested.emit(&"feed")
 	DeviceService.notify_event(&"creature_care")
 
 
 func _on_rest_pressed() -> void:
-	care_requested.emit(&"rest")
-	DeviceService.notify_event(&"creature_care")
+	## Scene connection: RestButton remapped to Heal.
+	_on_heal_pressed()
 
 
 func _on_play_pressed() -> void:
-	care_requested.emit(&"play")
-	DeviceService.notify_event(&"creature_care")
+	## Scene connection: PlayButton remapped to Train.
+	_on_care_train_pressed()
 
 
 func _on_train_pressed() -> void:
+	## Scene connection: TrainButton remapped to Status.
+	_on_show_status_pressed()
+
+
+func _on_status_pressed() -> void:
+	## Scene connection: StatusButton remapped to Battle.
+	_on_battle_pressed()
+
+
+func _on_heal_pressed() -> void:
+	care_requested.emit(&"heal")
+	DeviceService.notify_event(&"creature_care")
+
+
+func _on_care_train_pressed() -> void:
 	care_requested.emit(&"train")
 	DeviceService.notify_event(&"creature_care")
 
 
-func _on_pet_pressed() -> void:
-	care_requested.emit(&"pet")
-	DeviceService.notify_event(&"creature_care")
-
-
-func _on_status_pressed() -> void:
+func _on_show_status_pressed() -> void:
 	care_requested.emit(&"status")
+	var needs := get_node_or_null("NeedsPanel") as Control
+	if needs:
+		needs.visible = not needs.visible
 	_status_label.text = CreatureManager.get_detailed_status()
+
+
+func _on_battle_pressed() -> void:
+	battle_pressed.emit()
+	_status_label.text = "Linking for battle…"

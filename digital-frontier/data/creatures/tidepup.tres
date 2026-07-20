@@ -1,0 +1,62 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3 uid="uid://creature_tidepup"]
+
+[ext_resource type="Script" path="res://resources/definitions/creature_data.gd" id="1_creature"]
+
+[resource]
+script = ExtResource("1_creature")
+id = &"tidepup"
+display_name = "Tidepup"
+description = "A calm wave-born companion. Steady in storms, fierce when friends are threatened."
+rarity = 1
+base_stats = {
+"hp": 58,
+"attack": 8,
+"defense": 12,
+"speed": 10
+}
+growth_rates = {
+"hp": 2.6,
+"attack": 1.4,
+"defense": 2.0,
+"speed": 1.3
+}
+ability_ids = PackedStringArray("sense_secrets")
+evolution_chain_id = &"tidepup_chain"
+max_evolution_stage = 2
+stage_display_names = PackedStringArray("Tidepup", "Tidemaul", "Tidalking")
+evolve_level_thresholds = PackedInt32Array(8, 18)
+evolve_friendship_thresholds = PackedInt32Array(40, 70)
+capture_rate = 0.42
+habitat_region_ids = PackedStringArray("starter_plains", "mirror_mere")
+follow_distance = 1.9
+follow_lag = 0.4
+sense_radius_bonus = 0.8
+adventure_bond_on_discover = 1.8
+adventure_bond_on_chest = 2.2
+default_skin_id = &"default"
+available_skin_ids = PackedStringArray("default", "foam")
+visual_profile_id = &"tidepup"
+anim_set_id = &"companion_default"
+default_personality = {
+"playful": 48.0,
+"curious": 55.0,
+"affectionate": 78.0,
+"lazy": 52.0,
+"brave": 58.0
+}
+care_affinities = {
+"feed": 1.2,
+"play": 0.95,
+"rest": 1.35,
+"train": 1.05,
+"pet": 1.4,
+"heal": 1.25
+}
+body_color = Color(0.35, 0.62, 0.88, 1)
+accent_color = Color(0.75, 0.92, 0.98, 1)
+core_color = Color(0.9, 0.96, 1.0, 1)
+lore_blurb = "Tidepups form where digital streams meet quiet shores. Their loyalty is a slow tide — once bonded, it never fully goes out."
+likes = PackedStringArray("Still water", "Long naps", "Soft pets", "Rainy walks", "Guarding camp")
+dislikes = PackedStringArray("Rushed training", "Loud fireworks", "Dry empty bowls")
+habitat_blurb = "Lake shores, rainy porches, and the hush of Mirror Mere."
+favorite_activities = PackedStringArray("Floating", "Side-by-side rest", "Gentle patrols", "Watching the horizon")

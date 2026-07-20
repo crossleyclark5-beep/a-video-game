@@ -44,7 +44,7 @@ func play_haptic(pattern: StringName, intensity: float = 0.5) -> void:
 	haptic_played.emit(pattern, intensity)
 	## PC stub: short audio tick doubles as feedback when no motor.
 	match pattern:
-		&"chest", &"discover", &"reward":
+		&"chest", &"discover", &"reward", &"battle":
 			EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
 		&"creature_happy":
 			EventBus.sfx_play_requested.emit(&"bits_gain", Vector3.ZERO)
@@ -97,5 +97,27 @@ func notify_event(event_id: StringName) -> void:
 		&"creature_care":
 			play_haptic(&"creature_happy", 0.35)
 			pulse_led_for_mood(CreatureManager.get_mood_label())
+		&"battle":
+			play_haptic(&"battle", 0.55)
+			set_led(Color(0.95, 0.35, 0.35), &"flash")
 		_:
 			play_haptic(&"ui", 0.2)
+
+
+## NFC / link stub for digi-pet device battles (firmware later).
+func begin_nfc_link() -> String:
+	play_haptic(&"ui", 0.25)
+	set_led(Color(0.35, 0.55, 0.95), &"pulse")
+	_log("NFC link stub — searching for nearby Field Unit")
+	return "Hold devices together…\n(NFC stub — press A to simulate link)"
+
+
+func exchange_creature_snapshot() -> Dictionary:
+	## Payload a real NFC stack would send/receive.
+	return {
+		&"species_id": CreatureManager.get_companion_id(),
+		&"nickname": CreatureManager.get_companion_nickname(),
+		&"level": CreatureManager.get_level(),
+		&"stage": CreatureManager.get_evolution_stage(),
+		&"friendship": CreatureManager.get_friendship(),
+	}
