@@ -158,14 +158,8 @@ func _physics_process(delta: float) -> void:
 
 
 func _strike_player() -> void:
-	if _player and _player.has_method("apply_damage"):
-		_player.call("apply_damage", damage, self)
-	elif _player:
-		var health := _player.get_node_or_null("PlayerHealth")
-		if health and health.has_method("apply_damage"):
-			health.call("apply_damage", damage, self)
-	EventBus.sfx_play_requested.emit(&"battle_hit", global_position)
-	EventBus.ui_notification_requested.emit("%s hits!" % display_name, 1.2)
+	EventBus.battle_encounter_requested.emit(self, &"ambush")
+	EventBus.sfx_play_requested.emit(&"battle_start", global_position)
 
 
 func _pick_wander() -> void:

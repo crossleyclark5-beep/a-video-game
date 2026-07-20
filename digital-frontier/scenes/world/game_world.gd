@@ -18,6 +18,7 @@ var _device_hud: CanvasLayer = null
 var _atmosphere: WorldAtmosphere = null
 var _living_world: LivingWorldController = null
 var _chapter: ChapterDirector = null
+var _battle: BattleDirector = null
 var _checkpoint_timer: float = 0.0
 
 
@@ -32,6 +33,7 @@ func _ready() -> void:
 	_spawn_companion()
 	_spawn_living_world()
 	_spawn_chapter_director()
+	_spawn_battle_director()
 	_bind_prompt()
 	_spawn_ambient_fx()
 	QuestManager.ensure_starter_quest()
@@ -39,6 +41,8 @@ func _ready() -> void:
 	CreatureManager.grant_adventure_experience(2)
 	if not EventBus.save_completed.is_connected(_on_save_completed):
 		EventBus.save_completed.connect(_on_save_completed)
+	if not EventBus.battle_encounter_requested.is_connected(_on_battle_requested):
+		EventBus.battle_encounter_requested.connect(_on_battle_requested)
 
 
 func _process(delta: float) -> void:
@@ -157,6 +161,24 @@ func _spawn_chapter_director() -> void:
 	_chapter.name = "ChapterDirector"
 	add_child(_chapter)
 	_chapter.setup(_player, _living_world, _device_hud)
+
+
+func _spawn_battle_director() -> void:
+	if _player == null:
+		return
+	_battle = BattleDirector.new()
+	_battle.name = "BattleDirector"
+	add_child(_battle)
+	_battle.setup(_player, _companion, camera_rig)
+	if _living_world and _living_world.has_method("bind_battle_director"):
+		_living_world.call("bind_battle_director", _battle)
+	if _player.has_method("bind_battle_director"):
+		_player.call("bind_battle_director", _battle)
+
+
+func _on_battle_requested(enemy: Node3D, _reason: StringName = &"") -> void:
+	if _battle:
+		_battle.try_start_from_target(enemy)
 
 
 func _on_save_completed(_slot: int, success: bool) -> void:

@@ -25,6 +25,10 @@ var _active_follow_distance := Vector3(0.0, 22.0, 16.0)
 var _floor_focus_y: float = 0.0
 var _floor_focus_target: float = 0.0
 var _occlusion_fader: Node = null
+var _battle_mode: bool = false
+var _battle_anchor: Vector3 = Vector3.ZERO
+var _pre_battle_zoom: float = 14.5
+var _pre_battle_follow: Vector3 = Vector3.ZERO
 
 @onready var _camera: Camera3D = $Camera3D
 
@@ -86,6 +90,31 @@ func set_floor_focus_height(relative_y: float) -> void:
 	_floor_focus_target = maxf(relative_y, 0.0) * 0.45
 
 
+func enter_battle_mode(anchor: Vector3, player: Node3D = null, companion: Node3D = null, enemy: Node3D = null) -> void:
+	## Frame the fight in-world — environment stays visible; camera tightens.
+	_battle_mode = true
+	_pre_battle_zoom = _target_zoom
+	_pre_battle_follow = _active_follow_distance
+	_battle_anchor = anchor
+	if player and companion and enemy and is_instance_valid(enemy):
+		_battle_anchor = (player.global_position + companion.global_position + enemy.global_position) * 0.333
+	elif player:
+		_battle_anchor = player.global_position.lerp(anchor, 0.55)
+	_active_follow_distance = Vector3(0.0, 16.0, 12.0)
+	set_zoom_size(11.0, false)
+	EventBus.sfx_play_requested.emit(&"menu_beep", _battle_anchor)
+
+
+func exit_battle_mode() -> void:
+	if not _battle_mode:
+		return
+	_battle_mode = false
+	_active_follow_distance = interior_follow_distance if _interior_mode else follow_distance
+	if _pre_battle_follow != Vector3.ZERO and not _interior_mode:
+		_active_follow_distance = follow_distance
+	set_zoom_size(_pre_battle_zoom if _pre_battle_zoom > 0.0 else default_zoom, false)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	## Zoom is optional on handheld — Prefer fixed framing. Keep wheel for PC editor only.
 	if event is InputEventMouseButton and event.pressed:
@@ -96,10 +125,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
+	if _camera == null:
+		return
+	if _battle_mode:
+		_process_battle_camera(delta)
+		return
 	if _target == null:
 		_find_player()
-		return
-	if _camera == null:
 		return
 
 	var vel := Vector3.ZERO
@@ -122,6 +154,16 @@ func _process(delta: float) -> void:
 	global_position = global_position.lerp(desired_pos, clampf(smooth * delta, 0.0, 1.0))
 	_camera.look_at(focus + look_at_offset, Vector3.UP)
 
+	var zoom_diff := _target_zoom - _camera.size
+	_zoom_velocity = lerpf(_zoom_velocity, zoom_diff * zoom_smoothing, clampf(14.0 * delta, 0.0, 1.0))
+	_camera.size += _zoom_velocity * delta
+
+
+func _process_battle_camera(delta: float) -> void:
+	var focus := _battle_anchor + look_at_offset
+	var desired_pos := _battle_anchor + _active_follow_distance
+	global_position = global_position.lerp(desired_pos, clampf(7.5 * delta, 0.0, 1.0))
+	_camera.look_at(focus, Vector3.UP)
 	var zoom_diff := _target_zoom - _camera.size
 	_zoom_velocity = lerpf(_zoom_velocity, zoom_diff * zoom_smoothing, clampf(14.0 * delta, 0.0, 1.0))
 	_camera.size += _zoom_velocity * delta
