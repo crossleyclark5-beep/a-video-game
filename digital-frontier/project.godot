@@ -1,7 +1,7 @@
 ; Engine configuration file.
-; Godot 4.7.1 — Digital Frontier
+; Godot 4.7.1 — Cooper Game (Digital Frontier)
 ;
-; See docs/ARCHITECTURE.md for system overview and expansion guidelines.
+; See START_HERE.md for how to open this project.
 
 config_version=5
 
@@ -11,7 +11,7 @@ config/name="Cooper Game"
 config/description="Digital Frontier — a 2.5D top-down hex-world creature adventure."
 config/version="0.1.0"
 run/main_scene="res://scenes/bootstrap/boot.tscn"
-config/features=PackedStringArray("4.7", "Forward Plus")
+config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
@@ -38,15 +38,10 @@ gdscript/warnings/inferred_declaration=1
 
 [display]
 
-window/size/viewport_width=1920
-window/size/viewport_height=1080
+window/size/viewport_width=1280
+window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-
-[input]
-
-; Input actions are defined in project settings and mirrored in GameConfig.
-; Gameplay bindings are added when systems are implemented.
 
 [layer_names]
 
@@ -59,10 +54,16 @@ window/stretch/aspect="expand"
 3d_physics/layer_7="projectiles"
 3d_physics/layer_8="triggers"
 
+[physics]
+
+3d/physics_engine="Jolt Physics"
+
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0
-anti_aliasing/quality/msaa_3d=2
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+rendering_device/driver.windows="d3d12"
 
 [audio]
 

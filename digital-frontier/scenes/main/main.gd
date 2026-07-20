@@ -2,7 +2,7 @@ extends Node
 ## Main persistent shell — never unloaded during a play session.
 ##
 ## Owns:
-## - SceneContainer: active gameplay scene (world, menu, combat)
+## - SceneContainer: active gameplay scene (home, world, combat)
 ## - UI root layers registered with UIManager
 ## - Transition overlay for SceneManager
 
@@ -25,5 +25,5 @@ func _register_ui_layers() -> void:
 
 
 func _start_game() -> void:
-	# Placeholder: load empty game world shell. Replace with title screen when UI exists.
-	await SceneManager.change_scene(GameConstants.SCENE_GAME_WORLD, false)
+	# Phase 1: start at Home so the companion loop is obvious.
+	await SceneManager.change_scene(GameConstants.SCENE_HOME, false)

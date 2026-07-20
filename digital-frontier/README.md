@@ -4,8 +4,8 @@ Godot project name: **Cooper Game** · Game title: **Digital Frontier**
 
 A commercial-quality **2.5D top-down hex-world creature adventure** built with **Godot 4.7.1**, designed for a dedicated handheld device.
 
-> **Status:** Design blueprint + engineering scaffold — **no gameplay implemented yet.**  
-> Read `docs/design/` first. Implementation requires approval per phase.
+> **Status:** First playable slice ready — open `START_HERE.md` and press F5 in Godot.  
+> Read `docs/design/` for the full game plan.
 
 ## Quick Start
 

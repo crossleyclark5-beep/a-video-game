@@ -1,11 +1,47 @@
-[gd_scene load_steps=2 format=3 uid="uid://game_world_scene"]
+[gd_scene load_steps=8 format=3 uid="uid://game_world_scene"]
 
 [ext_resource type="Script" path="res://scenes/world/game_world.gd" id="1_world"]
+[ext_resource type="Script" path="res://scenes/world/camera_rig.gd" id="2_camera"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_ground"]
+size = Vector3(40, 0.2, 40)
+
+[sub_resource type="StandardMaterial3D" id="Mat_grass"]
+albedo_color = Color(0.45, 0.72, 0.38, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape_ground"]
+size = Vector3(40, 0.2, 40)
+
+[sub_resource type="BoxMesh" id="BoxMesh_landmark"]
+size = Vector3(2, 2, 2)
+
+[sub_resource type="StandardMaterial3D" id="Mat_landmark"]
+albedo_color = Color(0.85, 0.65, 0.3, 1)
 
 [node name="GameWorld" type="Node3D"]
 script = ExtResource("1_world")
 
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 10, 0)
+shadow_enabled = false
+
 [node name="HexGridLayer" type="Node3D" parent="."]
+
+[node name="Ground" type="StaticBody3D" parent="HexGridLayer"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="HexGridLayer/Ground"]
+mesh = SubResource("BoxMesh_ground")
+surface_material_override/0 = SubResource("Mat_grass")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HexGridLayer/Ground"]
+shape = SubResource("BoxShape_ground")
+
+[node name="Landmark" type="MeshInstance3D" parent="HexGridLayer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1.1, -4)
+mesh = SubResource("BoxMesh_landmark")
+surface_material_override/0 = SubResource("Mat_landmark")
 
 [node name="BuildingLayer" type="Node3D" parent="."]
 
@@ -14,8 +50,10 @@ script = ExtResource("1_world")
 [node name="EffectsLayer" type="Node3D" parent="."]
 
 [node name="CameraRig" type="Node3D" parent="."]
+script = ExtResource("2_camera")
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig"]
-transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 12, 12)
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 0, 0)
 projection = 1
-size = 20.0
+size = 18.0
+current = true
