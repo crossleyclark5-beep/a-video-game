@@ -1,0 +1,271 @@
+[gd_scene load_steps=2 format=3 uid="uid://home_hud"]
+
+[ext_resource type="Script" path="res://scenes/home/ui/home_hud.gd" id="1_hud"]
+
+[node name="HomeHud" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_hud")
+
+[node name="TopBar" type="PanelContainer" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 16.0
+offset_top = 12.0
+offset_right = -16.0
+offset_bottom = 96.0
+grow_horizontal = 2
+
+[node name="TopMargin" type="MarginContainer" parent="TopBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 8
+
+[node name="TopRow" type="HBoxContainer" parent="TopBar/TopMargin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Identity" type="VBoxContainer" parent="TopBar/TopMargin/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CreatureName" type="Label" parent="TopBar/TopMargin/TopRow/Identity"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Companion"
+
+[node name="MoodLabel" type="Label" parent="TopBar/TopMargin/TopRow/Identity"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 1)
+theme_override_font_sizes/font_size = 14
+text = "Content"
+
+[node name="Meta" type="VBoxContainer" parent="TopBar/TopMargin/TopRow"]
+layout_mode = 2
+alignment = 2
+
+[node name="BitsLabel" type="Label" parent="TopBar/TopMargin/TopRow/Meta"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "120 Bits"
+horizontal_alignment = 2
+
+[node name="TimeLabel" type="Label" parent="TopBar/TopMargin/TopRow/Meta"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.7, 0.9, 1)
+theme_override_font_sizes/font_size = 13
+text = "Night"
+horizontal_alignment = 2
+
+[node name="NeedsPanel" type="PanelContainer" parent="."]
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 110.0
+offset_right = 250.0
+offset_bottom = -120.0
+grow_vertical = 2
+
+[node name="NeedsMargin" type="MarginContainer" parent="NeedsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="NeedsCol" type="VBoxContainer" parent="NeedsPanel/NeedsMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="NeedsTitle" type="Label" parent="NeedsPanel/NeedsMargin/NeedsCol"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "STATUS"
+
+[node name="LHunger" type="Label" parent="NeedsPanel/NeedsMargin/NeedsCol"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Hunger"
+
+[node name="BarHunger" type="ProgressBar" parent="NeedsPanel/NeedsMargin/NeedsCol"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+max_value = 100.0
+value = 70.0
+show_percentage = false
+
+[node name="LHappy" type="Label" parent="NeedsPanel/NeedsMargin/NeedsCol"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Happiness"
+
+[node name="BarHappy" type="ProgressBar" parent="NeedsPanel/NeedsMargin/NeedsCol"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+max_value = 100.0
+value = 70.0
+show_percentage = false
+
+[node name="LEnergy" type="Label" parent="NeedsPanel/NeedsMargin/NeedsCol"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Energy"
+
+[node name="BarEnergy" type="ProgressBar" parent="NeedsPanel/NeedsMargin/NeedsCol"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+max_value = 100.0
+value = 80.0
+show_percentage = false
+
+[node name="LFriend" type="Label" parent="NeedsPanel/NeedsMargin/NeedsCol"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Friendship"
+
+[node name="BarFriend" type="ProgressBar" parent="NeedsPanel/NeedsMargin/NeedsCol"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+max_value = 100.0
+value = 40.0
+show_percentage = false
+
+[node name="LHealth" type="Label" parent="NeedsPanel/NeedsMargin/NeedsCol"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Health"
+
+[node name="BarHealth" type="ProgressBar" parent="NeedsPanel/NeedsMargin/NeedsCol"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+max_value = 100.0
+value = 95.0
+show_percentage = false
+
+[node name="StatusLabel" type="Label" parent="NeedsPanel/NeedsMargin/NeedsCol"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.75, 0.82, 0.92, 1)
+theme_override_font_sizes/font_size = 12
+text = "Your creature lives here."
+autowrap_mode = 3
+
+[node name="BottomBar" type="PanelContainer" parent="."]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -108.0
+offset_right = -16.0
+offset_bottom = -14.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="BottomMargin" type="MarginContainer" parent="BottomBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="BottomCol" type="VBoxContainer" parent="BottomBar/BottomMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CareRow" type="HBoxContainer" parent="BottomBar/BottomMargin/BottomCol"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="FeedButton" type="Button" parent="BottomBar/BottomMargin/BottomCol/CareRow"]
+custom_minimum_size = Vector2(90, 32)
+layout_mode = 2
+text = "Feed"
+
+[node name="RestButton" type="Button" parent="BottomBar/BottomMargin/BottomCol/CareRow"]
+custom_minimum_size = Vector2(90, 32)
+layout_mode = 2
+text = "Rest"
+
+[node name="PlayButton" type="Button" parent="BottomBar/BottomMargin/BottomCol/CareRow"]
+custom_minimum_size = Vector2(90, 32)
+layout_mode = 2
+text = "Play"
+
+[node name="TrainButton" type="Button" parent="BottomBar/BottomMargin/BottomCol/CareRow"]
+custom_minimum_size = Vector2(90, 32)
+layout_mode = 2
+text = "Train"
+
+[node name="NavRow" type="HBoxContainer" parent="BottomBar/BottomMargin/BottomCol"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="InventoryButton" type="Button" parent="BottomBar/BottomMargin/BottomCol/NavRow"]
+custom_minimum_size = Vector2(100, 36)
+layout_mode = 2
+text = "Pack"
+
+[node name="CollectionButton" type="Button" parent="BottomBar/BottomMargin/BottomCol/NavRow"]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+text = "Collection"
+
+[node name="ShopButton" type="Button" parent="BottomBar/BottomMargin/BottomCol/NavRow"]
+custom_minimum_size = Vector2(90, 36)
+layout_mode = 2
+text = "Shop"
+
+[node name="AdventureButton" type="Button" parent="BottomBar/BottomMargin/BottomCol/NavRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 36)
+layout_mode = 2
+text = "Adventure"
+
+[node name="InventoryPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -260.0
+offset_top = 110.0
+offset_right = -16.0
+offset_bottom = 280.0
+grow_horizontal = 0
+
+[node name="InvMargin" type="MarginContainer" parent="InventoryPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="InventoryLabel" type="Label" parent="InventoryPanel/InvMargin"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Pack empty"
+autowrap_mode = 3
+
+[connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/CareRow/FeedButton" to="." method="_on_feed_pressed"]
+[connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/CareRow/RestButton" to="." method="_on_rest_pressed"]
+[connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/CareRow/PlayButton" to="." method="_on_play_pressed"]
+[connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/CareRow/TrainButton" to="." method="_on_train_pressed"]
+[connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/NavRow/InventoryButton" to="." method="_on_inventory_pressed"]
+[connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/NavRow/CollectionButton" to="." method="_on_collection_pressed"]
+[connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/NavRow/ShopButton" to="." method="_on_shop_pressed"]
+[connection signal="pressed" from="BottomBar/BottomMargin/BottomCol/NavRow/AdventureButton" to="." method="_on_adventure_pressed"]

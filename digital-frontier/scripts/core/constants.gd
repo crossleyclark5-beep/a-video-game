@@ -13,7 +13,7 @@ const DEFAULT_HEX_ORIENTATION := &"pointy"
 ## Scene paths — single source of truth for programmatic loading.
 const SCENE_BOOT := &"res://scenes/bootstrap/boot.tscn"
 const SCENE_MAIN := &"res://scenes/main/main.tscn"
-const SCENE_HOME := &"res://scenes/home/home_companion.tscn"
+const SCENE_HOME := &"res://scenes/home/home_habitat.tscn"
 const SCENE_GAME_WORLD := &"res://scenes/world/game_world.tscn"
 const SCENE_LOADING := &"res://scenes/bootstrap/loading_screen.tscn"
 

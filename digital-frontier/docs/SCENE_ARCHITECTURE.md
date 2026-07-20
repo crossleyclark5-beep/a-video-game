@@ -208,7 +208,8 @@ Modal flow:
 | Scene | Purpose |
 |-------|---------|
 | `title_screen.tscn` | New game / continue / settings |
-| `home_companion.tscn` | Monster companion on home screen |
+| `home_habitat.tscn` | Living creature habitat (emotional home center) |
+| `home_companion.tscn` | Legacy flat care UI (superseded) |
 | `loading_screen.tscn` | Async region load progress |
 | `save_slot_menu.tscn` | Slot selection |
 | `dialogue_box.tscn` | Modal dialogue UI |
