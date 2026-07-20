@@ -4,13 +4,13 @@
 
 [resource]
 script = ExtResource("1")
-id = &"mineral_spring"
-display_name = "Hill Overlook"
-description = "Northwest hill overlooking the Salty Springs hollow."
-category = 0
+id = &"farm_creek"
+display_name = "Farm Creek"
+description = "A cool stream alcove on the north edge of Fatal Fields."
+category = 1
 region_id = &"grassland"
-short_blurb = "From the hill you can see the whole hollow."
-bits_reward = 15
-map_hint = "Salty Springs NW hill"
+short_blurb = "Where the stream ducks underground."
+bits_reward = 14
+map_hint = "Fatal Fields north"
 creature_xp_reward = 6
 is_secret = false

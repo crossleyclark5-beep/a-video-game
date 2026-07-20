@@ -54,10 +54,10 @@ static func _add_region_ground(root: Node3D) -> void:
 	)
 	## Soft color variation patches far from hubs (cheap read of rolling countryside).
 	var patches := [
-		[Vector3(600, 0.01, 400), Vector3(180, 0.04, 140), WorldPalette.GRASS_LIGHT],
-		[Vector3(-900, 0.01, -400), Vector3(200, 0.04, 160), WorldPalette.GRASS_DARK],
-		[Vector3(1200, 0.01, 1600), Vector3(160, 0.04, 180), WorldPalette.LEAF_LIT],
-		[Vector3(-2400, 0.01, -900), Vector3(220, 0.04, 150), WorldPalette.SAND.darkened(0.15)],
+		[Vector3(600, 0.01, 800), Vector3(180, 0.04, 140), WorldPalette.GRASS_LIGHT],
+		[Vector3(400, 0.01, 2800), Vector3(200, 0.04, 160), WorldPalette.GRASS_DARK],
+		[Vector3(1600, 0.01, -1400), Vector3(160, 0.04, 180), WorldPalette.LEAF_LIT],
+		[Vector3(200, 0.01, 3600), Vector3(220, 0.04, 150), WorldPalette.SAND.darkened(0.15)],
 	]
 	for i in patches.size():
 		var p: Array = patches[i]

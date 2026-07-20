@@ -312,6 +312,12 @@ static func _add_fuel_stop(root: Node3D) -> void:
 	StylizedMesh.add_box(fuel, Vector3(0.8, 1.5, 0.6), WorldPalette.ROOF_RED, Vector3(-1.5, 0.85, -3.0), "Pump3", true)
 	StylizedMesh.add_box(fuel, Vector3(0.2, 0.15, 0.15), Color(0.15, 0.15, 0.15), Vector3(-4, 1.45, -2.7), "Nozzle1")
 	StylizedMesh.add_box(fuel, Vector3(2.8, 2.0, 0.3), WorldPalette.LEAF_DARK, Vector3(2.0, 2.6, 4.85), "PriceSign")
+	var brand := Label3D.new()
+	brand.text = "PASS N FUEL"
+	brand.font_size = 48
+	brand.position = Vector3(2.0, 2.6, 5.05)
+	brand.modulate = WorldPalette.FLOWER_Y
+	fuel.add_child(brand)
 	StylizedMesh.add_box(fuel, Vector3(0.55, 0.75, 0.55), WorldPalette.BUSH, Vector3(5.5, 0.4, 4.0), "Bin", true)
 	StylizedMesh.add_box(fuel, Vector3(0.28, 1.1, 0.28), WorldPalette.FLOWER_Y, Vector3(-6, 0.55, 2.5), "AirPump", true)
 
@@ -716,6 +722,9 @@ static func _add_street_furniture(root: Node3D) -> void:
 	for i in lamp_spots.size():
 		_street_lamp(decor, lamp_spots[i], i < 6)
 
+	## Bus stop on the south ring (OG Pleasant Park street amenity).
+	_bus_stop(decor, Vector3(-6.0, 0.0, ROAD_RING + 0.5))
+
 	_bench(decor, Vector3(-4.5, 0, 8.5), 0)
 	_bench(decor, Vector3(4.5, 0, -8.5), 180)
 	_bench(decor, Vector3(-8.5, 0, -3.5), 90)
@@ -732,6 +741,24 @@ static func _add_street_furniture(root: Node3D) -> void:
 	_street_sign(decor, Vector3(13, 0, -13), "OAK ST")
 	_street_sign(decor, Vector3(-13, 0, 13), "MAPLE")
 	_street_sign(decor, Vector3(13, 0, 13), "PINE")
+
+
+static func _bus_stop(parent: Node3D, pos: Vector3) -> void:
+	var stop := Node3D.new()
+	stop.name = "BusStop"
+	stop.position = pos
+	parent.add_child(stop)
+	StylizedMesh.add_box(stop, Vector3(0.15, 2.4, 0.15), WorldPalette.METAL, Vector3(-1.4, 1.2, 0), "PostL", true)
+	StylizedMesh.add_box(stop, Vector3(0.15, 2.4, 0.15), WorldPalette.METAL, Vector3(1.4, 1.2, 0), "PostR", true)
+	StylizedMesh.add_box(stop, Vector3(3.2, 0.12, 1.4), WorldPalette.METAL.darkened(0.1), Vector3(0, 2.45, 0), "Roof")
+	StylizedMesh.add_box(stop, Vector3(2.8, 0.7, 0.45), WorldPalette.UI_INK, Vector3(0, 1.1, -0.35), "BenchBack")
+	StylizedMesh.add_box(stop, Vector3(2.8, 0.12, 0.55), WorldPalette.WOOD, Vector3(0, 0.75, 0), "Seat", false, 1.0, &"wood")
+	var label := Label3D.new()
+	label.text = "BUS"
+	label.font_size = 42
+	label.position = Vector3(0, 2.55, 0.2)
+	label.modulate = WorldPalette.UI_PAPER
+	stop.add_child(label)
 
 
 static func _street_lamp(parent: Node3D, pos: Vector3, with_light: bool) -> void:

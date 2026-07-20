@@ -4,13 +4,13 @@
 
 [resource]
 script = ExtResource("1")
-id = &"mineral_spring"
-display_name = "Hill Overlook"
-description = "Northwest hill overlooking the Salty Springs hollow."
+id = &"salty_gas"
+display_name = "Salty Gas Station"
+description = "Yellow shop and red canopy on the Salty Springs hill hollow."
 category = 0
 region_id = &"grassland"
-short_blurb = "From the hill you can see the whole hollow."
-bits_reward = 15
-map_hint = "Salty Springs NW hill"
-creature_xp_reward = 6
+short_blurb = "Fuel for the hills."
+bits_reward = 12
+map_hint = "Salty Springs NE"
+creature_xp_reward = 5
 is_secret = false

@@ -109,8 +109,8 @@ static func _meadow_patch(parent: Node3D, pos: Vector3, idx: int) -> void:
 
 
 static func _add_journey_landmarks(parent: Node3D, result: Dictionary) -> void:
-	## Creek bridge on the Reels road.
-	var bridge_pos := Vector3(980.0, 0.0, 1180.0)
+	## Creek bridge on the NE Reels road.
+	var bridge_pos := Vector3(1280.0, 0.0, -1200.0)
 	var bridge := Node3D.new()
 	bridge.name = "CreekBridge"
 	bridge.position = bridge_pos
@@ -129,10 +129,10 @@ static func _add_journey_landmarks(parent: Node3D, result: Dictionary) -> void:
 	StylizedMesh.add_box(bridge, Vector3(8, 0.7, 0.15), WorldPalette.WOOD.darkened(0.1), Vector3(0, 0.55, -4.8), "RailB", false, 1.0, &"wood")
 	RegionPropKit.add_discoverable(bridge, &"creek_bridge", "Creek Bridge", Vector3(0, 0.6, 0), 14, "Water whispers under the planks — a favorite shortcut for locals.")
 
-	## Hidden hillside cave between Park and Salty Springs.
+	## Hidden hillside cave on the road down to Salty Springs.
 	var cave := Node3D.new()
 	cave.name = "HillsideCave"
-	cave.position = Vector3(780.0, 0.0, -180.0) + Vector3(-22, 0, -18)
+	cave.position = Vector3(650.0, 0.0, 820.0) + Vector3(18, 0, -16)
 	parent.add_child(cave)
 	StylizedMesh.add_box(cave, Vector3(8, 4, 6), WorldPalette.ROCK, Vector3(0, 1.5, 0), "Hill", true)
 	StylizedMesh.add_box(cave, Vector3(2.4, 2.2, 2.0), Color(0.08, 0.08, 0.1), Vector3(0, 1.0, 2.2), "Mouth")
@@ -141,19 +141,19 @@ static func _add_journey_landmarks(parent: Node3D, result: Dictionary) -> void:
 		RegionPropKit.build_chest(cave, "CaveChest", Vector3(0, 0, 0.5), ChestInteractable.Rarity.RARE, 0.0, "Search the cave")
 	)
 
-	## Scenic overlook on the Fields road.
+	## Scenic overlook on the south road toward Fatal Fields.
 	var view := Node3D.new()
 	view.name = "PrairieOverlook"
-	view.position = Vector3(-2100.0, 0.0, -620.0) + Vector3(0, 0, 30)
+	view.position = Vector3(680.0, 0.0, 3100.0) + Vector3(25, 0, 0)
 	parent.add_child(view)
 	StylizedMesh.add_box(view, Vector3(10, 1.2, 6), WorldPalette.ROCK, Vector3(0, 0.4, 0), "Bluff", true)
 	StylizedMesh.add_box(view, Vector3(3.5, 0.15, 1.2), WorldPalette.WOOD, Vector3(0, 1.15, 1.5), "Bench", false, 1.0, &"wood")
-	RegionPropKit.add_discoverable(view, &"prairie_overlook", "Prairie Overlook", Vector3(0, 1.0, 0), 16, "Fatal Fields stretch west like a quilt of gold and green.")
+	RegionPropKit.add_discoverable(view, &"prairie_overlook", "Prairie Overlook", Vector3(0, 1.0, 0), 16, "Fatal Fields stretch south — corn and red barns under a wide sky.")
 
-	## Abandoned billboard before Risky Reels.
+	## Abandoned billboard before Risky Reels (NE approach).
 	var bill := Node3D.new()
 	bill.name = "MovieBillboard"
-	bill.position = Vector3(1850.0, 0.0, 2280.0)
+	bill.position = Vector3(2280.0, 0.0, -2200.0)
 	parent.add_child(bill)
 	StylizedMesh.add_box(bill, Vector3(0.3, 5.5, 0.3), WorldPalette.METAL, Vector3(0, 2.7, 0), "Pole", true)
 	StylizedMesh.add_box(bill, Vector3(6.5, 3.2, 0.2), WorldPalette.UI_INK, Vector3(0, 4.5, 0), "Board")
