@@ -83,7 +83,7 @@ func _offer_followups() -> void:
 	## Side / hidden quests unlock after the tutorial completes (or while active post-start).
 	if not is_quest_completed(&"first_steps"):
 		return
-	for qid in [&"park_explorer", &"secret_seeker", &"spark_snack"]:
+	for qid in [&"park_explorer", &"secret_seeker", &"spark_snack", &"field_patrol", &"wildlife_watch"]:
 		if not is_quest_active(qid) and not is_quest_completed(qid):
 			start_quest(qid)
 

@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/quest_data.gd" id="1_quest"]
+
+[resource]
+script = ExtResource("1_quest")
+id = &"wildlife_watch"
+display_name = "Wildlife Watch"
+description = "Study the living grassland — discover Meadow Clearing and talk with the Meadow Researcher."
+quest_type = 1
+prerequisite_quest_ids = PackedStringArray("first_steps")
+reward_item_ids = PackedStringArray("crystal_dust")
+reward_quantities = PackedInt32Array(2)
+reward_bits = 45
+stages = Array[Dictionary]([{
+"type": "discover",
+"target_id": "meadow_clearing",
+"count": 1
+}, {
+"type": "talk",
+"target_id": "meadow_researcher",
+"count": 1
+}])
+start_npc_id = &"meadow_researcher"
+turn_in_npc_id = &"meadow_researcher"

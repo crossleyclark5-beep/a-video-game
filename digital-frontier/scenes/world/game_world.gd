@@ -16,6 +16,7 @@ var _interior_controller: BuildingInteriorController = null
 var _interaction_prompt: Control = null
 var _device_hud: CanvasLayer = null
 var _atmosphere: WorldAtmosphere = null
+var _living_world: LivingWorldController = null
 var _checkpoint_timer: float = 0.0
 
 
@@ -28,6 +29,7 @@ func _ready() -> void:
 	EventBus.region_load_requested.emit(&"grassland")
 	_spawn_player()
 	_spawn_companion()
+	_spawn_living_world()
 	_bind_prompt()
 	_spawn_ambient_fx()
 	QuestManager.ensure_starter_quest()
@@ -126,6 +128,22 @@ func _spawn_companion() -> void:
 	_companion.setup(_player)
 	if _device_hud and _device_hud.has_method("bind_companion"):
 		_device_hud.call("bind_companion", _companion)
+
+
+func _spawn_living_world() -> void:
+	if _player == null:
+		return
+	_living_world = LivingWorldController.new()
+	_living_world.name = "LivingWorld"
+	entity_layer.add_child(_living_world)
+	_living_world.setup(_player)
+	## Player strike path for Y / creature_action combat.
+	if _player.has_method("bind_living_world"):
+		_player.call("bind_living_world", _living_world)
+	if _device_hud and _device_hud.has_method("bind_player_health"):
+		var health := _player.get_node_or_null("PlayerHealth")
+		if health:
+			_device_hud.call("bind_player_health", health)
 
 
 func _save_checkpoint() -> void:

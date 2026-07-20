@@ -18,6 +18,8 @@ const FOOTSTEP_RUN_INTERVAL := 0.26
 
 var _footstep_timer: float = 0.0
 var _run_held: bool = false
+var _living_world: LivingWorldController = null
+var _health: PlayerHealth = null
 
 
 func _ready() -> void:
@@ -26,6 +28,22 @@ func _ready() -> void:
 	floor_snap_length = 0.4
 	floor_stop_on_slope = false
 	_setup_footstep_stream()
+	_health = PlayerHealth.new()
+	_health.name = "PlayerHealth"
+	add_child(_health)
+
+
+func bind_living_world(world: LivingWorldController) -> void:
+	_living_world = world
+
+
+func apply_damage(amount: float, source: Node = null) -> void:
+	if _health:
+		_health.apply_damage(amount, source)
+
+
+func get_player_health() -> PlayerHealth:
+	return _health
 
 
 func get_interaction_agent() -> InteractionAgent:
@@ -103,9 +121,15 @@ func _physics_process(delta: float) -> void:
 
 
 func _creature_action() -> void:
-	var companions := get_tree().get_nodes_in_group(&"adventure_companion")
-	if not companions.is_empty() and companions[0].has_method("request_creature_action"):
-		companions[0].call("request_creature_action")
+	## Y — combat strike if a hostile is in range, else companion notice / bond.
+	if _living_world and _living_world.try_combat_strike():
+		var companions := get_tree().get_nodes_in_group(&"adventure_companion")
+		if not companions.is_empty() and companions[0].has_method("play_combat_assist"):
+			companions[0].call("play_combat_assist")
+		return
+	var companions2 := get_tree().get_nodes_in_group(&"adventure_companion")
+	if not companions2.is_empty() and companions2[0].has_method("request_creature_action"):
+		companions2[0].call("request_creature_action")
 		return
 	EventBus.ui_notification_requested.emit(
 		"%s is with you." % CreatureManager.get_companion_nickname(),
