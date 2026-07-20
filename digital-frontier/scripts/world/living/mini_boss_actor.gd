@@ -117,9 +117,8 @@ func _physics_process(delta: float) -> void:
 		velocity.z = 0.0
 		if _attack_cd <= 0.0:
 			_attack_cd = 1.05
-			var health := _player.get_node_or_null("PlayerHealth")
-			if health and health.has_method("apply_damage"):
-				health.call("apply_damage", damage, self)
+			EventBus.battle_encounter_requested.emit(self, &"ambush")
+			EventBus.sfx_play_requested.emit(&"battle_start", global_position)
 	if not is_on_floor():
 		velocity.y -= 28.0 * delta
 	elif velocity.y < 0.0:

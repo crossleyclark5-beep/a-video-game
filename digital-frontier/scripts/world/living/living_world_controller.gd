@@ -23,6 +23,7 @@ var _spawn_slots: Array[Dictionary] = []  ## precomputed wilderness points
 var _encounters: WorldEncounterDirector = null
 var _boss: RegionBossActor = null
 var _root_encounters: Node3D = null
+var _battle: BattleDirector = null
 
 
 func setup(player: Node3D) -> void:
@@ -59,12 +60,18 @@ func register_water_aabb(bounds: AABB) -> void:
 	_water_volumes.append(bounds)
 
 
+func bind_battle_director(battle: BattleDirector) -> void:
+	_battle = battle
+
+
 func try_combat_strike() -> bool:
-	## Y / creature action — strike nearest hostile in melee range + companion pulse.
+	## Y / creature action — start a companion battle with the nearest hostile.
 	if _player == null:
 		return false
+	if _battle and _battle.is_active():
+		return true
 	var best: Node3D = null
-	var best_d := 3.2
+	var best_d := 3.4
 	for node in get_tree().get_nodes_in_group(HostileCreatureActor.GROUP):
 		if not is_instance_valid(node):
 			continue
@@ -74,12 +81,14 @@ func try_combat_strike() -> bool:
 			best = node as Node3D
 	if best == null:
 		return false
+	if _battle and _battle.try_start_from_target(best):
+		return true
+	## Fallback: legacy instant strike if battle director missing.
 	var atk := CreatureManager.get_strike_power()
 	if best.has_method("apply_damage"):
 		best.call("apply_damage", atk, _player)
 	EventBus.sfx_play_requested.emit(&"battle_hit", best.global_position)
 	EventBus.combat_strike.emit(_player, best)
-	## Companion bond tick for fighting together.
 	CreatureManager.record_companion_strike()
 	CreatureManager.grant_adventure_bond(0.4, "")
 	return true

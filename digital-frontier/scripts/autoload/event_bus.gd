@@ -34,6 +34,7 @@ signal creature_discovered(species_id: StringName, rarity: int)
 signal creature_sighted(species_id: StringName)
 signal day_phase_changed(phase: int)
 signal weather_changed(weather_id: StringName)
+signal battle_encounter_requested(enemy: Node3D, reason: StringName)
 
 # --- Save / load ---
 signal save_requested(slot: int)
@@ -61,6 +62,10 @@ signal companion_state_changed
 signal companion_cared(action: StringName)
 signal companion_noticed(target_id: StringName, kind: StringName)
 signal companion_helped(target_id: StringName, kind: StringName)
+
+# --- Combat ---
+signal battle_started(enemy_id: StringName, tier: StringName)
+signal battle_ended(won: bool, enemy_id: StringName, record: Dictionary)
 
 # --- NPCs ---
 signal npc_dialogue_started(npc_id: StringName)
