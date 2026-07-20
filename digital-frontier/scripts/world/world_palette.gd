@@ -46,11 +46,20 @@ const SKY_EVENING := Color(0.85, 0.42, 0.35)
 const SUN_DAY := Color(1.0, 0.95, 0.82)
 const AMBIENT_DAY := Color(0.55, 0.62, 0.72)
 
-## UI
-const UI_INK := Color(0.08, 0.10, 0.14)
-const UI_PAPER := Color(0.92, 0.90, 0.82)
-const UI_ACCENT := Color(0.95, 0.55, 0.22)
-const UI_BORDER := Color(0.18, 0.20, 0.24)
+## UI — Digital Frontier Field Unit brand (early-2000s digi-device energy)
+const UI_INK := Color(0.07, 0.09, 0.14)
+const UI_PAPER := Color(0.94, 0.91, 0.82)
+const UI_ACCENT := Color(1.0, 0.48, 0.18) ## Electric orange CTA
+const UI_BORDER := Color(0.14, 0.16, 0.22)
+const UI_NAVY := Color(0.10, 0.14, 0.28) ## Device shell / deep panels
+const UI_CYAN := Color(0.25, 0.85, 0.95) ## Digital LCD accent
+const UI_LIME := Color(0.45, 0.95, 0.35) ## Success / ready
+const UI_PURPLE := Color(0.55, 0.35, 0.85) ## Tab / secondary
+const UI_GOLD := Color(0.98, 0.82, 0.28) ## Bits / rewards
+const UI_DANGER := Color(0.95, 0.32, 0.28)
+const UI_MUTED := Color(0.45, 0.48, 0.55)
+const UI_SHEET := Color(0.12, 0.16, 0.32) ## Sheet body on navy chrome
+const UI_SHEET_TEXT := Color(0.94, 0.95, 0.92)
 
 
 static func quantize(color: Color, steps: int = 6) -> Color:

@@ -75,7 +75,7 @@ func _finish(species_id: StringName) -> void:
 func _build() -> void:
 	var bg := ColorRect.new()
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.color = Color(0.06, 0.08, 0.09)
+	bg.color = WorldPalette.UI_NAVY.darkened(0.25)
 	add_child(bg)
 
 	var panel := PanelContainer.new()
@@ -84,33 +84,24 @@ func _build() -> void:
 	panel.offset_right = -40
 	panel.offset_top = 36
 	panel.offset_bottom = -36
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.1, 0.14, 0.12, 0.98)
-	style.border_color = Color(0.4, 0.75, 0.55)
-	style.set_border_width_all(3)
-	style.content_margin_left = 16
-	style.content_margin_right = 16
-	style.content_margin_top = 14
-	style.content_margin_bottom = 14
-	panel.add_theme_stylebox_override("panel", style)
+	DFStyle.apply_sheet(panel)
 	add_child(panel)
 
 	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 8)
+	v.add_theme_constant_override("separation", 10)
 	panel.add_child(v)
 
 	_title = Label.new()
-	_title.text = "CHOOSE YOUR PARTNER"
+	_title.text = "◆ CHOOSE YOUR PARTNER"
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_title.add_theme_font_size_override("font_size", 26)
-	_title.add_theme_color_override("font_color", Color(0.85, 0.98, 0.88))
+	DFStyle.apply_label_cyan(_title, DFStyle.FONT_TITLE)
 	v.add_child(_title)
 
 	var tag := Label.new()
 	tag.text = "This choice matters. Personality · Path · Strength"
 	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	tag.add_theme_font_size_override("font_size", 13)
-	tag.add_theme_color_override("font_color", Color(0.6, 0.75, 0.65))
+	DFStyle.apply_label_paper(tag, DFStyle.FONT_HINT)
+	tag.add_theme_color_override("font_color", WorldPalette.UI_MUTED.lightened(0.2))
 	v.add_child(tag)
 
 	var mid := CenterContainer.new()
@@ -124,28 +115,25 @@ func _build() -> void:
 
 	_name_l = Label.new()
 	_name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_name_l.add_theme_font_size_override("font_size", 24)
-	_name_l.add_theme_color_override("font_color", Color(0.95, 0.9, 0.55))
+	DFStyle.apply_label_accent(_name_l, DFStyle.FONT_TITLE)
 	v.add_child(_name_l)
 
 	_blurb = Label.new()
 	_blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_blurb.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_blurb.add_theme_font_size_override("font_size", 14)
-	_blurb.add_theme_color_override("font_color", Color(0.8, 0.85, 0.8))
+	DFStyle.apply_label_paper(_blurb, DFStyle.FONT_BODY)
 	v.add_child(_blurb)
 
 	_stats = Label.new()
 	_stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_stats.add_theme_font_size_override("font_size", 13)
-	_stats.add_theme_color_override("font_color", Color(0.55, 0.85, 0.75))
+	DFStyle.apply_label_cyan(_stats, DFStyle.FONT_HINT)
 	v.add_child(_stats)
 
 	_hint = Label.new()
 	_hint.text = "◀ ▶ browse   ·   A bond forever"
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_hint.add_theme_font_size_override("font_size", 14)
-	_hint.add_theme_color_override("font_color", Color(0.65, 0.7, 0.65))
+	DFStyle.apply_label_paper(_hint, DFStyle.FONT_BODY)
+	_hint.add_theme_color_override("font_color", WorldPalette.UI_GOLD)
 	v.add_child(_hint)
 
 

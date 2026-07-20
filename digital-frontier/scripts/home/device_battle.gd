@@ -185,7 +185,7 @@ func _refresh_bars() -> void:
 func _build() -> void:
 	var bg := ColorRect.new()
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.color = Color(0.05, 0.07, 0.08, 0.96)
+	bg.color = Color(WorldPalette.UI_NAVY.r, WorldPalette.UI_NAVY.g, WorldPalette.UI_NAVY.b, 0.96)
 	add_child(bg)
 
 	var panel := PanelContainer.new()
@@ -194,15 +194,7 @@ func _build() -> void:
 	panel.offset_right = -48
 	panel.offset_top = 40
 	panel.offset_bottom = -40
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.1, 0.13, 0.12)
-	style.border_color = Color(0.45, 0.7, 0.55)
-	style.set_border_width_all(3)
-	style.content_margin_left = 14
-	style.content_margin_right = 14
-	style.content_margin_top = 12
-	style.content_margin_bottom = 12
-	panel.add_theme_stylebox_override("panel", style)
+	DFStyle.apply_sheet(panel)
 	add_child(panel)
 
 	var v := VBoxContainer.new()
@@ -211,8 +203,7 @@ func _build() -> void:
 
 	_title = Label.new()
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_title.add_theme_font_size_override("font_size", 22)
-	_title.add_theme_color_override("font_color", Color(0.85, 0.95, 0.8))
+	DFStyle.apply_label_cyan(_title, DFStyle.FONT_TITLE)
 	v.add_child(_title)
 
 	var arena := HBoxContainer.new()
@@ -227,7 +218,7 @@ func _build() -> void:
 	_player_bar.max_value = 100
 	_player_bar.value = 100
 	_player_bar.custom_minimum_size = Vector2(120, 12)
-	_player_bar.show_percentage = false
+	DFStyle.apply_progress(_player_bar, WorldPalette.UI_LIME)
 	left.add_child(_player_bar)
 	var pc := CenterContainer.new()
 	pc.custom_minimum_size = Vector2(100, 90)
@@ -242,7 +233,7 @@ func _build() -> void:
 	_enemy_bar.max_value = 100
 	_enemy_bar.value = 100
 	_enemy_bar.custom_minimum_size = Vector2(120, 12)
-	_enemy_bar.show_percentage = false
+	DFStyle.apply_progress(_enemy_bar, WorldPalette.UI_DANGER)
 	right.add_child(_enemy_bar)
 	var ec := CenterContainer.new()
 	ec.custom_minimum_size = Vector2(100, 90)
@@ -255,11 +246,11 @@ func _build() -> void:
 	_status = Label.new()
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_status.add_theme_font_size_override("font_size", 15)
+	DFStyle.apply_label_paper(_status, DFStyle.FONT_BODY)
 	v.add_child(_status)
 
 	_hint = Label.new()
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_hint.add_theme_font_size_override("font_size", 13)
-	_hint.add_theme_color_override("font_color", Color(0.65, 0.75, 0.65))
+	DFStyle.apply_label_paper(_hint, DFStyle.FONT_HINT)
+	_hint.add_theme_color_override("font_color", WorldPalette.UI_GOLD)
 	v.add_child(_hint)

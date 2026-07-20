@@ -10,6 +10,14 @@ var _agent: InteractionAgent = null
 func _ready() -> void:
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	call_deferred("_style_prompt")
+
+
+func _style_prompt() -> void:
+	if _panel:
+		DFStyle.apply_panel(_panel, true)
+	if _label:
+		DFStyle.apply_label_cyan(_label, DFStyle.FONT_BODY)
 
 
 func bind_agent(agent: InteractionAgent) -> void:

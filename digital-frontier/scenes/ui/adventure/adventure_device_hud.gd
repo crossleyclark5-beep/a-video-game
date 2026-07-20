@@ -96,10 +96,14 @@ func _unhandled_input(_event: InputEvent) -> void:
 			_close_panel()
 			get_viewport().set_input_as_handled()
 		return
+	if InputManager.is_action_just_pressed(&"pause_menu"):
+		DeviceSettings.present(self)
+		get_viewport().set_input_as_handled()
+		return
 	if _panel != DeviceSheet.NONE and InputManager.is_action_just_pressed(&"ui_confirm"):
 		## A while sheet open = acknowledge / soft refresh (no mouse click needed).
 		_refresh()
-		EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
+		EventBus.sfx_play_requested.emit(&"ui_confirm", Vector3.ZERO)
 		get_viewport().set_input_as_handled()
 
 
@@ -220,30 +224,27 @@ func _build_ui() -> void:
 	add_child(_mini_map)
 
 	_apply_device_chrome(top)
+	## Brand accent strip under top bar.
+	var accent := ColorRect.new()
+	accent.custom_minimum_size = Vector2(0, 4)
+	accent.color = WorldPalette.UI_CYAN
+	vbox.add_child(accent)
+	vbox.move_child(accent, 1)
 
 
 func _apply_device_chrome(top: PanelContainer) -> void:
-	## Ink / paper / accent — square handheld chrome, not teal glass.
-	var panel_style := StyleBoxFlat.new()
-	panel_style.bg_color = WorldPalette.UI_PAPER
-	panel_style.set_corner_radius_all(0)
-	panel_style.content_margin_left = 10
-	panel_style.content_margin_right = 10
-	panel_style.content_margin_top = 8
-	panel_style.content_margin_bottom = 8
-	panel_style.border_width_left = 3
-	panel_style.border_width_right = 3
-	panel_style.border_width_top = 3
-	panel_style.border_width_bottom = 3
-	panel_style.border_color = WorldPalette.UI_BORDER
-	top.add_theme_stylebox_override("panel", panel_style)
-	_root.add_theme_stylebox_override("panel", panel_style.duplicate())
-	_title.add_theme_color_override("font_color", WorldPalette.UI_INK)
-	_bits.add_theme_color_override("font_color", WorldPalette.UI_ACCENT)
-	_companion_line.add_theme_color_override("font_color", WorldPalette.UI_INK.lightened(0.25))
-	_notice_line.add_theme_color_override("font_color", WorldPalette.UI_ACCENT)
-	_hint.add_theme_color_override("font_color", WorldPalette.UI_INK.lightened(0.2))
-	_body.add_theme_color_override("default_color", WorldPalette.UI_INK)
+	DFStyle.apply_panel(top, false)
+	DFStyle.apply_sheet(_root)
+	DFStyle.apply_label_ink(_title, DFStyle.FONT_TITLE)
+	_title.text = "◆ FIELD UNIT"
+	DFStyle.apply_label_accent(_bits, DFStyle.FONT_SHEET)
+	DFStyle.apply_label_ink(_quest_line, DFStyle.FONT_BODY)
+	DFStyle.apply_label_cyan(_companion_line, DFStyle.FONT_BODY)
+	DFStyle.apply_label_accent(_notice_line, DFStyle.FONT_BODY)
+	DFStyle.apply_label_ink(_hint, DFStyle.FONT_HINT)
+	DFStyle.apply_label_cyan(_tab_label, DFStyle.FONT_SHEET)
+	DFStyle.apply_rich_sheet(_body)
+	DFStyle.apply_label_accent(_toast, DFStyle.FONT_SHEET)
 
 
 func _open(panel: DeviceSheet) -> void:
@@ -253,7 +254,8 @@ func _open(panel: DeviceSheet) -> void:
 	_tab_label.visible = true
 	if not was_open:
 		UIManager.push_modal(&"adventure_device")
-	EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
+		DFStyle.slide_in(_root, 20.0, 0.2)
+	EventBus.sfx_play_requested.emit(&"menu_beep", Vector3.ZERO)
 	DeviceService.play_haptic(&"ui", 0.2)
 	_refresh()
 
@@ -264,6 +266,7 @@ func _cycle(dir: int) -> void:
 		idx = 0
 	idx = (idx + dir) % PANEL_ORDER.size()
 	_open(PANEL_ORDER[idx])
+	EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
 
 
 func _close_panel() -> void:
@@ -278,21 +281,21 @@ func _close_panel() -> void:
 		_mini_map.visible = true
 	if UIManager.has_open_modal():
 		UIManager.pop_modal()
-	EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
+	EventBus.sfx_play_requested.emit(&"ui_cancel", Vector3.ZERO)
 
 
 func _panel_title(p: DeviceSheet) -> String:
 	match p:
 		DeviceSheet.PACK:
-			return "PACK"
+			return "◆ PACK"
 		DeviceSheet.MAP:
-			return "MAP"
+			return "◆ MAP"
 		DeviceSheet.QUESTS:
-			return "QUESTS"
+			return "◆ QUESTS"
 		DeviceSheet.LOG:
-			return "COLLECTION"
+			return "◆ COLLECTION"
 		DeviceSheet.BITS:
-			return "BITS"
+			return "◆ BITS"
 		_:
 			return ""
 
@@ -310,26 +313,25 @@ func _refresh(_a = null) -> void:
 		if show_map:
 			_sheet_map.queue_redraw()
 	if _mini_map:
-		## Hide corner map while full map sheet is open to reduce clutter.
 		_mini_map.visible = not show_map
 	match _panel:
 		DeviceSheet.PACK:
-			_body.text = InventoryManager.get_pack_text()
+			_body.text = DFFormat.pack_sheet()
 		DeviceSheet.MAP:
-			_body.text = WorldManager.get_map_blurb()
+			_body.text = DFFormat.map_blurb_sheet()
 		DeviceSheet.QUESTS:
-			_body.text = QuestManager.get_quest_status_line()
+			_body.text = DFFormat.quest_sheet()
 		DeviceSheet.LOG:
-			_body.text = CollectionManager.get_journal_text()
+			_body.text = DFFormat.collection_sheet()
 		DeviceSheet.BITS:
-			_body.text = InventoryManager.get_ledger_summary_text()
+			_body.text = DFFormat.bits_sheet()
 		_:
 			pass
 
 
 func _refresh_chrome() -> void:
-	_bits.text = "%d Bits" % InventoryManager.get_bits()
-	_quest_line.text = QuestManager.get_quest_status_line()
+	_bits.text = "◆ %d Bits" % InventoryManager.get_bits()
+	_quest_line.text = "Quest · " + QuestManager.get_quest_status_line().split("\n")[0]
 	_companion_line.text = CreatureManager.get_adventure_status_line()
 	var disc := CollectionManager.get_discovery_progress()
 	_companion_line.text += "  ·  Map %d/%d" % [disc.x, disc.y]
@@ -338,7 +340,7 @@ func _refresh_chrome() -> void:
 		_notice_line.text = _companion.get_notice_prompt()
 	else:
 		_notice_line.visible = false
-	_hint.text = InputManager.get_control_legend() + "  ·  %s companion · %s map" % [
+	_hint.text = InputManager.get_control_legend() + "  ·  %s companion · %s map · Select settings" % [
 		InputManager.get_action_glyph(&"creature_action"),
 		InputManager.get_action_glyph(&"map_peek"),
 	]
