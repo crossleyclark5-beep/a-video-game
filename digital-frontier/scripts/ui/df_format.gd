@@ -31,13 +31,23 @@ static func quest_sheet() -> String:
 	lines.append(DFStyle.header_bb("QUEST LOG", WorldPalette.UI_PURPLE))
 	var ids: Array = QuestManager.get_active_quest_ids()
 	var story: Array = []
+	var explore: Array = []
+	var creature: Array = []
 	var side: Array = []
 	for qid in ids:
 		var data: QuestData = ResourceRegistry.get_quest(StringName(str(qid)))
-		if data and data.quest_type == QuestData.QuestType.MAIN:
-			story.append(qid)
-		else:
+		if data == null:
 			side.append(qid)
+			continue
+		match data.quest_type:
+			QuestData.QuestType.MAIN:
+				story.append(qid)
+			QuestData.QuestType.EXPLORATION:
+				explore.append(qid)
+			QuestData.QuestType.CREATURE:
+				creature.append(qid)
+			_:
+				side.append(qid)
 	if ids.is_empty():
 		var status := QuestManager.get_quest_status_line()
 		lines.append(DFStyle.card_bb(status, "Find the Park Guide or keep exploring", true, "●"))
@@ -47,16 +57,41 @@ static func quest_sheet() -> String:
 			for qid in story:
 				lines.append(_quest_card(StringName(str(qid)), true))
 			lines.append("")
+		if not explore.is_empty():
+			lines.append(DFStyle.color_tag(WorldPalette.UI_LIME, "■ EXPLORATION"))
+			for qid in explore:
+				lines.append(_quest_card(StringName(str(qid)), false))
+			lines.append("")
+		if not creature.is_empty():
+			lines.append(DFStyle.color_tag(WorldPalette.UI_GOLD, "■ CREATURE"))
+			for qid in creature:
+				lines.append(_quest_card(StringName(str(qid)), false))
+			lines.append("")
 		if not side.is_empty():
 			lines.append(DFStyle.color_tag(WorldPalette.UI_CYAN, "■ SIDE / FIELD"))
 			for qid in side:
 				lines.append(_quest_card(StringName(str(qid)), false))
 	lines.append("")
-	var done := 0
-	if QuestManager.has_method("get_completed_count"):
-		done = QuestManager.get_completed_count()
-	lines.append(DFStyle.color_tag(WorldPalette.UI_LIME, "✓ %d quests cleared" % done))
-	lines.append(DFStyle.color_tag(WorldPalette.UI_MUTED, "Story quests glow purple · Side quests keep the world alive."))
+	## Completed quests — named list (capped for handheld).
+	var done_ids: Array = []
+	if QuestManager.has_method("get_completed_quest_ids"):
+		done_ids = QuestManager.get_completed_quest_ids()
+	var done := done_ids.size() if not done_ids.is_empty() else QuestManager.get_completed_count()
+	lines.append(DFStyle.color_tag(WorldPalette.UI_LIME, "✓ COMPLETED  (%d)" % done))
+	var shown := 0
+	for qid in done_ids:
+		if shown >= 5:
+			lines.append(DFStyle.color_tag(WorldPalette.UI_MUTED, "…and more"))
+			break
+		var qd: QuestData = ResourceRegistry.get_quest(StringName(str(qid)))
+		var title := qd.display_name if qd else String(qid)
+		var meta := QuestManager.get_quest_type_label(StringName(str(qid))) if QuestManager.has_method("get_quest_type_label") else "Done"
+		lines.append(DFStyle.card_bb(title, "Cleared", false, meta))
+		shown += 1
+	if done == 0:
+		lines.append(DFStyle.color_tag(WorldPalette.UI_MUTED, "No quests cleared yet — the Frontier is waiting."))
+	lines.append("")
+	lines.append(DFStyle.color_tag(WorldPalette.UI_MUTED, "Story purple · Explore green · Creature gold · Side cyan"))
 	return "\n".join(lines)
 
 
@@ -64,22 +99,27 @@ static func _quest_card(qid: StringName, is_story: bool) -> String:
 	var data: QuestData = ResourceRegistry.get_quest(qid)
 	var title := data.display_name if data else String(qid)
 	var objective := ""
-	for part in QuestManager.get_quest_status_line().split("\n"):
-		if part.begins_with(title):
-			objective = part.substr(title.length()).trim_prefix(":").strip_edges()
-			break
+	if QuestManager.has_method("get_objective_text"):
+		objective = QuestManager.get_objective_text(qid)
 	if objective.is_empty():
 		objective = "In progress"
 	var reward := ""
-	if data and data.reward_bits > 0:
-		reward = "%d Bits" % data.reward_bits
-	elif is_story:
-		reward = "STORY"
-	else:
-		reward = "ACTIVE"
+	if QuestManager.has_method("get_reward_summary"):
+		reward = QuestManager.get_reward_summary(qid)
+	if reward.is_empty():
+		if data and data.reward_bits > 0:
+			reward = "%d Bits" % data.reward_bits
+		elif is_story:
+			reward = "STORY"
+		else:
+			reward = QuestManager.get_quest_type_label(qid) if QuestManager.has_method("get_quest_type_label") else "ACTIVE"
 	var body := objective
-	if data and not data.reward_item_ids.is_empty():
-		body += " · loot waiting"
+	if data and not data.description.is_empty():
+		## One short line of context under the objective.
+		var blurb := data.description
+		if blurb.length() > 72:
+			blurb = blurb.substr(0, 69) + "…"
+		body = "%s\n%s" % [objective, blurb]
 	return DFStyle.card_bb(title, body, true, reward)
 
 

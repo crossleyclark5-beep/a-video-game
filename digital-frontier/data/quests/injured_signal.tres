@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/quest_data.gd" id="1_quest"]
+
+[resource]
+script = ExtResource("1_quest")
+id = &"injured_signal"
+display_name = "Injured Signal"
+description = "A wounded creature-signal flickers on the ranger trail — investigate, gather Field Salve, and report to the Meadow Researcher."
+quest_type = 5
+prerequisite_quest_ids = PackedStringArray("grassland_call")
+reward_item_ids = PackedStringArray("heal_field_salve", "crystal_dust")
+reward_quantities = PackedInt32Array(1, 2)
+reward_bits = 55
+stages = Array[Dictionary]([{
+"type": "discover",
+"target_id": "ranger_trail_cache",
+"count": 1
+}, {
+"type": "collect",
+"target_id": "heal_field_salve",
+"count": 1
+}, {
+"type": "talk",
+"target_id": "meadow_researcher",
+"count": 1
+}])
+start_npc_id = &"meadow_researcher"
+turn_in_npc_id = &"meadow_researcher"

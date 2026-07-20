@@ -9,6 +9,9 @@ enum NPCRole {
 	TRAINER,
 	BOSS_CONTACT,
 	CUSTOM,
+	RESEARCHER,
+	EXPLORER,
+	STORY,
 }
 
 @export var role: NPCRole = NPCRole.VILLAGER

@@ -49,6 +49,11 @@ func _spawn_cast() -> void:
 	## Field Ranger north of park (main spine). Researcher east lawn (Index / wildlife tips).
 	_spawn_fixed_npc(npcs_root, LivingWorldCatalog.grassland_npcs()[0], GrasslandLayout.PLEASANT_PARK + Vector3(-8, 0.15, 28))
 	_spawn_fixed_npc(npcs_root, LivingWorldCatalog.grassland_npcs()[1], GrasslandLayout.PLEASANT_PARK + Vector3(14, 0.15, -12))
+	## Lost scout appears along the Pine Hollow road once the chapter call is underway.
+	if QuestManager.is_quest_completed(&"first_steps") or QuestManager.is_quest_active(&"grassland_call") or QuestManager.is_quest_completed(&"grassland_call"):
+		var scout_def := LivingWorldCatalog.grassland_npcs()[4]
+		var mid := GrasslandLayout.PLEASANT_PARK.lerp(GrasslandLayout.LANDMARK_PINE_HOLLOW, 0.35) + Vector3(-10, 0.15, 6)
+		_spawn_fixed_npc(npcs_root, scout_def, mid)
 
 
 func _spawn_fixed_npc(parent: Node3D, def: Dictionary, pos: Vector3) -> void:
@@ -56,13 +61,15 @@ func _spawn_fixed_npc(parent: Node3D, def: Dictionary, pos: Vector3) -> void:
 		if child is WorldNpcActor and (child as WorldNpcActor).npc_id == def.get("id", &""):
 			var existing := child as WorldNpcActor
 			existing.global_position = pos
-			existing.move_speed = 0.0  ## Pin chapter cast so quest targets stay findable.
+			existing.move_speed = 0.0
+			existing.pinned = true
 			return
 	var actor := WorldNpcActor.new()
 	actor.name = "ChapterNpc_%s" % String(def.get("id", "x"))
 	parent.add_child(actor)
 	actor.setup(def, _player, pos)
 	actor.move_speed = 0.0
+	actor.pinned = true
 
 
 func _spawn_curiosity() -> void:

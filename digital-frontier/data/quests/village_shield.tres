@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/quest_data.gd" id="1_quest"]
+
+[resource]
+script = ExtResource("1_quest")
+id = &"village_shield"
+display_name = "Village Shield"
+description = "Glitchmites are pressing Pleasant Park’s fences. Clear threats near town and reassure the villagers."
+quest_type = 1
+prerequisite_quest_ids = PackedStringArray("first_steps")
+reward_item_ids = PackedStringArray("heal_field_salve")
+reward_quantities = PackedInt32Array(2)
+reward_bits = 50
+stages = Array[Dictionary]([{
+"type": "defeat",
+"target_id": "any",
+"count": 2
+}, {
+"type": "talk",
+"target_id": "park_villager",
+"count": 1
+}])
+start_npc_id = &"park_villager"
+turn_in_npc_id = &"park_villager"

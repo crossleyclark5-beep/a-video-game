@@ -34,8 +34,63 @@ func get_active_quest_ids() -> Array:
 	return _active_quests.keys()
 
 
+func get_completed_quest_ids() -> Array:
+	return _completed_quests.keys()
+
+
 func get_completed_count() -> int:
 	return _completed_quests.size()
+
+
+func get_stage_progress(quest_id: StringName) -> int:
+	return int(_stage_progress.get(quest_id, _stage_progress.get(String(quest_id), 0)))
+
+
+func get_objective_text(quest_id: StringName) -> String:
+	var data: QuestData = ResourceRegistry.get_quest(quest_id)
+	if data == null:
+		return ""
+	var stage_idx := get_quest_stage(quest_id)
+	if stage_idx < 0:
+		return "Complete"
+	return _format_objective(data, stage_idx)
+
+
+func get_quest_type_label(quest_id: StringName) -> String:
+	var data: QuestData = ResourceRegistry.get_quest(quest_id)
+	if data == null:
+		return "Quest"
+	match data.quest_type:
+		QuestData.QuestType.MAIN:
+			return "Story"
+		QuestData.QuestType.EXPLORATION:
+			return "Explore"
+		QuestData.QuestType.CREATURE:
+			return "Creature"
+		QuestData.QuestType.HIDDEN:
+			return "Secret"
+		QuestData.QuestType.DAILY:
+			return "Daily"
+		_:
+			return "Side"
+
+
+func get_reward_summary(quest_id: StringName) -> String:
+	var data: QuestData = ResourceRegistry.get_quest(quest_id)
+	if data == null:
+		return ""
+	var parts: PackedStringArray = PackedStringArray()
+	if data.reward_bits > 0:
+		parts.append("%d Bits" % data.reward_bits)
+	for i in data.reward_item_ids.size():
+		var iid := String(data.reward_item_ids[i])
+		var qty := 1
+		if i < data.reward_quantities.size():
+			qty = int(data.reward_quantities[i])
+		var nice := iid.replace("_", " ").capitalize()
+		parts.append("%s×%d" % [nice, qty] if qty > 1 else nice)
+	parts.append("+XP")
+	return " · ".join(parts)
 
 
 func get_quest_status_line() -> String:
@@ -100,9 +155,20 @@ func _offer_followups() -> void:
 		start_quest(&"pine_threat")
 	elif is_quest_completed(&"pine_threat") and not is_quest_active(&"hollow_challenge") and not is_quest_completed(&"hollow_challenge"):
 		start_quest(&"hollow_challenge")
-	## Side quests after Grassland Call — one unlock per pulse (complete / boot).
+	## Side / exploration / creature quests after Grassland Call — one unlock per pulse.
 	if is_quest_completed(&"grassland_call"):
-		for qid in [&"park_explorer", &"secret_seeker", &"spark_snack", &"wildlife_watch", &"index_novice", &"field_patrol"]:
+		for qid in [
+			&"park_explorer",
+			&"secret_seeker",
+			&"spark_snack",
+			&"wildlife_watch",
+			&"index_novice",
+			&"field_patrol",
+			&"injured_signal",
+			&"lost_trail",
+			&"strange_static",
+			&"village_shield",
+		]:
 			if not is_quest_active(qid) and not is_quest_completed(qid):
 				start_quest(qid)
 				break
@@ -233,6 +299,12 @@ func _format_objective(data: QuestData, stage_idx: int) -> String:
 			return "Open chests (%d/%d)" % [mini(progress, needed), needed]
 		"chest_rarity":
 			return "Open a %s chest (%d/%d)" % [starget, mini(progress, needed), needed]
+		"discover_creature":
+			return "Log creatures (%d/%d)" % [mini(progress, needed), needed]
+		"help", "heal":
+			return "Help %s (%d/%d)" % [_pretty_target(starget), mini(progress, needed), needed]
+		"investigate":
+			return "Investigate %s (%d/%d)" % [_pretty_target(starget), mini(progress, needed), needed]
 		_:
 			return "%s %s (%d/%d)" % [stype, starget, mini(progress, needed), needed]
 
@@ -243,6 +315,12 @@ func _pretty_target(raw: String) -> String:
 			return "Field Ranger"
 		"park_guide":
 			return "Park Guide"
+		"meadow_researcher":
+			return "Meadow Researcher"
+		"park_villager":
+			return "Park Villager"
+		"lost_scout":
+			return "Lost Scout"
 		"glitch_alpha":
 			return "Glitch Alpha"
 		"hollow_warden":
@@ -251,6 +329,14 @@ func _pretty_target(raw: String) -> String:
 			return "Pine Hollow"
 		"park_welcome":
 			return "Welcome Sign"
+		"ranger_trail_cache":
+			return "Ranger Trail Cache"
+		"hollow_warning_stone":
+			return "Hollow Warning Stone"
+		"meadow_clearing":
+			return "Meadow Clearing"
+		"heal_field_salve":
+			return "Field Salve"
 		"any":
 			return "any"
 		_:

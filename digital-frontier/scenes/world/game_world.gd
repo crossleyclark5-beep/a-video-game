@@ -19,6 +19,7 @@ var _atmosphere: WorldAtmosphere = null
 var _living_world: LivingWorldController = null
 var _chapter: ChapterDirector = null
 var _battle: BattleDirector = null
+var _story: StoryDirector = null
 var _checkpoint_timer: float = 0.0
 
 
@@ -33,6 +34,7 @@ func _ready() -> void:
 	_spawn_companion()
 	_spawn_living_world()
 	_spawn_chapter_director()
+	_spawn_story_director()
 	_spawn_battle_director()
 	_bind_prompt()
 	_spawn_ambient_fx()
@@ -161,6 +163,13 @@ func _spawn_chapter_director() -> void:
 	_chapter.name = "ChapterDirector"
 	add_child(_chapter)
 	_chapter.setup(_player, _living_world, _device_hud)
+
+
+func _spawn_story_director() -> void:
+	_story = StoryDirector.new()
+	_story.name = "StoryDirector"
+	add_child(_story)
+	_story.setup(_player, _device_hud)
 
 
 func _spawn_battle_director() -> void:
