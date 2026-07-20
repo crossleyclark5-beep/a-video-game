@@ -1,61 +1,69 @@
-# Home Habitat System
+# Digi-Pet Home (Field Unit)
 
-The Home screen is a **2D pixel digital companion device** — the nostalgic Field Unit LCD — not a 3D room and not a smartphone UI.
+Home is a **classic digital companion device** — not a miniature Adventure world, not a 3D habitat room.
 
-Adventure mode remains the **2.5D living world**. Same `CreatureManager` instance bridges both.
+When you power on, you should feel: **“This is my creature.”**
 
-## Contrast
+## Modes
 
-| Mode | Feel |
+| Mode | Role |
 |------|------|
-| **Home** | Late-90s digital pet device — blocky pixels, limited palette, meters, button care |
-| **Adventure** | Modern handheld 2.5D world — your companion walks beside you |
+| **Home / Digi-Pet** | LCD companion care, status, battle link, shop, journal |
+| **Adventure** | Full 2.5D Digital Frontier world — same partner carries over |
 
-## Scene entry
+## Boot sequence
 
-| Path | Role |
-|------|------|
-| `scenes/home/home_habitat.tscn` | Active home (`GameConstants.SCENE_HOME`) — **Control / 2D** |
-| `scenes/home/home_companion.tscn` | Legacy flat UI (reference only) |
+1. Digital Frontier logo + LCD scan splash (`DeviceBootSequence`)
+2. Partner select if no companion saved (`PartnerSelect`)
+3. Digi-Pet Home LCD
 
-## Modules
+## Partner choice
 
-| Module | Path | Purpose |
-|--------|------|---------|
-| HomeHabitat | `scenes/home/home_habitat.gd` | Device bezel + LCD + HUD wiring + adventure transition |
-| PixelHabitatLcd | `scripts/home/pixel_habitat_lcd.gd` | 160×120 nearest LCD room, stations, AI wander |
-| PixelCreatureSprite | `scripts/home/pixel_creature_sprite.gd` | Procedural pixel frames (idle/walk/sleep/eat/happy/sad) |
-| HomeAdventureTransition | `scripts/home/home_adventure_transition.gd` | Pixel-gate wipe before loading adventure |
-| HomeHud | `scenes/home/ui/home_hud.tscn` | Care buttons + need meters (buttons only) |
-| CreatureManager | autoload | Shared needs / XP / friendship across Home ↔ Adventure |
+Starters (meaningful differences):
 
-Legacy 3D modules (`HabitatEnvironment`, `CompanionActor`, `HomeStation`) remain in the repo for reference / adventure visuals reuse (`CompanionVisual` still powers the 3D adventure follower).
+| Partner | Feel | Path | Strength |
+|---------|------|------|----------|
+| **Emberling** | Warm, brave explorer | Emberling → Emberaptor → Emberion | Balanced attack / curiosity |
+| **Sparkbit** | Quick code-spirit | Sparkbit → Sparkbolt → Sparkion | Speed / playfulness |
+| **Tidepup** | Calm guardian | Tidepup → Tidemaul → Tidalking | Defense / affection |
 
-## Needs (CreatureManager)
+## LCD
 
-| Need | Care |
-|------|------|
-| Hunger | Feed |
-| Happiness | Play / Feed / Train / Pet |
-| Energy | Rest |
-| Friendship | Play / Train / Pet |
-| Health | Rest / Feed |
+- Creature fills the glass — **no house / room / furniture**
+- Green-tinted pixel plate, scanlines, status pips
+- Idle / care / leave-for-adventure anims
 
-## Adventure transition
+## Device loop
 
-1. Player focuses Adventure (Start / A on Adventure).
-2. Pixel creature walks off the LCD (“BYE!”).
-3. `HomeAdventureTransition` scanline + pixel scramble.
-4. `SceneManager.change_scene(SCENE_GAME_WORLD)` loads 2.5D world with the **same** companion instance.
+Check status → Care (Feed / Train / Heal / Interact) → Battle → Adventure → Journal / Shop → continue
 
-## Controls (home)
+| Button | Action |
+|--------|--------|
+| Interact | Bond (pet) |
+| Feed | Hunger |
+| Train | Friendship / XP |
+| Heal | Health |
+| Status | Details + meters sheet |
+| Battle | NFC-stub device fight |
+| Adventure | Enter world (progress carries) |
+| Journal | Discoveries, creatures, items, memories, achievements |
+| Shop | Spend Bits from Adventure |
 
-| Input | Action |
-|-------|--------|
-| D-pad | Focus care / nav buttons |
-| A | Activate focused button |
-| Y | Quick pet |
-| Start | Adventure |
-| B | Close pack / journal |
+## Battle
 
-No touchscreen required.
+Fast digi-pet duel (`DeviceBattle`): link stub → A attack / X special / B flee → XP + Bits on win. Not a full RPG battle system.
+
+## Files
+
+| Module | Path |
+|--------|------|
+| Home shell | `scenes/home/home_habitat.gd` |
+| Boot | `scripts/home/device_boot_sequence.gd` |
+| Partner select | `scripts/home/partner_select.gd` |
+| LCD | `scripts/home/pixel_habitat_lcd.gd` |
+| Sprite | `scripts/home/pixel_creature_sprite.gd` |
+| Battle | `scripts/home/device_battle.gd` |
+| HUD | `scenes/home/ui/home_hud.*` |
+| Companion state | `CreatureManager` autoload |
+
+Controls: D-pad focus · A confirm · B back · Y interact · Start Adventure. No touchscreen.

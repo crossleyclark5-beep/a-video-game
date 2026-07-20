@@ -1,6 +1,6 @@
 extends Control
-## Home Field Unit — 2D pixel digital companion device (not 3D).
-## Creature care on the LCD; Adventure plays a pixel-gate transition into 2.5D.
+## Digi-Pet Home — Field Unit LCD companion device (not Adventure, not a habitat room).
+## Creature is the focus. Adventure is the gateway into the full world.
 
 const HUD_SCENE := preload("res://scenes/home/ui/home_hud.tscn")
 
@@ -14,6 +14,10 @@ var _phase_timer: float = 0.0
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	InputManager.set_context(InputManager.Context.HOME)
+	if not CreatureManager.has_chosen_partner():
+		## Safety if Main skipped select (e.g. direct scene run).
+		var sel := PartnerSelect.present(self)
+		await sel.partner_chosen
 	_build_device()
 	_build_hud()
 	_transition = HomeAdventureTransition.new()
@@ -21,10 +25,13 @@ func _ready() -> void:
 	add_child(_transition)
 	QuestManager.ensure_starter_quest()
 	EventBus.music_change_requested.emit(&"home_night")
-	EventBus.sfx_play_requested.emit(&"home_ambient", Vector3.ZERO)
+	EventBus.sfx_play_requested.emit(&"menu_beep", Vector3.ZERO)
+	DeviceService.pulse_led_for_mood(CreatureManager.get_mood_label())
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if UIManager.has_open_modal():
+		return
 	if event.is_action_pressed(&"go_adventure"):
 		_on_adventure()
 
@@ -39,19 +46,18 @@ func _process(delta: float) -> void:
 
 
 func _build_device() -> void:
-	## Dark plastic handheld bezel filling the screen.
 	var bg := ColorRect.new()
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.color = Color(0.1, 0.11, 0.13)
+	bg.color = Color(0.09, 0.1, 0.11)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 28)
-	margin.add_theme_constant_override("margin_right", 28)
-	margin.add_theme_constant_override("margin_top", 72)
-	margin.add_theme_constant_override("margin_bottom", 210)
+	margin.add_theme_constant_override("margin_left", 36)
+	margin.add_theme_constant_override("margin_right", 36)
+	margin.add_theme_constant_override("margin_top", 68)
+	margin.add_theme_constant_override("margin_bottom", 200)
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(margin)
 
@@ -59,13 +65,13 @@ func _build_device() -> void:
 	_bezel.name = "DeviceBezel"
 	margin.add_child(_bezel)
 	var bezel_style := StyleBoxFlat.new()
-	bezel_style.bg_color = Color(0.16, 0.17, 0.2)
+	bezel_style.bg_color = Color(0.14, 0.15, 0.17)
 	bezel_style.set_corner_radius_all(0)
-	bezel_style.border_width_left = 6
-	bezel_style.border_width_right = 6
-	bezel_style.border_width_top = 6
-	bezel_style.border_width_bottom = 6
-	bezel_style.border_color = WorldPalette.UI_BORDER
+	bezel_style.border_width_left = 8
+	bezel_style.border_width_right = 8
+	bezel_style.border_width_top = 8
+	bezel_style.border_width_bottom = 8
+	bezel_style.border_color = Color(0.22, 0.24, 0.26)
 	bezel_style.content_margin_left = 10
 	bezel_style.content_margin_right = 10
 	bezel_style.content_margin_top = 10
@@ -76,13 +82,13 @@ func _build_device() -> void:
 	lcd_frame.name = "LcdFrame"
 	_bezel.add_child(lcd_frame)
 	var lcd_style := StyleBoxFlat.new()
-	lcd_style.bg_color = Color(0.05, 0.06, 0.07)
+	lcd_style.bg_color = Color(0.08, 0.12, 0.08)
 	lcd_style.set_corner_radius_all(0)
-	lcd_style.border_width_left = 3
-	lcd_style.border_width_right = 3
-	lcd_style.border_width_top = 3
-	lcd_style.border_width_bottom = 3
-	lcd_style.border_color = WorldPalette.UI_ACCENT.darkened(0.35)
+	lcd_style.border_width_left = 4
+	lcd_style.border_width_right = 4
+	lcd_style.border_width_top = 4
+	lcd_style.border_width_bottom = 4
+	lcd_style.border_color = Color(0.25, 0.45, 0.3)
 	lcd_style.content_margin_left = 4
 	lcd_style.content_margin_right = 4
 	lcd_style.content_margin_top = 4
@@ -90,21 +96,20 @@ func _build_device() -> void:
 	lcd_frame.add_theme_stylebox_override("panel", lcd_style)
 
 	_lcd = PixelHabitatLcd.new()
-	_lcd.name = "PixelHabitatLcd"
+	_lcd.name = "PixelCompanionLcd"
 	_lcd.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_lcd.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_lcd.custom_minimum_size = Vector2(320, 240)
 	lcd_frame.add_child(_lcd)
 
-	## Brand plate above LCD (outside margin — draw as label on bg).
 	var brand := Label.new()
-	brand.text = "FIELD UNIT  ·  COMPANION OS"
+	brand.text = "DIGITAL FRONTIER  ·  FIELD UNIT"
 	brand.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	brand.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	brand.offset_top = 28
-	brand.offset_bottom = 56
+	brand.offset_top = 22
+	brand.offset_bottom = 50
 	brand.add_theme_font_size_override("font_size", 18)
-	brand.add_theme_color_override("font_color", WorldPalette.UI_PAPER.darkened(0.15))
+	brand.add_theme_color_override("font_color", Color(0.55, 0.85, 0.65))
 	brand.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(brand)
 
@@ -116,6 +121,8 @@ func _build_hud() -> void:
 	_hud.care_requested.connect(_on_care_requested)
 	_hud.shop_pressed.connect(_on_shop)
 	_hud.collection_pressed.connect(_on_collection)
+	if _hud.has_signal("battle_pressed"):
+		_hud.battle_pressed.connect(_on_battle)
 
 
 func _on_care_requested(action: StringName) -> void:
@@ -123,14 +130,16 @@ func _on_care_requested(action: StringName) -> void:
 	match action:
 		&"feed":
 			message = CreatureManager.feed()
+		&"heal":
+			message = CreatureManager.heal()
 		&"rest":
 			message = CreatureManager.rest()
 		&"play":
 			message = CreatureManager.play()
 		&"train":
 			message = CreatureManager.train()
-		&"pet":
-			message = CreatureManager.pet()
+		&"interact", &"pet":
+			message = CreatureManager.interact()
 		&"status":
 			message = CreatureManager.get_detailed_status()
 			if _hud:
@@ -144,12 +153,14 @@ func _on_care_requested(action: StringName) -> void:
 	if _lcd:
 		_lcd.play_care(action)
 	EventBus.sfx_play_requested.emit(StringName("creature_%s" % String(action)), Vector3.ZERO)
+	DeviceService.pulse_led_for_mood(CreatureManager.get_mood_label())
 
 
 func _on_adventure() -> void:
 	if SceneManager.is_transitioning():
 		return
-	## Creature leaves the LCD, then pixel-gate into 2.5D adventure.
+	if UIManager.has_open_modal():
+		return
 	if _lcd:
 		_lcd.play_transition_leave()
 	EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
@@ -164,10 +175,16 @@ func _on_collection() -> void:
 		_hud.call("show_collection_journal")
 	elif _hud:
 		_hud.show_status_message(CollectionManager.get_summary_line())
-	EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
+	EventBus.sfx_play_requested.emit(&"menu_beep", Vector3.ZERO)
 
 
 func _on_shop() -> void:
 	FieldUnitShop.present(self, ShopManager.SHOP_ID_HOME)
 	if _hud:
-		_hud.show_status_message("Shop open — L/R category · A buy · X pack · B close")
+		_hud.show_status_message("Shop — spend Bits from Adventure")
+
+
+func _on_battle() -> void:
+	DeviceBattle.present(self)
+	if _hud:
+		_hud.show_status_message("Device Battle — NFC link")

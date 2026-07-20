@@ -131,8 +131,22 @@ func get_summary_line() -> String:
 
 func get_journal_text() -> String:
 	var lines: PackedStringArray = PackedStringArray()
-	lines.append("=== EXPLORER LOG ===")
+	lines.append("=== ADVENTURE JOURNAL ===")
 	lines.append(get_summary_line())
+	lines.append("")
+	lines.append("-- Partner --")
+	if CreatureManager.has_chosen_partner():
+		lines.append("%s  Lv.%d  ·  %s" % [
+			CreatureManager.get_companion_nickname(),
+			CreatureManager.get_level(),
+			CreatureManager.get_stage_display_name(),
+		])
+		lines.append("Bond %d%%  ·  Mood %s" % [
+			int(CreatureManager.get_friendship()),
+			CreatureManager.get_mood_label(),
+		])
+	else:
+		lines.append("No partner yet.")
 	lines.append("")
 	lines.append("-- Locations --")
 	for e in get_discovery_entries():
@@ -146,14 +160,18 @@ func get_journal_text() -> String:
 		var mark := "✓" if e[&"collected"] else "·"
 		lines.append("%s %s" % [mark, e[&"name"]])
 	lines.append("")
-	lines.append("-- Pack finds --")
+	lines.append("-- Items --")
+	var any_item := false
 	for e in get_item_entries():
 		if e[&"collected"]:
+			any_item = true
 			lines.append("✓ %s ×%d" % [e[&"name"], e[&"quantity"]])
+	if not any_item:
+		lines.append("· Pack empty — explore to find supplies.")
 	lines.append("")
-	lines.append("-- Rare finds --")
+	lines.append("-- Memories --")
 	if _rare_finds.is_empty():
-		lines.append("· None yet — check bushes and alleys.")
+		lines.append("· None yet — battles, secrets, and rare chests leave marks here.")
 	else:
 		for r in _rare_finds:
 			lines.append("✦ %s (%s)" % [str(r.get("label", "?")), str(r.get("source", ""))])
@@ -195,8 +213,17 @@ func import_state(data: Dictionary) -> void:
 
 
 func _creature_captured(creature_id: StringName) -> bool:
-	## Soft check — active companion counts; expand when capture map is public.
-	return CreatureManager.get_companion_id() == creature_id
+	if CreatureManager.get_companion_id() == creature_id:
+		return true
+	## Any captured instance of this species counts for the journal.
+	var state: Dictionary = CreatureManager.export_state()
+	var captured: Dictionary = state.get(&"captured", state.get("captured", {}))
+	for key in captured.keys():
+		var entry: Dictionary = captured[key]
+		var sid := StringName(str(entry.get("species_id", entry.get(&"species_id", ""))))
+		if sid == creature_id:
+			return true
+	return false
 
 
 func _on_location_discovered(_location_id: StringName) -> void:

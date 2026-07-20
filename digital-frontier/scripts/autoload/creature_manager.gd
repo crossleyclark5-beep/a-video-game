@@ -15,6 +15,8 @@ enum Mood {
 }
 
 const STARTER_CREATURE_ID := &"emberling"
+## First-boot partner choices — each a distinct personality / path / strengths.
+const STARTER_OPTIONS: Array[StringName] = [&"emberling", &"sparkbit", &"tidepup"]
 
 const CARE_FEED := {
 	"hunger": 28.0,
@@ -44,6 +46,12 @@ const CARE_PET := {
 	"friendship": 6.0,
 	"energy": -2.0,
 }
+const CARE_HEAL := {
+	"health": 35.0,
+	"energy": 8.0,
+	"happiness": 4.0,
+	"friendship": 2.0,
+}
 
 ## XP grants for home care / future adventure hooks.
 const XP_FEED := 3
@@ -51,27 +59,63 @@ const XP_PLAY := 5
 const XP_REST := 2
 const XP_TRAIN := 8
 const XP_PET := 4
+const XP_HEAL := 4
 
 var _captured: Dictionary = {}  ## instance_id -> CreatureInstance.to_dict()
 var _party: PackedStringArray = PackedStringArray()
 var _active: CreatureInstance = null
 var _care_initialized: bool = false
 var _decay_enabled: bool = true
+var _partner_chosen: bool = false
 
 
 func _initialize_manager() -> void:
-	_ensure_starter_companion()
-	_log("CreatureManager initialized (companion=%s)" % get_companion_nickname())
+	## Partner is chosen on first boot — do not auto-assign until then (or save load).
+	_log("CreatureManager initialized (partner pending)")
+
+
+func has_chosen_partner() -> bool:
+	return _partner_chosen and _active != null
+
+
+func get_starter_options() -> Array[CreatureData]:
+	var out: Array[CreatureData] = []
+	for sid in STARTER_OPTIONS:
+		var data: CreatureData = ResourceRegistry.get_creature(sid)
+		if data:
+			out.append(data)
+	return out
+
+
+func select_partner(species_id: StringName, nickname: String = "") -> bool:
+	var data: CreatureData = ResourceRegistry.get_creature(species_id)
+	if data == null:
+		return false
+	var nick := nickname.strip_edges()
+	if nick.is_empty():
+		nick = data.display_name
+	_active = CreatureInstance.create_from_species(data, nick)
+	_care_initialized = true
+	_partner_chosen = true
+	_captured.clear()
+	_party = PackedStringArray()
+	_sync_captured_active()
+	_party.append(String(_active.instance_id))
+	EventBus.creature_captured.emit(species_id)
+	EventBus.companion_state_changed.emit()
+	EventBus.sfx_play_requested.emit(&"partner_select", Vector3.ZERO)
+	_log("Partner chosen: %s (%s)" % [nick, String(species_id)])
+	return true
+
+
+func set_decay_enabled(enabled: bool) -> void:
+	_decay_enabled = enabled
 
 
 func _process(delta: float) -> void:
 	if not _care_initialized or not _decay_enabled or _active == null:
 		return
 	_active.apply_passive_decay(delta)
-
-
-func set_decay_enabled(enabled: bool) -> void:
-	_decay_enabled = enabled
 
 
 # --- Active companion access ---
@@ -156,6 +200,7 @@ func try_evolve() -> Dictionary:
 	## Keep nickname as player bond name; toast uses stage form name.
 	EventBus.companion_state_changed.emit()
 	DeviceService.notify_event(&"achievement")
+	EventBus.sfx_play_requested.emit(&"evolve", Vector3.ZERO)
 	var msg := "%s evolved into %s!" % [get_companion_nickname(), new_name]
 	EventBus.ui_notification_requested.emit(msg, 3.2)
 	return {"evolved": true, "stage": _active.evolution_stage, "name": new_name, "message": msg}
@@ -375,6 +420,15 @@ func pet() -> String:
 	return _care(&"pet", CARE_PET, XP_PET, "%s leans into your hand. Bond grows.")
 
 
+func heal() -> String:
+	return _care(&"heal", CARE_HEAL, XP_HEAL, "A soft digital glow. %s feels mended.")
+
+
+func interact() -> String:
+	## Digi-pet “Interact” = affectionate contact.
+	return pet()
+
+
 func grant_adventure_experience(amount: int) -> Dictionary:
 	## Hook for world gameplay — same creature continues across modes.
 	if _active == null or amount <= 0:
@@ -453,12 +507,12 @@ func export_state() -> Dictionary:
 		&"companion_friendship": get_friendship(),
 		&"companion_health": get_health(),
 		&"care_initialized": _care_initialized,
+		&"partner_chosen": _partner_chosen,
 	}
 
 
 func import_state(data: Dictionary) -> void:
 	if data.is_empty():
-		_ensure_starter_companion()
 		return
 
 	if data.has(&"captured"):
@@ -474,13 +528,23 @@ func import_state(data: Dictionary) -> void:
 	elif not _captured.is_empty():
 		var first_key = _captured.keys()[0]
 		_active = CreatureInstance.from_dict(_captured[first_key])
-	else:
+	elif data.has(&"companion_id") or data.has("companion_id"):
 		## Migrate legacy flat companion fields into a new instance.
 		_migrate_legacy_flat(data)
 
 	if data.has(&"care_initialized"):
 		_care_initialized = bool(data[&"care_initialized"])
-	_ensure_starter_companion()
+	if data.has(&"partner_chosen") or data.has("partner_chosen"):
+		_partner_chosen = bool(data.get(&"partner_chosen", data.get("partner_chosen", false)))
+	elif _active != null:
+		## Older saves with a companion count as chosen.
+		_partner_chosen = true
+		_care_initialized = true
+
+	if _active != null:
+		_care_initialized = true
+		_partner_chosen = true
+		_sync_captured_active()
 	EventBus.companion_state_changed.emit()
 
 
@@ -510,20 +574,25 @@ func _migrate_legacy_flat(data: Dictionary) -> void:
 
 
 func _ensure_starter_companion() -> void:
+	## Kept for legacy callers / smoke tests — prefers chosen partner.
 	if _active != null:
 		_care_initialized = true
+		_partner_chosen = true
 		_sync_captured_active()
+		return
+	if not _partner_chosen:
 		return
 	var data: CreatureData = ResourceRegistry.get_creature(STARTER_CREATURE_ID)
 	if data == null:
 		data = ResourceRegistry.get_creature(&"sparkbit")
 	if data == null:
-		data = ResourceRegistry.get_creature(&"pixel_fox")
+		data = ResourceRegistry.get_creature(&"tidepup")
 	if data == null:
 		push_warning("CreatureManager: no starter species found")
 		return
 	_active = CreatureInstance.create_from_species(data)
 	_care_initialized = true
+	_partner_chosen = true
 	_sync_captured_active()
 	if _party.is_empty():
 		_party.append(String(_active.instance_id))

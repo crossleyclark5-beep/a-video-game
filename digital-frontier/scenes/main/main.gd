@@ -5,6 +5,7 @@ extends Node
 ## - SceneContainer: active gameplay scene (home, world, combat)
 ## - UI root layers registered with UIManager
 ## - Transition overlay for SceneManager
+## Boot: logo splash → partner select (first run) → Digi-Pet Home.
 
 @onready var scene_container: Node = $SceneContainer
 @onready var transition_overlay: ColorRect = $TransitionOverlay
@@ -25,5 +26,10 @@ func _register_ui_layers() -> void:
 
 
 func _start_game() -> void:
-	# Phase 1: start at Home so the companion loop is obvious.
+	## Always play the Field Unit power-on feel, then ensure a partner exists.
+	var boot := DeviceBootSequence.present(self)
+	await boot.finished
+	if not CreatureManager.has_chosen_partner():
+		var select := PartnerSelect.present(self)
+		await select.partner_chosen
 	await SceneManager.change_scene(String(GameConstants.SCENE_HOME), false)
