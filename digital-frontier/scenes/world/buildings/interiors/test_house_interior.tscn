@@ -1,0 +1,58 @@
+[gd_scene load_steps=5 format=3 uid="uid://test_house_interior"]
+
+[ext_resource type="Script" path="res://scenes/world/buildings/interiors/test_house_interior.gd" id="1_interior"]
+[ext_resource type="Script" path="res://scripts/systems/buildings/building_floor.gd" id="2_floor"]
+[ext_resource type="Script" path="res://scripts/systems/buildings/floor_transition.gd" id="3_stairs"]
+
+[sub_resource type="BoxShape3D" id="BoxShape_stairs"]
+size = Vector3(1.8, 2.0, 1.8)
+
+[node name="TestHouseInterior" type="Node3D"]
+script = ExtResource("1_interior")
+
+[node name="GroundFloor" type="Node3D" parent="."]
+script = ExtResource("2_floor")
+floor_index = 0
+floor_name = "Ground Floor"
+
+[node name="Spawn" type="Marker3D" parent="GroundFloor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 1.5)
+
+[node name="StairsUp" type="Area3D" parent="GroundFloor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.2, 1.0, -2.0)
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("3_stairs")
+target_floor_index = 1
+going_up = true
+prompt_text = "Press E to go upstairs"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GroundFloor/StairsUp"]
+shape = SubResource("BoxShape_stairs")
+
+[node name="UpstairsSpawn" type="Marker3D" parent="GroundFloor/StairsUp"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.2, 0.5)
+
+[node name="Upstairs" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.2, 0)
+script = ExtResource("2_floor")
+floor_index = 1
+floor_name = "Upstairs"
+
+[node name="Spawn" type="Marker3D" parent="Upstairs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.0, 0.15, -1.5)
+
+[node name="StairsDown" type="Area3D" parent="Upstairs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.2, 1.0, -2.0)
+collision_layer = 16
+collision_mask = 0
+script = ExtResource("3_stairs")
+target_floor_index = 0
+going_up = false
+prompt_text = "Press E to go downstairs"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Upstairs/StairsDown"]
+shape = SubResource("BoxShape_stairs")
+
+[node name="GroundSpawn" type="Marker3D" parent="Upstairs/StairsDown"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3.0, 0.5)

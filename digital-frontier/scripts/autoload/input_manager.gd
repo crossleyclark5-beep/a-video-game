@@ -29,6 +29,7 @@ func _register_default_actions() -> void:
 	_add_key_action(&"move_forward", [KEY_W, KEY_UP])
 	_add_key_action(&"move_back", [KEY_S, KEY_DOWN])
 	_add_key_action(&"interact", [KEY_E, KEY_SPACE])
+	_add_joy_button(&"interact", JOY_BUTTON_A)
 	_add_key_action(&"go_home", [KEY_H])
 	_add_key_action(&"go_adventure", [KEY_ENTER])
 	_add_key_action(&"pause_menu", [KEY_ESCAPE])
@@ -42,6 +43,15 @@ func _add_key_action(action: StringName, keycodes: Array) -> void:
 		ev.physical_keycode = keycode
 		if not InputMap.action_has_event(action, ev):
 			InputMap.action_add_event(action, ev)
+
+
+func _add_joy_button(action: StringName, button_index: int) -> void:
+	if not InputMap.has_action(action):
+		InputMap.add_action(action)
+	var ev := InputEventJoypadButton.new()
+	ev.button_index = button_index
+	if not InputMap.action_has_event(action, ev):
+		InputMap.action_add_event(action, ev)
 
 
 func get_context() -> Context:

@@ -1,32 +1,57 @@
 extends Node3D
-## Adventure world — loads Pleasant Park as the first playable region.
+## Adventure world — Pleasant Park with modular interaction + building systems.
 
 @onready var hex_grid_layer: Node3D = $HexGridLayer
 @onready var building_layer: Node3D = $BuildingLayer
 @onready var entity_layer: Node3D = $EntityLayer
 @onready var camera_rig: Node3D = $CameraRig
 @onready var hint_label: Label = %HintLabel
+@onready var toast_label: Label = %ToastLabel
 
 var _region_data: Dictionary = {}
-var _nearby_chest: Area3D = null
-var _nearby_house: Node3D = null
-var _inside_house: Node3D = null
 var _player: Node3D = null
+var _interior_controller: BuildingInteriorController = null
+var _interaction_prompt: Control = null
+var _toast_timer: float = 0.0
 
 
 func _ready() -> void:
 	InputManager.set_context(InputManager.Context.OVERWORLD)
 	_clear_placeholder_geometry()
+	_setup_systems()
 	_region_data = PleasantParkBuilder.build(hex_grid_layer)
 	EventBus.region_load_requested.emit(&"pleasant_park")
-	_wire_interactables()
 	_spawn_player()
+	_bind_prompt()
+	EventBus.ui_notification_requested.connect(_on_notification)
 	_refresh_default_hint()
+
+
+func _process(delta: float) -> void:
+	if _toast_timer > 0.0:
+		_toast_timer -= delta
+		if _toast_timer <= 0.0 and toast_label:
+			toast_label.visible = false
 
 
 func _clear_placeholder_geometry() -> void:
 	for child in hex_grid_layer.get_children():
 		child.queue_free()
+
+
+func _setup_systems() -> void:
+	var interior_root := Node3D.new()
+	interior_root.name = "InteriorContainer"
+	building_layer.add_child(interior_root)
+	_interior_controller = BuildingInteriorController.new()
+	_interior_controller.name = "BuildingInteriorController"
+	add_child(_interior_controller)
+	_interior_controller.setup(camera_rig, interior_root)
+
+	var prompt_scene: PackedScene = load("res://scenes/ui/components/interaction_prompt.tscn")
+	if prompt_scene and has_node("HUD"):
+		_interaction_prompt = prompt_scene.instantiate()
+		$HUD.add_child(_interaction_prompt)
 
 
 func _spawn_player() -> void:
@@ -37,116 +62,29 @@ func _spawn_player() -> void:
 	_player = player_scene.instantiate()
 	_player.name = "Player"
 	entity_layer.add_child(_player)
-	var spawn: Vector3 = _region_data.get(&"player_spawn", Vector3(0.0, 0.15, 8.0))
+	var spawn: Vector3 = _region_data.get(&"player_spawn", Vector3(0.0, 0.15, 10.0))
 	_player.global_position = spawn
 	if camera_rig.has_method("set_target"):
 		camera_rig.call("set_target", _player)
 
 
-func _wire_interactables() -> void:
-	for chest in _region_data.get(&"chests", []):
-		if chest is Area3D:
-			chest.body_entered.connect(_on_chest_body_entered.bind(chest))
-			chest.body_exited.connect(_on_chest_body_exited.bind(chest))
-	for house in _region_data.get(&"enterable_houses", []):
-		var door: Area3D = house.get_node_or_null("DoorArea")
-		if door:
-			door.body_entered.connect(_on_door_body_entered.bind(house))
-			door.body_exited.connect(_on_door_body_exited.bind(house))
-
-
-func _unhandled_input(event: InputEvent) -> void:
-	if not event.is_action_pressed(&"interact"):
+func _bind_prompt() -> void:
+	if _player == null or _interaction_prompt == null:
 		return
-	if _nearby_chest != null:
-		_try_open_chest(_nearby_chest)
+	if _player.has_method("get_interaction_agent"):
+		var agent: InteractionAgent = _player.call("get_interaction_agent")
+		if agent and _interaction_prompt.has_method("bind_agent"):
+			_interaction_prompt.call("bind_agent", agent)
+
+
+func _on_notification(message: String, duration: float) -> void:
+	if toast_label == null:
 		return
-	if _inside_house != null:
-		_exit_house()
-		return
-	if _nearby_house != null:
-		_enter_house(_nearby_house)
-
-
-func _on_chest_body_entered(body: Node3D, chest: Area3D) -> void:
-	if body.is_in_group(GameConstants.GROUP_PLAYER):
-		_nearby_chest = chest
-		if not bool(chest.get_meta("opened", false)):
-			_set_hint("Press E to open chest")
-
-
-func _on_chest_body_exited(body: Node3D, chest: Area3D) -> void:
-	if body.is_in_group(GameConstants.GROUP_PLAYER) and _nearby_chest == chest:
-		_nearby_chest = null
-		_refresh_default_hint()
-
-
-func _on_door_body_entered(body: Node3D, house: Node3D) -> void:
-	if body.is_in_group(GameConstants.GROUP_PLAYER):
-		_nearby_house = house
-		if _inside_house == null:
-			_set_hint("Press E to enter %s" % house.name)
-
-
-func _on_door_body_exited(body: Node3D, house: Node3D) -> void:
-	if body.is_in_group(GameConstants.GROUP_PLAYER) and _nearby_house == house:
-		_nearby_house = null
-		if _inside_house == null:
-			_refresh_default_hint()
-
-
-func _try_open_chest(chest: Area3D) -> void:
-	if bool(chest.get_meta("opened", false)):
-		_set_hint("Chest already opened")
-		return
-	chest.set_meta("opened", true)
-	var item_id: StringName = chest.get_meta("loot_item", &"hex_shard")
-	var qty: int = int(chest.get_meta("loot_qty", 1))
-	InventoryManager.add_item(item_id, qty)
-	# Dim the chest mesh
-	for child in chest.get_children():
-		if child is MeshInstance3D:
-			(child as MeshInstance3D).modulate = Color(0.4, 0.4, 0.4)
-	_set_hint("Found Hex Shard! (Inventory: %d)" % InventoryManager.get_quantity(item_id))
-	EventBus.ui_notification_requested.emit("Opened chest — Hex Shard +%d" % qty, 2.0)
-
-
-func _enter_house(house: Node3D) -> void:
-	_inside_house = house
-	InputManager.set_context(InputManager.Context.BUILDING_INTERIOR)
-	var roof: MeshInstance3D = house.get_meta("roof_node") as MeshInstance3D
-	if roof:
-		var tween := create_tween()
-		tween.tween_property(roof, "modulate:a", 0.0, 0.35)
-	if _player:
-		_player.global_position = house.to_global(Vector3(0.0, 0.15, 0.2))
-	if camera_rig.has_method("set_zoom_size"):
-		camera_rig.call("set_zoom_size", 11.0)
-	_set_hint("Inside %s — press E at the door to leave" % house.name)
-	EventBus.building_interior_loaded.emit(StringName(house.name))
-
-
-func _exit_house() -> void:
-	if _inside_house == null:
-		return
-	var house := _inside_house
-	var roof: MeshInstance3D = house.get_meta("roof_node") as MeshInstance3D
-	if roof:
-		var tween := create_tween()
-		tween.tween_property(roof, "modulate:a", 1.0, 0.35)
-	if _player:
-		_player.global_position = house.to_global(Vector3(0.0, 0.15, 5.5))
-	if camera_rig.has_method("set_zoom_size"):
-		camera_rig.call("set_zoom_size", 16.0)
-	_inside_house = null
-	InputManager.set_context(InputManager.Context.OVERWORLD)
-	_refresh_default_hint()
-
-
-func _set_hint(text: String) -> void:
-	if hint_label:
-		hint_label.text = text
+	toast_label.text = message
+	toast_label.visible = true
+	_toast_timer = duration
 
 
 func _refresh_default_hint() -> void:
-	_set_hint("WASD move · E interact · scroll/+- zoom · H home · Pleasant Park")
+	if hint_label:
+		hint_label.text = "WASD move · Shift run · E/A interact · scroll zoom · H home"

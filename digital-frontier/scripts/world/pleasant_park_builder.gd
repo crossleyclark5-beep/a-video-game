@@ -31,6 +31,7 @@ static func build(root: Node3D) -> Dictionary:
 	_add_decor(root)
 	_add_chests(root, result)
 	_add_sign(root, Vector3(0.0, 0.0, 16.0), "PLEASANT PARK")
+	_add_exploration_pois(root, result)
 	return result
 
 
@@ -198,7 +199,8 @@ static func _add_houses(root: Node3D, result: Dictionary) -> void:
 
 static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 	var house := Node3D.new()
-	house.name = spec["name"]
+	var house_name: String = String(spec["name"])
+	house.name = house_name
 	house.position = spec["pos"]
 	house.rotation_degrees.y = spec["yaw"]
 	parent.add_child(house)
@@ -243,29 +245,37 @@ static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 	StylizedMesh.add_box(house, Vector3(0.35, 0.9, 0.2), Color(0.2, 0.35, 0.65), Vector3(2.8, 0.55, 5.2), "Mailbox", true)
 
 	if enterable:
-		house.set_meta("roof_node", roof_mi)
-		house.set_meta("enterable", true)
-		var door_area := Area3D.new()
-		door_area.name = "DoorArea"
-		door_area.collision_layer = 16
-		door_area.collision_mask = 4
-		door_area.monitoring = true
-		door_area.position = Vector3(0, 1.0, 4.2)
+		var door := Interactable.new()
+		door.name = "DoorInteractable"
+		door.position = Vector3(0, 1.0, 4.2)
+		door.prompt_text = "Press E to enter %s" % house_name
 		var shape := CollisionShape3D.new()
 		var box := BoxShape3D.new()
 		box.size = Vector3(2.8, 2.6, 2.4)
 		shape.shape = box
-		door_area.add_child(shape)
-		house.add_child(door_area)
-		# Interior (walkable hollow feel — floor + props, no solid fill)
-		StylizedMesh.add_box(house, Vector3(6.6, 0.08, 5.4), Color(0.62, 0.48, 0.34), Vector3(0, 0.18, 0), "InteriorFloor")
-		StylizedMesh.add_box(house, Vector3(1.6, 0.7, 0.8), Color(0.4, 0.25, 0.15), Vector3(-1.8, 0.55, -1.2), "Table")
-		StylizedMesh.add_box(house, Vector3(1.0, 1.5, 0.45), Color(0.5, 0.35, 0.65), Vector3(2.2, 0.95, -1.5), "Shelf")
-		StylizedMesh.add_box(house, Vector3(1.8, 0.45, 0.9), Color(0.55, 0.2, 0.2), Vector3(0, 0.45, -2.0), "Couch")
-		# Disable collision on main body for enterables so player can walk inside
+		door.add_child(shape)
+		house.add_child(door)
+		var exit_m := Marker3D.new()
+		exit_m.name = "ExteriorExit"
+		exit_m.position = Vector3(0, 0.15, 5.5)
+		house.add_child(exit_m)
+		var entry_m := Marker3D.new()
+		entry_m.name = "InteriorEntry"
+		entry_m.position = Vector3(0, 0.15, 0.4)
+		house.add_child(entry_m)
+		if house_name != "BrickHouse":
+			StylizedMesh.add_box(house, Vector3(6.6, 0.08, 5.4), Color(0.62, 0.48, 0.34), Vector3(0, 0.18, 0), "InteriorFloor")
+			StylizedMesh.add_box(house, Vector3(1.6, 0.7, 0.8), Color(0.4, 0.25, 0.15), Vector3(-1.8, 0.55, -1.2), "Table")
+			StylizedMesh.add_box(house, Vector3(1.0, 1.5, 0.45), Color(0.5, 0.35, 0.65), Vector3(2.2, 0.95, -1.5), "Shelf")
 		var body_node := house.get_node_or_null("Body")
 		if body_node is StaticBody3D:
 			(body_node as StaticBody3D).collision_layer = 0
+		house.set_script(load("res://scripts/systems/buildings/building_volume.gd"))
+		house.set("building_id", StringName(house_name.to_snake_case()))
+		house.set("display_name", house_name)
+		house.set("roof_paths", [NodePath("Roof")])
+		if house_name == "BrickHouse":
+			house.set("interior_scene", load("res://scenes/world/buildings/interiors/test_house_interior.tscn"))
 
 	return house
 
@@ -383,16 +393,12 @@ static func _add_chests(root: Node3D, result: Dictionary) -> void:
 
 
 static func _build_chest(parent: Node3D, chest_name: String, pos: Vector3) -> Area3D:
-	var area := Area3D.new()
+	var area := ChestInteractable.new()
 	area.name = chest_name
 	area.position = pos + Vector3(0, 0.4, 0)
-	area.collision_layer = 16
-	area.collision_mask = 4
-	area.monitoring = true
-	area.set_meta("chest_id", StringName(chest_name.to_lower()))
-	area.set_meta("loot_item", &"hex_shard")
-	area.set_meta("loot_qty", 1)
-	area.set_meta("opened", false)
+	area.loot_item_id = &"hex_shard"
+	area.loot_quantity = 1
+	area.prompt_text = "Press E to open chest"
 	var body := MeshInstance3D.new()
 	var box := BoxMesh.new()
 	box.size = Vector3(0.95, 0.55, 0.7)
@@ -406,13 +412,6 @@ static func _build_chest(parent: Node3D, chest_name: String, pos: Vector3) -> Ar
 	lid.material_override = StylizedMesh.make_material(Color(0.75, 0.5, 0.12), 0.55)
 	lid.position = Vector3(0, 0.35, 0)
 	area.add_child(lid)
-	var band := MeshInstance3D.new()
-	var band_mesh := BoxMesh.new()
-	band_mesh.size = Vector3(1.0, 0.12, 0.12)
-	band.mesh = band_mesh
-	band.material_override = StylizedMesh.make_material(Color(0.85, 0.75, 0.3), 0.4)
-	band.position = Vector3(0, 0.1, 0.36)
-	area.add_child(band)
 	var shape := CollisionShape3D.new()
 	var s := BoxShape3D.new()
 	s.size = Vector3(1.5, 1.3, 1.5)
@@ -420,6 +419,42 @@ static func _build_chest(parent: Node3D, chest_name: String, pos: Vector3) -> Ar
 	area.add_child(shape)
 	parent.add_child(area)
 	return area
+
+
+static func _add_exploration_pois(root: Node3D, result: Dictionary) -> void:
+	var pois := Node3D.new()
+	pois.name = "ExplorationPOIs"
+	root.add_child(pois)
+	StylizedMesh.add_box(pois, Vector3(3.5, 2.2, 1.0), Color(0.35, 0.38, 0.42), Vector3(34, 1.1, 6), "AlleyWall", true)
+	var secret := _build_chest(pois, "SecretAlleyChest", Vector3(34, 0, 8))
+	(secret as ChestInteractable).loot_quantity = 3
+	(secret as ChestInteractable).prompt_text = "Press E to open secret stash"
+	result[&"chests"].append(secret)
+	var bush := Node3D.new()
+	bush.name = "MysteryBush"
+	bush.position = Vector3(-9, 0, -3)
+	pois.add_child(bush)
+	StylizedMesh.add_sphere(bush, 0.9, Color(0.18, 0.5, 0.22), Vector3(0, 0.7, 0), "BushA")
+	StylizedMesh.add_sphere(bush, 0.7, Color(0.22, 0.55, 0.25), Vector3(0.5, 0.55, 0.2), "BushB")
+	var bush_chest := _build_chest(bush, "BushChest", Vector3(0, 0, 0))
+	bush_chest.position = Vector3(0, 0.35, 0)
+	(bush_chest as ChestInteractable).prompt_text = "Press E to search the bushes"
+	result[&"chests"].append(bush_chest)
+	var plaque := SignInteractable.new()
+	plaque.name = "ParkPlaque"
+	plaque.position = Vector3(3.5, 0.6, 1.5)
+	plaque.message = "Pleasant Park — Where every path leads to a story."
+	plaque.prompt_text = "Press E to read plaque"
+	var pshape := CollisionShape3D.new()
+	var pb := BoxShape3D.new()
+	pb.size = Vector3(1.6, 1.4, 1.6)
+	pshape.shape = pb
+	plaque.add_child(pshape)
+	StylizedMesh.add_box(plaque, Vector3(1.2, 0.8, 0.15), Color(0.55, 0.45, 0.3), Vector3(0, 0, 0), "PlaqueBoard")
+	pois.add_child(plaque)
+	var field_chest := _build_chest(pois, "BleacherChest", Vector3(11, 0, 26))
+	(field_chest as ChestInteractable).prompt_text = "Press E to check under the bleachers"
+	result[&"chests"].append(field_chest)
 
 
 static func _add_sign(root: Node3D, pos: Vector3, text: String) -> void:
@@ -438,3 +473,14 @@ static func _add_sign(root: Node3D, pos: Vector3, text: String) -> void:
 	label.outline_modulate = Color(0.1, 0.2, 0.12)
 	label.outline_size = 8
 	sign.add_child(label)
+	var readable := SignInteractable.new()
+	readable.name = "WelcomeSignInteract"
+	readable.position = Vector3(0, 1.2, 0.5)
+	readable.message = "Welcome to Pleasant Park! Explore houses, chests, and quiet corners."
+	readable.prompt_text = "Press E to read the sign"
+	var rshape := CollisionShape3D.new()
+	var rb := BoxShape3D.new()
+	rb.size = Vector3(5.5, 2.5, 2.0)
+	rshape.shape = rb
+	readable.add_child(rshape)
+	sign.add_child(readable)

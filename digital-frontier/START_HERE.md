@@ -24,11 +24,14 @@ Your game folder on this PC:
 - **Feed** / **Play** / **Rest** to care for them
 - **Go on Adventure** (or press Enter)
 
-**Adventure — Pleasant Park (upgraded)**
-- Stylized suburban town: roads, sidewalks, park, fountain, houses, fuel stop
-- Humanoid player with idle/walk motion
-- **WASD** move · **E** chests/houses · **scroll** or **+/-** zoom · **H** home
-- Enter Brick House / Green House — roof fades, you can walk inside
+**Adventure — Pleasant Park**
+- Stylized town with roads, park, houses, secrets
+- Humanoid player: idle / walk / **Shift run**, shadow, footsteps
+- **E** or gamepad **A** to interact (prompt appears)
+- Enter **Brick House** for a full interior + upstairs stairs
+- Search bushes, bleachers, alley for hidden chests
+- Read signs and the park plaque
+- Scroll / +/- zoom · **H** home
 
 ---
 
