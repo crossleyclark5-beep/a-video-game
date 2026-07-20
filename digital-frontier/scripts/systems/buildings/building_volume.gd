@@ -6,7 +6,7 @@ extends Node3D
 @export var building_id: StringName = &""
 @export var display_name: String = "House"
 @export var interior_scene: PackedScene
-@export var exterior_zoom: float = 16.0
+@export var exterior_zoom: float = 14.5
 @export var interior_zoom: float = 11.0
 @export var roof_paths: Array[NodePath] = []
 

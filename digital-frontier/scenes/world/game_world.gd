@@ -1,28 +1,34 @@
 extends Node3D
 ## Adventure world — Pleasant Park with modular interaction + building systems.
+## Visual atmosphere is presentation-only (does not alter gameplay contracts).
 
 @onready var hex_grid_layer: Node3D = $HexGridLayer
 @onready var building_layer: Node3D = $BuildingLayer
 @onready var entity_layer: Node3D = $EntityLayer
+@onready var effects_layer: Node3D = $EffectsLayer
 @onready var camera_rig: Node3D = $CameraRig
 @onready var hint_label: Label = %HintLabel
 @onready var toast_label: Label = %ToastLabel
+@onready var sun: DirectionalLight3D = $Sun
 
 var _region_data: Dictionary = {}
 var _player: Node3D = null
 var _interior_controller: BuildingInteriorController = null
 var _interaction_prompt: Control = null
 var _toast_timer: float = 0.0
+var _atmosphere: WorldAtmosphere = null
 
 
 func _ready() -> void:
 	InputManager.set_context(InputManager.Context.OVERWORLD)
 	_clear_placeholder_geometry()
+	_setup_atmosphere()
 	_setup_systems()
 	_region_data = PleasantParkBuilder.build(hex_grid_layer)
 	EventBus.region_load_requested.emit(&"pleasant_park")
 	_spawn_player()
 	_bind_prompt()
+	_spawn_ambient_fx()
 	EventBus.ui_notification_requested.connect(_on_notification)
 	_refresh_default_hint()
 	## Same CreatureInstance continues from home — tiny outing XP seed.
@@ -39,6 +45,14 @@ func _process(delta: float) -> void:
 func _clear_placeholder_geometry() -> void:
 	for child in hex_grid_layer.get_children():
 		child.queue_free()
+
+
+func _setup_atmosphere() -> void:
+	_atmosphere = WorldAtmosphere.new()
+	_atmosphere.name = "WorldAtmosphere"
+	add_child(_atmosphere)
+	_atmosphere.setup(sun)
+	_atmosphere.apply_phase(WorldAtmosphere.Phase.AFTERNOON)
 
 
 func _setup_systems() -> void:
@@ -77,6 +91,39 @@ func _bind_prompt() -> void:
 		var agent: InteractionAgent = _player.call("get_interaction_agent")
 		if agent and _interaction_prompt.has_method("bind_agent"):
 			_interaction_prompt.call("bind_agent", agent)
+
+
+func _spawn_ambient_fx() -> void:
+	if effects_layer == null:
+		return
+	## Lightweight pollen / dust — atmosphere only, no collision.
+	var dust := GPUParticles3D.new()
+	dust.name = "AmbientPollen"
+	dust.amount = 36
+	dust.lifetime = 8.0
+	dust.preprocess = 3.0
+	dust.visibility_aabb = AABB(Vector3(-40, 0, -40), Vector3(80, 20, 80))
+	var mat := ParticleProcessMaterial.new()
+	mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	mat.emission_box_extents = Vector3(35, 4, 35)
+	mat.direction = Vector3(0.2, 0.4, 0.1)
+	mat.spread = 40.0
+	mat.initial_velocity_min = 0.05
+	mat.initial_velocity_max = 0.25
+	mat.gravity = Vector3(0, -0.02, 0)
+	mat.scale_min = 0.03
+	mat.scale_max = 0.07
+	mat.color = Color(0.95, 0.95, 0.8, 0.35)
+	dust.process_material = mat
+	var draw := SphereMesh.new()
+	draw.radius = 0.04
+	draw.height = 0.08
+	var draw_mat := StylizedMesh.make_material(Color(0.95, 0.92, 0.7, 0.4), 0.9)
+	draw_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	draw.material = draw_mat
+	dust.draw_pass_1 = draw
+	dust.position = Vector3(0, 3, 0)
+	effects_layer.add_child(dust)
 
 
 func _on_notification(message: String, duration: float) -> void:

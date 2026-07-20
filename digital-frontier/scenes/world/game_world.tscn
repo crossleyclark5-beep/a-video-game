@@ -8,8 +8,11 @@ script = ExtResource("1_world")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 18, 0)
-light_energy = 1.15
-shadow_enabled = false
+light_color = Color(1, 0.96, 0.88, 1)
+light_energy = 1.2
+shadow_enabled = true
+directional_shadow_mode = 1
+shadow_blur = 1.5
 
 [node name="HexGridLayer" type="Node3D" parent="."]
 
@@ -21,14 +24,16 @@ shadow_enabled = false
 
 [node name="CameraRig" type="Node3D" parent="."]
 script = ExtResource("2_camera")
-follow_distance = Vector3(0, 18, 18)
+follow_distance = Vector3(0, 22, 16)
+default_zoom = 14.5
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig"]
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 0, 0)
 projection = 1
-size = 16.0
+size = 14.5
 current = true
-far = 250.0
+far = 280.0
+near = 0.2
 
 [node name="HUD" type="CanvasLayer" parent="."]
 layer = 10
