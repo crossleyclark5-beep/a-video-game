@@ -21,6 +21,7 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 	water.material_override = StylizedMesh.make_water_material(WorldPalette.WATER)
 	water.position = Vector3(0, 0.08, 0)
 	hub.add_child(water)
+	RegionPropKit.attach_living_water(water, Vector3(64, 0.12, 52))
 	## Reed ring.
 	for i in 12:
 		var a := float(i) * TAU / 12.0

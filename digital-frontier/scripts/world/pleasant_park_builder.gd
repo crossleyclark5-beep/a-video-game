@@ -247,6 +247,7 @@ static func _add_central_park(root: Node3D) -> void:
 	water_mi.material_override = StylizedMesh.make_water_material(WorldPalette.WATER)
 	water_mi.position = Vector3(0, 0.35, 0)
 	fountain.add_child(water_mi)
+	RegionPropKit.attach_living_water(water_mi, Vector3(2.4, 0.12, 2.4))
 	StylizedMesh.add_box(fountain, Vector3(0.4, 1.0, 0.4), WorldPalette.METAL, Vector3(0, 0.85, 0), "Spire")
 	StylizedMesh.add_box(fountain, Vector3(0.55, 0.28, 0.55), WorldPalette.WATER.lightened(0.15), Vector3(0, 1.35, 0), "WaterTop")
 	for i in 4:

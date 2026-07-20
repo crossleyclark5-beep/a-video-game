@@ -95,6 +95,14 @@ func request_creature_action() -> void:
 	)
 
 
+func play_combat_assist() -> void:
+	_play_react(CompanionVisual.Anim.HAPPY)
+	EventBus.ui_notification_requested.emit(
+		"%s strikes!" % CreatureManager.get_companion_nickname(),
+		1.1,
+	)
+
+
 func _build_collision() -> void:
 	var col := CollisionShape3D.new()
 	var shape := SphereShape3D.new()

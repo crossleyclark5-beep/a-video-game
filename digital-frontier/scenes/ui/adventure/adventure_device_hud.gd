@@ -31,6 +31,9 @@ var _mini_map: RegionMiniMap = null
 var _sheet_map: RegionMiniMap = null
 var _map_host: VBoxContainer = null
 var _player: Node3D = null
+var _health: PlayerHealth = null
+var _hp_bar: ProgressBar = null
+var _hp_label: Label = null
 
 
 func _ready() -> void:
@@ -44,6 +47,8 @@ func _ready() -> void:
 	EventBus.location_discovered.connect(_on_world_pulse)
 	EventBus.companion_state_changed.connect(_refresh_chrome)
 	EventBus.companion_noticed.connect(_on_companion_notice)
+	EventBus.player_damaged.connect(_on_player_damaged)
+	EventBus.player_respawned.connect(_on_player_respawned)
 	_refresh()
 
 
@@ -58,6 +63,13 @@ func bind_player(player: Node3D) -> void:
 		_mini_map.bind_player(player)
 	if _sheet_map:
 		_sheet_map.bind_player(player)
+
+
+func bind_player_health(health: PlayerHealth) -> void:
+	_health = health
+	if _health and not _health.health_changed.is_connected(_on_health_changed):
+		_health.health_changed.connect(_on_health_changed)
+	_on_health_changed(_health.hp if _health else 100.0, _health.max_hp if _health else 100.0)
 
 
 func _process(delta: float) -> void:
@@ -135,6 +147,20 @@ func _build_ui() -> void:
 	_bits.add_theme_font_size_override("font_size", 22)
 	_bits.text = "0 Bits"
 	top_row.add_child(_bits)
+
+	## Field Unit HP strip — always visible on adventure.
+	var hp_row := HBoxContainer.new()
+	hp_row.add_theme_constant_override("separation", 8)
+	vbox.add_child(hp_row)
+	_hp_label = Label.new()
+	_hp_label.text = "HP"
+	hp_row.add_child(_hp_label)
+	_hp_bar = ProgressBar.new()
+	_hp_bar.custom_minimum_size = Vector2(160, 14)
+	_hp_bar.max_value = 100.0
+	_hp_bar.value = 100.0
+	_hp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hp_row.add_child(_hp_bar)
 
 	_quest_line = Label.new()
 	_quest_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -245,6 +271,10 @@ func _apply_device_chrome(top: PanelContainer) -> void:
 	DFStyle.apply_label_cyan(_tab_label, DFStyle.FONT_SHEET)
 	DFStyle.apply_rich_sheet(_body)
 	DFStyle.apply_label_accent(_toast, DFStyle.FONT_SHEET)
+	if _hp_label:
+		DFStyle.apply_label_ink(_hp_label, DFStyle.FONT_HINT)
+	if _hp_bar:
+		DFStyle.apply_progress(_hp_bar, WorldPalette.UI_LIME)
 
 
 func _open(panel: DeviceSheet) -> void:
@@ -340,10 +370,28 @@ func _refresh_chrome() -> void:
 		_notice_line.text = _companion.get_notice_prompt()
 	else:
 		_notice_line.visible = false
-	_hint.text = InputManager.get_control_legend() + "  ·  %s companion · %s map · Select settings" % [
+	_hint.text = InputManager.get_control_legend() + "  ·  %s strike/companion · %s map · Select settings" % [
 		InputManager.get_action_glyph(&"creature_action"),
 		InputManager.get_action_glyph(&"map_peek"),
 	]
+
+
+func _on_health_changed(current: float, maximum: float) -> void:
+	if _hp_bar:
+		_hp_bar.max_value = maximum
+		_hp_bar.value = current
+	if _hp_label:
+		_hp_label.text = "HP %d" % int(current)
+
+
+func _on_player_damaged(_amount: float, _source: Node = null) -> void:
+	if _hp_bar:
+		DFStyle.pulse_modulate(_hp_bar, WorldPalette.UI_DANGER)
+
+
+func _on_player_respawned(_pos: Vector3 = Vector3.ZERO) -> void:
+	if _health:
+		_on_health_changed(_health.hp, _health.max_hp)
 
 
 func _on_companion_notice(_id: StringName = &"", _kind: StringName = &"") -> void:

@@ -155,6 +155,7 @@ static func _add_journey_landmarks(parent: Node3D, result: Dictionary) -> void:
 	water.material_override = StylizedMesh.make_water_material(WorldPalette.WATER)
 	water.position = Vector3(0, 0.02, 0)
 	stream.add_child(water)
+	RegionPropKit.attach_living_water(water, Vector3(20, 0.08, 8))
 	StylizedMesh.add_box(stream, Vector3(7, 0.22, 9), WorldPalette.WOOD, Vector3(0, 0.18, 0), "Planks", true, 1.0, &"wood")
 	RegionPropKit.add_discoverable(stream, &"stream_crossing", "Stream Crossing", Vector3(0, 0.6, 0), 12, "Clear water over stones — a shortcut toward the Mere.")
 
@@ -172,6 +173,7 @@ static func _add_journey_landmarks(parent: Node3D, result: Dictionary) -> void:
 	water2.material_override = StylizedMesh.make_water_material(WorldPalette.WATER)
 	water2.position = Vector3(0, 0.02, 0)
 	bridge.add_child(water2)
+	RegionPropKit.attach_living_water(water2, Vector3(16, 0.08, 6.5))
 	StylizedMesh.add_box(bridge, Vector3(8, 0.25, 10), WorldPalette.WOOD, Vector3(0, 0.2, 0), "Deck", true, 1.0, &"wood")
 	StylizedMesh.add_box(bridge, Vector3(8, 0.7, 0.15), WorldPalette.WOOD.darkened(0.1), Vector3(0, 0.55, 4.8), "RailA", false, 1.0, &"wood")
 	StylizedMesh.add_box(bridge, Vector3(8, 0.7, 0.15), WorldPalette.WOOD.darkened(0.1), Vector3(0, 0.55, -4.8), "RailB", false, 1.0, &"wood")

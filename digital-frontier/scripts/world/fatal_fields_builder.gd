@@ -94,6 +94,7 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 	water.material_override = StylizedMesh.make_water_material(WorldPalette.WATER)
 	water.position = Vector3(0, 0.05, 0)
 	creek.add_child(water)
+	RegionPropKit.attach_living_water(water, Vector3(46, 0.1, 4.2))
 	## Creek bank detail — rocks + reeds.
 	for i in 5:
 		StylizedMesh.add_box(creek, Vector3(0.45, 0.3, 0.35), WorldPalette.ROCK.darkened(0.05 * float(i % 3)), Vector3(-16 + float(i) * 7, 0.15, 2.2), "BankRock", false, 1.0, &"dirt")

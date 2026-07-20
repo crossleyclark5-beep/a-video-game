@@ -205,3 +205,8 @@ static func make_enterable_building(
 	if result.has(&"enterable_houses"):
 		result[&"enterable_houses"].append(house)
 	return house
+
+
+static func attach_living_water(mesh: MeshInstance3D, size: Vector3) -> WaterBody:
+	## Bobbing surface + aquatic spawn volume registration.
+	return WaterBody.attach_to_mesh(mesh, size)

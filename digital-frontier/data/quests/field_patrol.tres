@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/quest_data.gd" id="1_quest"]
+
+[resource]
+script = ExtResource("1_quest")
+id = &"field_patrol"
+display_name = "Field Patrol"
+description = "Clear hostile Glitch life outside Pleasant Park, then report to the Field Ranger."
+quest_type = 1
+prerequisite_quest_ids = PackedStringArray("first_steps")
+reward_item_ids = PackedStringArray("hex_shard")
+reward_quantities = PackedInt32Array(3)
+reward_bits = 60
+stages = Array[Dictionary]([{
+"type": "defeat",
+"target_id": "any",
+"count": 3
+}, {
+"type": "talk",
+"target_id": "field_ranger",
+"count": 1
+}])
+start_npc_id = &"field_ranger"
+turn_in_npc_id = &"field_ranger"

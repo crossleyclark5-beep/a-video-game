@@ -24,6 +24,12 @@ signal building_interior_loaded(building_id: StringName)
 signal building_exited(building_id: StringName)
 signal location_discovered(location_id: StringName)
 signal chest_opened(chest_id: StringName, rarity: StringName)
+signal player_damaged(amount: float, source: Node)
+signal player_died
+signal player_respawned(position: Vector3)
+signal combat_strike(attacker: Node, target: Node)
+signal combat_hit(attacker: Node, target: Node, amount: float)
+signal hostile_defeated(species_id: StringName, position: Vector3)
 
 # --- Save / load ---
 signal save_requested(slot: int)
