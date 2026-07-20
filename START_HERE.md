@@ -41,3 +41,12 @@ Cloud / GitHub work lands on **master**. Put it into `cooper` like this:
 If this folder is already a git clone of the repo, you can `git pull origin master` inside `cooper` instead of using the ZIP.
 
 More gameplay help: [`digital-frontier/START_HERE.md`](digital-frontier/START_HERE.md)
+
+
+---
+
+## Automatic updates
+
+Cloud agents push every change to GitHub **master**.
+
+If `C:/Users/Martin/Downloads/cooper.cursor/cooper` is this git repo (opened in Cursor), use **Pull** / sync in Cursor so that folder receives master. You should not need a separate ZIP folder.

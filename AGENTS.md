@@ -28,6 +28,10 @@ Deprecated / do not use in instructions:
 
 ## How updates reach that folder
 
+**Always merge finished work to `master` and push.** Do not leave the user on branch ZIPs or ask them to hunt folders.
+
+The user's Cursor project at `C:/Users/Martin/Downloads/cooper.cursor/cooper` should track this GitHub repo. After you push `master`, that folder gets the update via Cursor/git Pull — not via a second Godot Import.
+
 This cloud workspace pushes to GitHub `master`. The user applies updates by overwriting  
 `C:/Users/Martin/Downloads/cooper.cursor/cooper` from the master ZIP, or by `git pull` if that folder is a clone.
 

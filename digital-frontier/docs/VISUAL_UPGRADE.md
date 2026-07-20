@@ -1,5 +1,17 @@
 # Visual Upgrade — Pleasant Park
 
+## OG-inspired layout
+
+`pleasant_park_builder.gd` mirrors classic Pleasant Park **structure** (original art, no franchise IP):
+
+| Landmark | Placement |
+|----------|-----------|
+| Central park + gazebo + picnic tables | Square lawn at origin, trees framing the ring |
+| 8 houses | N/E/S/W sides of the ring, doors facing the park |
+| Soccer field | North of the house ring |
+| Fuel stop (yellow/red) | East periphery |
+| Welcome sign / spawn | South approach |
+
 ## Why it looked like a prototype
 
 | Issue | Cause |
@@ -10,6 +22,7 @@
 | Copy-paste props | Identical trees/houses/lamps |
 | Sparse “empty lot” feel | Few props, no cars/signs/utility detail |
 | Toy camera | High equal Y/Z orbit, large ortho size |
+| Diagonal corner houses | Old layout ignored the suburban block around a park |
 
 ## Upgrade plan (implemented)
 
@@ -20,13 +33,14 @@
 5. **Houses** — unique style kits (brick, cottage, colonial, garden, modern, bungalow, ranch, victorian), gutters, glass windows, driveways, yard props  
 6. **Lived-in town** — street lamps with lights, parked cars, benches, bins, utility poles, street signs, playground  
 7. **Camera** — steeper miniature angle, tighter default zoom, smoother settle + look-ahead  
+8. **OG block layout** — ring roads, inward-facing houses, north pitch, east fuel stop  
 
 ## Gameplay safety
 
 Unchanged contracts:
 - `player_spawn`, `chests[]`, `enterable_houses[]`
 - `DoorInteractable`, `Roof`, `ExteriorExit`, `InteriorEntry`
-- Chest positions / loot IDs
+- Chest loot IDs / rarity tiers (positions retuned to new landmarks)
 - Player movement / interaction systems
 
 ## Handheld notes
