@@ -1,7 +1,6 @@
 class_name WorldAtmosphere
 extends Node3D
-## Adventure-world lighting, sky, and time-of-day foundation.
-## Handheld-friendly: one sun + ambient + soft fog; optional few fill lights.
+## Pixel-diorama lighting: one hard sun, discrete sky colors, no AAA bloom.
 
 enum Phase {
 	MORNING,
@@ -14,7 +13,6 @@ enum Phase {
 
 var _env_node: WorldEnvironment
 var _sun: DirectionalLight3D
-var _fill: DirectionalLight3D
 
 
 func setup(existing_sun: DirectionalLight3D = null) -> void:
@@ -25,7 +23,6 @@ func setup(existing_sun: DirectionalLight3D = null) -> void:
 		add_child(_sun)
 	_configure_environment()
 	_configure_sun()
-	_configure_fill()
 	apply_phase(phase)
 
 
@@ -34,38 +31,31 @@ func apply_phase(next: Phase) -> void:
 	match phase:
 		Phase.MORNING:
 			_apply_palette(
-				Color(0.95, 0.82, 0.65),
+				WorldPalette.SUN_DAY.lerp(WorldPalette.SKY_MORNING, 0.35),
 				1.05,
-				Color(0.55, 0.65, 0.85),
-				Color(0.55, 0.72, 0.95),
-				Color(0.85, 0.55, 0.35),
-				Vector3(-42, 55, 0),
+				WorldPalette.AMBIENT_DAY.lightened(0.05),
+				WorldPalette.SKY_MORNING,
+				WorldPalette.SKY_MORNING.darkened(0.15),
+				Vector3(-38, 50, 0),
 			)
 		Phase.AFTERNOON:
 			_apply_palette(
-				Color(1.0, 0.96, 0.88),
-				1.2,
-				Color(0.45, 0.55, 0.7),
-				Color(0.4, 0.65, 0.95),
-				Color(0.75, 0.82, 0.95),
-				Vector3(-50, 35, 0),
+				WorldPalette.SUN_DAY,
+				1.15,
+				WorldPalette.AMBIENT_DAY,
+				WorldPalette.SKY_DAY,
+				WorldPalette.SKY_DAY.darkened(0.2),
+				Vector3(-48, 32, 0),
 			)
 		Phase.EVENING:
 			_apply_palette(
-				Color(1.0, 0.55, 0.35),
-				0.85,
-				Color(0.35, 0.35, 0.55),
-				Color(0.35, 0.4, 0.7),
-				Color(0.95, 0.4, 0.25),
-				Vector3(-28, 70, 0),
+				WorldPalette.SKY_EVENING,
+				0.9,
+				Color(0.45, 0.35, 0.45),
+				WorldPalette.SKY_EVENING,
+				WorldPalette.SKY_EVENING.darkened(0.25),
+				Vector3(-26, 65, 0),
 			)
-
-
-func get_phase_label() -> String:
-	match phase:
-		Phase.MORNING: return "Morning"
-		Phase.AFTERNOON: return "Afternoon"
-		_: return "Evening"
 
 
 func _configure_environment() -> void:
@@ -73,43 +63,32 @@ func _configure_environment() -> void:
 	_env_node.name = "WorldEnvironment"
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.45, 0.68, 0.92)
+	env.background_color = WorldPalette.SKY_DAY
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.45, 0.55, 0.7)
-	env.ambient_light_energy = 0.42
-	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	env.tonemap_exposure = 1.05
-	env.tonemap_white = 1.0
-	## Soft distance haze — miniature diorama depth without heavy cost.
+	env.ambient_light_color = WorldPalette.AMBIENT_DAY
+	env.ambient_light_energy = 0.55
+	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
+	env.tonemap_exposure = 1.0
+	## Soft depth without cinematic aerial mush.
 	env.fog_enabled = true
-	env.fog_light_color = Color(0.7, 0.8, 0.92)
-	env.fog_density = 0.0018
-	env.fog_aerial_perspective = 0.35
-	env.fog_sky_affect = 0.4
-	env.glow_enabled = true
-	env.glow_intensity = 0.18
-	env.glow_bloom = 0.05
-	env.glow_strength = 0.7
+	env.fog_light_color = WorldPalette.SKY_DAY.lightened(0.1)
+	env.fog_density = 0.0012
+	env.fog_aerial_perspective = 0.0
+	env.glow_enabled = false
+	env.ssao_enabled = false
+	env.ssil_enabled = false
+	env.sdfgi_enabled = false
 	_env_node.environment = env
 	add_child(_env_node)
 
 
 func _configure_sun() -> void:
 	_sun.shadow_enabled = enable_shadows
-	_sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
-	_sun.shadow_blur = 1.5
-	_sun.light_specular = 0.45
-
-
-func _configure_fill() -> void:
-	## Soft bounce fill — no shadows, low energy (handheld-safe).
-	_fill = DirectionalLight3D.new()
-	_fill.name = "FillLight"
-	_fill.light_energy = 0.22
-	_fill.light_color = Color(0.55, 0.65, 0.9)
-	_fill.shadow_enabled = false
-	_fill.rotation_degrees = Vector3(-25, -140, 0)
-	add_child(_fill)
+	_sun.light_specular = 0.0
+	_sun.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
+	_sun.shadow_blur = 0.0
+	_sun.light_energy = 1.15
+	_sun.light_color = WorldPalette.SUN_DAY
 
 
 func _apply_palette(
@@ -121,11 +100,11 @@ func _apply_palette(
 	sun_rot_deg: Vector3,
 ) -> void:
 	if _sun:
-		_sun.light_color = sun_color
+		_sun.light_color = WorldPalette.quantize(sun_color)
 		_sun.light_energy = sun_energy
 		_sun.rotation_degrees = sun_rot_deg
 	if _env_node and _env_node.environment:
 		var env := _env_node.environment
-		env.background_color = sky
-		env.ambient_light_color = ambient
-		env.fog_light_color = fog
+		env.background_color = WorldPalette.quantize(sky)
+		env.ambient_light_color = WorldPalette.quantize(ambient)
+		env.fog_light_color = WorldPalette.quantize(fog)

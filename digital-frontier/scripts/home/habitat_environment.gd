@@ -94,14 +94,14 @@ func _build_shell() -> void:
 	_window_mat = StylizedMesh.make_material(Color(0.3, 0.5, 0.95))
 	_window_mat.emission_enabled = true
 	_window_mat.emission = Color(0.25, 0.4, 0.9)
-	_window_mat.emission_energy_multiplier = 1.4
+	_window_mat.emission_energy_multiplier = 0.45
 	_window_glow.material_override = _window_mat
 	## Moon disc outside window
 	var moon := StylizedMesh.add_sphere(self, 0.28, Color(0.85, 0.9, 1.0), Vector3(-1.55, 2.15, -2.55), "Moon")
-	var moon_mat := StylizedMesh.make_material(Color(0.9, 0.93, 1.0), 0.4)
+	var moon_mat := StylizedMesh.make_material(Color(0.9, 0.93, 1.0), 1.0)
 	moon_mat.emission_enabled = true
 	moon_mat.emission = Color(0.75, 0.85, 1.0)
-	moon_mat.emission_energy_multiplier = 2.0
+	moon_mat.emission_energy_multiplier = 0.55
 	moon.material_override = moon_mat
 
 
@@ -179,10 +179,12 @@ func _build_lighting() -> void:
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(0.25, 0.28, 0.4)
 	env.ambient_light_energy = 0.55
-	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	env.glow_enabled = true
-	env.glow_intensity = 0.35
-	env.glow_bloom = 0.15
+	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
+	env.tonemap_exposure = 1.0
+	env.glow_enabled = false
+	env.ssao_enabled = false
+	env.ssil_enabled = false
+	env.sdfgi_enabled = false
 	_ambient.environment = env
 	add_child(_ambient)
 
@@ -190,20 +192,21 @@ func _build_lighting() -> void:
 	_moon_light.name = "MoonLight"
 	_moon_light.light_color = Color(0.45, 0.55, 0.95)
 	_moon_light.light_energy = 0.35
+	_moon_light.light_specular = 0.0
 	_moon_light.rotation_degrees = Vector3(-35, 40, 0)
 	_moon_light.shadow_enabled = false
 	add_child(_moon_light)
 
-	_add_omni(Vector3(-0.55, 1.15, -1.7), Color(1.0, 0.75, 0.4), 1.4, 4.5, "BedLamp")
-	_add_omni(Vector3(1.8, 0.6, 0.9), Color(0.95, 0.55, 0.3), 0.55, 2.5, "BowlGlow")
-	_add_omni(Vector3(0.0, 2.4, 0.0), Color(0.55, 0.65, 0.95), 0.45, 6.0, "CeilingSoft")
-	_add_omni(Vector3(-1.2, 1.8, -2.0), Color(0.4, 0.55, 1.0), 0.7, 3.5, "WindowSpill")
+	_add_omni(Vector3(-0.55, 1.15, -1.7), Color(1.0, 0.75, 0.4), 0.9, 4.0, "BedLamp")
+	_add_omni(Vector3(1.8, 0.6, 0.9), Color(0.95, 0.55, 0.3), 0.35, 2.2, "BowlGlow")
+	_add_omni(Vector3(0.0, 2.4, 0.0), Color(0.55, 0.65, 0.95), 0.3, 5.5, "CeilingSoft")
+	_add_omni(Vector3(-1.2, 1.8, -2.0), Color(0.4, 0.55, 1.0), 0.45, 3.0, "WindowSpill")
 
 
 func _build_ambiance() -> void:
 	_dust = GPUParticles3D.new()
 	_dust.name = "DustMotes"
-	_dust.amount = 28
+	_dust.amount = 14
 	_dust.lifetime = 6.0
 	_dust.preprocess = 2.0
 	_dust.visibility_aabb = AABB(Vector3(-3, 0, -2.5), Vector3(6, 3.2, 5))
@@ -215,18 +218,14 @@ func _build_ambiance() -> void:
 	mat.initial_velocity_min = 0.02
 	mat.initial_velocity_max = 0.08
 	mat.gravity = Vector3(0, 0.02, 0)
-	mat.scale_min = 0.02
+	mat.scale_min = 0.03
 	mat.scale_max = 0.05
-	mat.color = Color(0.85, 0.9, 1.0, 0.45)
+	mat.color = Color(0.85, 0.9, 1.0, 0.35)
 	_dust.process_material = mat
-	var draw := SphereMesh.new()
-	draw.radius = 0.03
-	draw.height = 0.06
-	var draw_mat := StylizedMesh.make_material(Color(0.9, 0.95, 1.0, 0.5))
+	var draw := BoxMesh.new()
+	draw.size = Vector3(0.04, 0.04, 0.04)
+	var draw_mat := StylizedMesh.make_material(Color(0.9, 0.95, 1.0, 0.45))
 	draw_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	draw_mat.emission_enabled = true
-	draw_mat.emission = Color(0.8, 0.9, 1.0)
-	draw_mat.emission_energy_multiplier = 1.5
 	draw.material = draw_mat
 	_dust.draw_pass_1 = draw
 	_dust.position = Vector3(0, 1.2, 0)

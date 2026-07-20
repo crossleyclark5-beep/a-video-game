@@ -11,44 +11,63 @@ height = 1.1
 [sub_resource type="CapsuleMesh" id="Mesh_torso"]
 radius = 0.28
 height = 0.55
+radial_segments = 8
 
 [sub_resource type="SphereMesh" id="Mesh_head"]
 radius = 0.22
 height = 0.44
+radial_segments = 8
+rings = 5
 
 [sub_resource type="CapsuleMesh" id="Mesh_limb"]
 radius = 0.08
 height = 0.42
+radial_segments = 8
 
 [sub_resource type="StandardMaterial3D" id="Mat_body"]
 albedo_color = Color(0.22, 0.52, 0.92, 1)
-roughness = 0.8
+roughness = 1.0
+metallic = 0.0
+specular_mode = 2
+diffuse_mode = 3
+texture_filter = 0
 
 [sub_resource type="StandardMaterial3D" id="Mat_skin"]
 albedo_color = Color(0.96, 0.78, 0.62, 1)
-roughness = 0.75
+roughness = 1.0
+metallic = 0.0
+specular_mode = 2
+diffuse_mode = 3
+texture_filter = 0
 
 [sub_resource type="StandardMaterial3D" id="Mat_pants"]
 albedo_color = Color(0.2, 0.28, 0.45, 1)
-roughness = 0.85
+roughness = 1.0
+metallic = 0.0
+specular_mode = 2
+diffuse_mode = 3
+texture_filter = 0
 
 [sub_resource type="StandardMaterial3D" id="Mat_accent"]
 albedo_color = Color(0.95, 0.82, 0.25, 1)
-roughness = 0.6
+roughness = 1.0
+metallic = 0.0
+specular_mode = 2
+diffuse_mode = 3
+texture_filter = 0
 
 [sub_resource type="SphereShape3D" id="SphereShape_interact"]
 radius = 1.35
 
-[sub_resource type="CylinderMesh" id="Mesh_shadow"]
-top_radius = 0.45
-bottom_radius = 0.45
-height = 0.02
-radial_segments = 16
+[sub_resource type="BoxMesh" id="Mesh_shadow"]
+size = Vector3(0.9, 0.02, 0.9)
 
 [sub_resource type="StandardMaterial3D" id="Mat_shadow"]
 transparency = 1
-albedo_color = Color(0, 0, 0, 0.35)
+albedo_color = Color(0, 0, 0, 0.4)
 roughness = 1.0
+specular_mode = 2
+texture_filter = 0
 
 [node name="Player" type="CharacterBody3D"]
 collision_layer = 4

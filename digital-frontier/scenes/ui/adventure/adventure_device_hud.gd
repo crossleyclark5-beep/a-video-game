@@ -183,20 +183,27 @@ func _build_ui() -> void:
 
 
 func _apply_device_chrome(top: PanelContainer) -> void:
+	## Ink / paper / accent — square handheld chrome, not teal glass.
 	var panel_style := StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.06, 0.09, 0.12, 0.92)
-	panel_style.set_corner_radius_all(6)
+	panel_style.bg_color = WorldPalette.UI_PAPER
+	panel_style.set_corner_radius_all(0)
 	panel_style.content_margin_left = 10
 	panel_style.content_margin_right = 10
 	panel_style.content_margin_top = 8
 	panel_style.content_margin_bottom = 8
-	panel_style.border_width_left = 2
-	panel_style.border_width_right = 2
-	panel_style.border_width_top = 2
-	panel_style.border_width_bottom = 2
-	panel_style.border_color = Color(0.35, 0.75, 0.65, 0.7)
+	panel_style.border_width_left = 3
+	panel_style.border_width_right = 3
+	panel_style.border_width_top = 3
+	panel_style.border_width_bottom = 3
+	panel_style.border_color = WorldPalette.UI_BORDER
 	top.add_theme_stylebox_override("panel", panel_style)
 	_root.add_theme_stylebox_override("panel", panel_style.duplicate())
+	_title.add_theme_color_override("font_color", WorldPalette.UI_INK)
+	_bits.add_theme_color_override("font_color", WorldPalette.UI_ACCENT)
+	_companion_line.add_theme_color_override("font_color", WorldPalette.UI_INK.lightened(0.25))
+	_notice_line.add_theme_color_override("font_color", WorldPalette.UI_ACCENT)
+	_hint.add_theme_color_override("font_color", WorldPalette.UI_INK.lightened(0.2))
+	_body.add_theme_color_override("default_color", WorldPalette.UI_INK)
 
 
 func _open(panel: DeviceSheet) -> void:

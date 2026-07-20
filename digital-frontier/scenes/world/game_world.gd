@@ -147,9 +147,9 @@ func _spawn_ambient_fx() -> void:
 		return
 	var dust := GPUParticles3D.new()
 	dust.name = "AmbientPollen"
-	dust.amount = 36
+	dust.amount = 16
 	dust.lifetime = 8.0
-	dust.preprocess = 3.0
+	dust.preprocess = 2.0
 	dust.visibility_aabb = AABB(Vector3(-40, 0, -40), Vector3(80, 20, 80))
 	var mat := ParticleProcessMaterial.new()
 	mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
@@ -157,16 +157,15 @@ func _spawn_ambient_fx() -> void:
 	mat.direction = Vector3(0.2, 0.4, 0.1)
 	mat.spread = 40.0
 	mat.initial_velocity_min = 0.05
-	mat.initial_velocity_max = 0.25
+	mat.initial_velocity_max = 0.2
 	mat.gravity = Vector3(0, -0.02, 0)
-	mat.scale_min = 0.03
-	mat.scale_max = 0.07
-	mat.color = Color(0.95, 0.95, 0.8, 0.35)
+	mat.scale_min = 0.04
+	mat.scale_max = 0.06
+	mat.color = Color(0.95, 0.95, 0.8, 0.28)
 	dust.process_material = mat
-	var draw := SphereMesh.new()
-	draw.radius = 0.04
-	draw.height = 0.08
-	var draw_mat := StylizedMesh.make_material(Color(0.95, 0.92, 0.7, 0.4), 0.9)
+	var draw := BoxMesh.new()
+	draw.size = Vector3(0.06, 0.06, 0.06)
+	var draw_mat := StylizedMesh.make_material(Color(0.95, 0.92, 0.7, 0.35), 1.0)
 	draw_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	draw.material = draw_mat
 	dust.draw_pass_1 = draw

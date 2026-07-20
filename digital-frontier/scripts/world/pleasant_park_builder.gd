@@ -5,18 +5,19 @@ extends RefCounted
 ## 8 houses facing a central park + gazebo, soccer field north, fuel stop east.
 ## Original procedural art only. Contracts: player_spawn, chests[], enterable_houses[].
 
-const GROUND := Color(0.38, 0.62, 0.32)
-const GRASS_A := Color(0.36, 0.68, 0.34)
-const GRASS_B := Color(0.44, 0.72, 0.38)
-const GRASS_C := Color(0.32, 0.58, 0.30)
-const GRASS_D := Color(0.40, 0.66, 0.36)
-const DIRT := Color(0.48, 0.36, 0.24)
-const PARK_GREEN := Color(0.30, 0.70, 0.40)
-const ROAD := Color(0.27, 0.27, 0.30)
-const ROAD_EDGE := Color(0.22, 0.22, 0.24)
-const SIDEWALK := Color(0.70, 0.70, 0.68)
-const CURB := Color(0.58, 0.58, 0.55)
-const PATH := Color(0.72, 0.62, 0.44)
+## Shared limited palette — pixel diorama, not soft AAA clay.
+const GROUND := WorldPalette.GRASS
+const GRASS_A := WorldPalette.GRASS_LIGHT
+const GRASS_B := WorldPalette.GRASS
+const GRASS_C := WorldPalette.GRASS_DARK
+const GRASS_D := WorldPalette.LEAF_LIT
+const DIRT := WorldPalette.DIRT
+const PARK_GREEN := WorldPalette.GRASS_LIGHT
+const ROAD := WorldPalette.ROAD
+const ROAD_EDGE := WorldPalette.ROAD_EDGE
+const SIDEWALK := WorldPalette.SIDEWALK
+const CURB := WorldPalette.CURB
+const PATH := WorldPalette.PATH
 
 ## Ring geometry (park lawn ends ~11, inner curb road centered ~14.5, houses ~27).
 const PARK_HALF := 11.0
@@ -52,9 +53,9 @@ static func _add_terrain(root: Node3D) -> void:
 	var terrain := Node3D.new()
 	terrain.name = "Terrain"
 	root.add_child(terrain)
-	StylizedMesh.add_box(terrain, Vector3(110, 0.3, 110), GROUND, Vector3(0, -0.15, 0), "BaseGround", true, 0.9)
+	StylizedMesh.add_box(terrain, Vector3(110, 0.3, 110), GROUND, Vector3(0, -0.15, 0), "BaseGround", true, 1.0, &"grass")
 
-	## Soft grass fields — central park lawn + house yards + soccer north + fuel east.
+	## Pixel grass fields — central park lawn + house yards + soccer north + fuel east.
 	var patches := [
 		[Vector3(0, 0.02, 0), Vector3(24, 0.05, 24), PARK_GREEN],
 		[Vector3(0, 0.02, -38), Vector3(22, 0.045, 14), GRASS_A],
@@ -71,7 +72,7 @@ static func _add_terrain(root: Node3D) -> void:
 	]
 	for i in patches.size():
 		var p: Array = patches[i]
-		StylizedMesh.add_box(terrain, p[1], p[2], p[0], "GrassPatch_%d" % i, false, 0.88)
+		StylizedMesh.add_box(terrain, p[1], p[2], p[0], "GrassPatch_%d" % i, false, 1.0, &"grass")
 
 	## Dirt / worn patches near roads and yards.
 	var dirt_spots := [
@@ -85,15 +86,15 @@ static func _add_terrain(root: Node3D) -> void:
 	for i in dirt_spots.size():
 		var d: Array = dirt_spots[i]
 		var tint := DIRT.lightened(0.04 * float(i % 3))
-		StylizedMesh.add_box(terrain, d[1], tint, d[0], "Dirt_%d" % i, false, 0.95)
+		StylizedMesh.add_box(terrain, d[1], tint, d[0], "Dirt_%d" % i, false, 1.0, &"dirt")
 
 	## Tiny ground imperfections (pebbles / bare spots).
-	for i in 14:
+	for i in 10:
 		var ang := float(i) * 2.3
 		var r := 8.0 + float(i % 5) * 4.5
 		var pos := Vector3(cos(ang) * r, 0.04, sin(ang) * r * 0.85)
-		var s := 0.25 + float(i % 3) * 0.12
-		StylizedMesh.add_box(terrain, Vector3(s, 0.04, s * 0.7), DIRT.darkened(0.08), pos, "Pebble_%d" % i, false, 0.95)
+		var s := 0.28 + float(i % 3) * 0.12
+		StylizedMesh.add_box(terrain, Vector3(s, 0.04, s * 0.7), DIRT.darkened(0.08), pos, "Pebble_%d" % i, false, 1.0, &"dirt")
 
 
 # --- Roads -------------------------------------------------------------------
@@ -124,19 +125,19 @@ static func _add_road_network(root: Node3D) -> void:
 		Vector3(-20, 0.05, -12), Vector3(-20, 0.05, 12),
 	]
 	for dpos in drives:
-		StylizedMesh.add_box(roads, Vector3(3.0, 0.05, 3.8), ROAD.lightened(0.06), dpos, "Drive", true, 0.9)
+		StylizedMesh.add_box(roads, Vector3(3.0, 0.05, 3.8), ROAD.lightened(0.06), dpos, "Drive", true, 1.0, &"asphalt")
 
 
 static func _road_segment(parent: Node3D, pos: Vector3, size: Vector3, node_name: String, along_x: bool) -> void:
-	StylizedMesh.add_box(parent, size, ROAD, pos, node_name, true, 0.92)
+	StylizedMesh.add_box(parent, size, ROAD, pos, node_name, true, 1.0, &"asphalt")
 	## Darker edge strips (wear / curb shadow).
 	if along_x:
-		StylizedMesh.add_box(parent, Vector3(size.x, 0.02, 0.2), ROAD_EDGE, pos + Vector3(0, 0.05, size.z * 0.45), node_name + "EdgeA", false, 0.95)
-		StylizedMesh.add_box(parent, Vector3(size.x, 0.02, 0.2), ROAD_EDGE, pos + Vector3(0, 0.05, -size.z * 0.45), node_name + "EdgeB", false, 0.95)
+		StylizedMesh.add_box(parent, Vector3(size.x, 0.02, 0.2), ROAD_EDGE, pos + Vector3(0, 0.05, size.z * 0.45), node_name + "EdgeA", false, 1.0, &"asphalt")
+		StylizedMesh.add_box(parent, Vector3(size.x, 0.02, 0.2), ROAD_EDGE, pos + Vector3(0, 0.05, -size.z * 0.45), node_name + "EdgeB", false, 1.0, &"asphalt")
 		_dashed_line(parent, pos, size.x * 0.85, true, node_name)
 	else:
-		StylizedMesh.add_box(parent, Vector3(0.2, 0.02, size.z), ROAD_EDGE, pos + Vector3(size.x * 0.45, 0.05, 0), node_name + "EdgeA", false, 0.95)
-		StylizedMesh.add_box(parent, Vector3(0.2, 0.02, size.z), ROAD_EDGE, pos + Vector3(-size.x * 0.45, 0.05, 0), node_name + "EdgeB", false, 0.95)
+		StylizedMesh.add_box(parent, Vector3(0.2, 0.02, size.z), ROAD_EDGE, pos + Vector3(size.x * 0.45, 0.05, 0), node_name + "EdgeA", false, 1.0, &"asphalt")
+		StylizedMesh.add_box(parent, Vector3(0.2, 0.02, size.z), ROAD_EDGE, pos + Vector3(-size.x * 0.45, 0.05, 0), node_name + "EdgeB", false, 1.0, &"asphalt")
 		_dashed_line(parent, pos, size.z * 0.85, false, node_name)
 
 
@@ -148,9 +149,9 @@ static func _dashed_line(parent: Node3D, center: Vector3, length: float, along_x
 	while cursor < length * 0.5:
 		var seg := mini(dash, length * 0.5 - cursor)
 		if along_x:
-			StylizedMesh.add_box(parent, Vector3(seg, 0.015, 0.14), Color(0.88, 0.82, 0.35), center + Vector3(cursor + seg * 0.5, 0.055, 0), "%sDash_%d" % [prefix, i], false, 0.55)
+			StylizedMesh.add_box(parent, Vector3(seg, 0.015, 0.14), WorldPalette.ROAD_LINE, center + Vector3(cursor + seg * 0.5, 0.055, 0), "%sDash_%d" % [prefix, i])
 		else:
-			StylizedMesh.add_box(parent, Vector3(0.14, 0.015, seg), Color(0.88, 0.82, 0.35), center + Vector3(0, 0.055, cursor + seg * 0.5), "%sDash_%d" % [prefix, i], false, 0.55)
+			StylizedMesh.add_box(parent, Vector3(0.14, 0.015, seg), WorldPalette.ROAD_LINE, center + Vector3(0, 0.055, cursor + seg * 0.5), "%sDash_%d" % [prefix, i])
 		cursor += dash + gap
 		i += 1
 
@@ -159,23 +160,23 @@ static func _add_crosswalk(parent: Node3D, pos: Vector3, road_along_x: bool) -> 
 	for i in 5:
 		var o := float(i - 2) * 0.7
 		if road_along_x:
-			StylizedMesh.add_box(parent, Vector3(0.45, 0.02, 3.6), Color(0.92, 0.92, 0.88), pos + Vector3(o, 0, 0), "Xing", false, 0.6)
+			StylizedMesh.add_box(parent, Vector3(0.45, 0.02, 3.6), Color(0.92, 0.92, 0.88), pos + Vector3(o, 0, 0), "Xing")
 		else:
-			StylizedMesh.add_box(parent, Vector3(3.6, 0.02, 0.45), Color(0.92, 0.92, 0.88), pos + Vector3(0, 0, o), "Xing", false, 0.6)
+			StylizedMesh.add_box(parent, Vector3(3.6, 0.02, 0.45), Color(0.92, 0.92, 0.88), pos + Vector3(0, 0, o), "Xing")
 
 
 static func _sidewalk_ring(parent: Node3D) -> void:
 	## Park-side walk (inside ring road) + house-side walk (outside ring road).
 	var inner := PARK_HALF + 0.2
 	var outer := ROAD_RING + 3.2
-	StylizedMesh.add_box(parent, Vector3(28, 0.07, 1.6), SIDEWALK, Vector3(0, 0.05, -inner), "WalkN", true, 0.85)
-	StylizedMesh.add_box(parent, Vector3(28, 0.07, 1.6), SIDEWALK, Vector3(0, 0.05, inner), "WalkS", true, 0.85)
-	StylizedMesh.add_box(parent, Vector3(1.6, 0.07, 24), SIDEWALK, Vector3(-inner, 0.05, 0), "WalkW", true, 0.85)
-	StylizedMesh.add_box(parent, Vector3(1.6, 0.07, 24), SIDEWALK, Vector3(inner, 0.05, 0), "WalkE", true, 0.85)
-	StylizedMesh.add_box(parent, Vector3(40, 0.07, 1.4), SIDEWALK, Vector3(0, 0.05, -outer), "WalkOuterN", true, 0.85)
-	StylizedMesh.add_box(parent, Vector3(40, 0.07, 1.4), SIDEWALK, Vector3(0, 0.05, outer), "WalkOuterS", true, 0.85)
-	StylizedMesh.add_box(parent, Vector3(1.4, 0.07, 36), SIDEWALK, Vector3(-outer, 0.05, 0), "WalkOuterW", true, 0.85)
-	StylizedMesh.add_box(parent, Vector3(1.4, 0.07, 36), SIDEWALK, Vector3(outer, 0.05, 0), "WalkOuterE", true, 0.85)
+	StylizedMesh.add_box(parent, Vector3(28, 0.07, 1.6), SIDEWALK, Vector3(0, 0.05, -inner), "WalkN", true, 1.0, &"asphalt")
+	StylizedMesh.add_box(parent, Vector3(28, 0.07, 1.6), SIDEWALK, Vector3(0, 0.05, inner), "WalkS", true, 1.0, &"asphalt")
+	StylizedMesh.add_box(parent, Vector3(1.6, 0.07, 24), SIDEWALK, Vector3(-inner, 0.05, 0), "WalkW", true, 1.0, &"asphalt")
+	StylizedMesh.add_box(parent, Vector3(1.6, 0.07, 24), SIDEWALK, Vector3(inner, 0.05, 0), "WalkE", true, 1.0, &"asphalt")
+	StylizedMesh.add_box(parent, Vector3(40, 0.07, 1.4), SIDEWALK, Vector3(0, 0.05, -outer), "WalkOuterN", true, 1.0, &"asphalt")
+	StylizedMesh.add_box(parent, Vector3(40, 0.07, 1.4), SIDEWALK, Vector3(0, 0.05, outer), "WalkOuterS", true, 1.0, &"asphalt")
+	StylizedMesh.add_box(parent, Vector3(1.4, 0.07, 36), SIDEWALK, Vector3(-outer, 0.05, 0), "WalkOuterW", true, 1.0, &"asphalt")
+	StylizedMesh.add_box(parent, Vector3(1.4, 0.07, 36), SIDEWALK, Vector3(outer, 0.05, 0), "WalkOuterE", true, 1.0, &"asphalt")
 	## Curb lips on park edge
 	for c in [
 		[Vector3(0, 0.02, -(PARK_HALF - 0.7)), Vector3(24, 0.12, 0.25)],
@@ -183,7 +184,7 @@ static func _sidewalk_ring(parent: Node3D) -> void:
 		[Vector3(-(PARK_HALF - 0.7), 0.02, 0), Vector3(0.25, 0.12, 22)],
 		[Vector3(PARK_HALF - 0.7, 0.02, 0), Vector3(0.25, 0.12, 22)],
 	]:
-		StylizedMesh.add_box(parent, c[1], CURB, c[0], "Curb", false, 0.8)
+		StylizedMesh.add_box(parent, c[1], CURB, c[0], "Curb")
 
 
 # --- Central park ------------------------------------------------------------
@@ -192,25 +193,25 @@ static func _add_central_park(root: Node3D) -> void:
 	var park := Node3D.new()
 	park.name = "CentralPark"
 	root.add_child(park)
-	StylizedMesh.add_box(park, Vector3(PARK_HALF * 2.0, 0.08, PARK_HALF * 2.0), PARK_GREEN, Vector3(0, 0.05, 0), "Lawn", true, 0.88)
+	StylizedMesh.add_box(park, Vector3(PARK_HALF * 2.0, 0.08, PARK_HALF * 2.0), PARK_GREEN, Vector3(0, 0.05, 0), "Lawn", true, 1.0, &"grass")
 	## Cross paths through the square (gazebo sits on the intersection).
-	StylizedMesh.add_box(park, Vector3(2.6, 0.04, PARK_HALF * 2.0 - 1.0), PATH, Vector3(0, 0.08, 0), "PathNS", false, 0.82)
-	StylizedMesh.add_box(park, Vector3(PARK_HALF * 2.0 - 1.0, 0.04, 2.6), PATH, Vector3(0, 0.08, 0), "PathEW", false, 0.82)
-	StylizedMesh.add_box(park, Vector3(3.0, 0.02, PARK_HALF * 2.0 - 0.8), PATH.darkened(0.1), Vector3(0, 0.07, 0), "PathEdgeNS", false, 0.9)
+	StylizedMesh.add_box(park, Vector3(2.6, 0.04, PARK_HALF * 2.0 - 1.0), PATH, Vector3(0, 0.08, 0), "PathNS", false, 1.0, &"dirt")
+	StylizedMesh.add_box(park, Vector3(PARK_HALF * 2.0 - 1.0, 0.04, 2.6), PATH, Vector3(0, 0.08, 0), "PathEW", false, 1.0, &"dirt")
+	StylizedMesh.add_box(park, Vector3(3.0, 0.02, PARK_HALF * 2.0 - 0.8), PATH.darkened(0.1), Vector3(0, 0.07, 0), "PathEdgeNS", false, 1.0, &"dirt")
 
 	## Iconic centerpiece gazebo (OG identity).
 	var gazebo := Node3D.new()
 	gazebo.name = "Gazebo"
 	park.add_child(gazebo)
 	for offset in [Vector3(-2.4, 1.35, -2.4), Vector3(2.4, 1.35, -2.4), Vector3(-2.4, 1.35, 2.4), Vector3(2.4, 1.35, 2.4)]:
-		StylizedMesh.add_cylinder(gazebo, 0.18, 2.7, Color(0.72, 0.52, 0.30), offset, "Post", true, 14, 0.7)
-	StylizedMesh.add_box(gazebo, Vector3(7.0, 0.2, 7.0), Color(0.68, 0.26, 0.22), Vector3(0, 2.75, 0), "RoofDeck", false, 0.65)
-	StylizedMesh.add_box(gazebo, Vector3(4.6, 0.55, 4.6), Color(0.60, 0.20, 0.18), Vector3(0, 3.2, 0), "RoofPeak", false, 0.65)
-	StylizedMesh.add_cylinder(gazebo, 2.7, 0.16, Color(0.68, 0.52, 0.34), Vector3(0, 0.14, 0), "Floor", true, 16, 0.75)
+		StylizedMesh.add_box(gazebo, Vector3(0.32, 2.7, 0.32), WorldPalette.WOOD, offset, "Post", true, 1.0, &"wood")
+	StylizedMesh.add_box(gazebo, Vector3(7.0, 0.2, 7.0), WorldPalette.ROOF_RED, Vector3(0, 2.75, 0), "RoofDeck", false, 1.0, &"wood")
+	StylizedMesh.add_box(gazebo, Vector3(4.6, 0.55, 4.6), WorldPalette.ROOF_RED.darkened(0.08), Vector3(0, 3.2, 0), "RoofPeak", false, 1.0, &"wood")
+	StylizedMesh.add_box(gazebo, Vector3(5.2, 0.16, 5.2), WorldPalette.WOOD.lightened(0.1), Vector3(0, 0.14, 0), "Floor", true, 1.0, &"wood")
 	for z in [-2.5, 2.5]:
-		StylizedMesh.add_box(gazebo, Vector3(4.6, 0.08, 0.08), Color(0.75, 0.55, 0.32), Vector3(0, 1.05, z), "Rail", false, 0.7)
+		StylizedMesh.add_box(gazebo, Vector3(4.6, 0.08, 0.08), WorldPalette.WOOD.lightened(0.15), Vector3(0, 1.05, z), "Rail")
 	for x in [-2.5, 2.5]:
-		StylizedMesh.add_box(gazebo, Vector3(0.08, 0.08, 4.6), Color(0.75, 0.55, 0.32), Vector3(x, 1.05, 0), "Rail", false, 0.7)
+		StylizedMesh.add_box(gazebo, Vector3(0.08, 0.08, 4.6), WorldPalette.WOOD.lightened(0.15), Vector3(x, 1.05, 0), "Rail")
 
 	## Picnic tables around the gazebo (OG park staple).
 	_picnic_set(park, Vector3(-7.0, 0, -6.0))
@@ -223,37 +224,44 @@ static func _add_central_park(root: Node3D) -> void:
 	fountain.name = "Fountain"
 	fountain.position = Vector3(0, 0, 7.5)
 	park.add_child(fountain)
-	StylizedMesh.add_cylinder(fountain, 1.5, 0.28, Color(0.72, 0.72, 0.76), Vector3(0, 0.22, 0), "Basin", true, 18, 0.45)
-	StylizedMesh.add_cylinder(fountain, 1.2, 0.18, Color(0.45, 0.68, 0.9), Vector3(0, 0.35, 0), "Water", false, 16, 0.15)
-	StylizedMesh.add_cylinder(fountain, 0.28, 1.0, Color(0.68, 0.68, 0.72), Vector3(0, 0.85, 0), "Spire", false, 12, 0.4)
-	StylizedMesh.add_sphere(fountain, 0.32, Color(0.5, 0.75, 0.98), Vector3(0, 1.4, 0), "WaterTop", 12, 8, 0.12)
-	for i in 6:
-		var a := float(i) / 6.0 * TAU
-		StylizedMesh.add_box(fountain, Vector3(0.32, 0.16, 0.22), Color(0.65, 0.65, 0.68), Vector3(cos(a) * 1.65, 0.32, sin(a) * 1.65), "Rim", false, 0.7)
+	StylizedMesh.add_box(fountain, Vector3(3.0, 0.28, 3.0), WorldPalette.SIDEWALK, Vector3(0, 0.22, 0), "Basin", true)
+	var water_mi := MeshInstance3D.new()
+	water_mi.name = "Water"
+	var water_mesh := BoxMesh.new()
+	water_mesh.size = Vector3(2.4, 0.12, 2.4)
+	water_mi.mesh = water_mesh
+	water_mi.material_override = StylizedMesh.make_water_material(WorldPalette.WATER)
+	water_mi.position = Vector3(0, 0.35, 0)
+	fountain.add_child(water_mi)
+	StylizedMesh.add_box(fountain, Vector3(0.4, 1.0, 0.4), WorldPalette.METAL, Vector3(0, 0.85, 0), "Spire")
+	StylizedMesh.add_box(fountain, Vector3(0.55, 0.28, 0.55), WorldPalette.WATER.lightened(0.15), Vector3(0, 1.35, 0), "WaterTop")
+	for i in 4:
+		var a := float(i) / 4.0 * TAU
+		StylizedMesh.add_box(fountain, Vector3(0.36, 0.16, 0.24), WorldPalette.METAL, Vector3(cos(a) * 1.55, 0.32, sin(a) * 1.55), "Rim")
 
 	## Playground tucked in NE park corner.
 	var play := Node3D.new()
 	play.name = "Playground"
 	play.position = Vector3(7.5, 0, -7.5)
 	park.add_child(play)
-	StylizedMesh.add_box(play, Vector3(4.5, 0.06, 4.0), Color(0.78, 0.62, 0.38), Vector3(0, 0.06, 0), "Sand", true, 0.9)
-	StylizedMesh.add_box(play, Vector3(0.15, 1.6, 0.15), Color(0.85, 0.35, 0.3), Vector3(-1.2, 0.9, 0), "SwingPostL", true, 0.5)
-	StylizedMesh.add_box(play, Vector3(0.15, 1.6, 0.15), Color(0.85, 0.35, 0.3), Vector3(1.2, 0.9, 0), "SwingPostR", true, 0.5)
-	StylizedMesh.add_box(play, Vector3(2.6, 0.1, 0.12), Color(0.8, 0.3, 0.25), Vector3(0, 1.65, 0), "SwingBeam", false, 0.5)
-	StylizedMesh.add_box(play, Vector3(0.5, 0.08, 0.25), Color(0.2, 0.45, 0.8), Vector3(0, 0.7, 0), "Seat", false, 0.6)
-	StylizedMesh.add_cylinder(play, 0.55, 0.7, Color(0.95, 0.55, 0.2), Vector3(0, 0.45, 1.3), "SlideBase", true, 12, 0.55)
-	StylizedMesh.add_box(play, Vector3(0.7, 0.08, 1.4), Color(0.9, 0.5, 0.2), Vector3(0, 0.85, 0.6), "Slide", false, 0.5)
+	StylizedMesh.add_box(play, Vector3(4.5, 0.06, 4.0), WorldPalette.SAND, Vector3(0, 0.06, 0), "Sand", true, 1.0, &"dirt")
+	StylizedMesh.add_box(play, Vector3(0.2, 1.6, 0.2), WorldPalette.UI_ACCENT, Vector3(-1.2, 0.9, 0), "SwingPostL", true)
+	StylizedMesh.add_box(play, Vector3(0.2, 1.6, 0.2), WorldPalette.UI_ACCENT, Vector3(1.2, 0.9, 0), "SwingPostR", true)
+	StylizedMesh.add_box(play, Vector3(2.6, 0.12, 0.16), WorldPalette.BRICK, Vector3(0, 1.65, 0), "SwingBeam")
+	StylizedMesh.add_box(play, Vector3(0.5, 0.1, 0.28), WorldPalette.WINDOW, Vector3(0, 0.7, 0), "Seat")
+	StylizedMesh.add_box(play, Vector3(1.0, 0.7, 1.0), WorldPalette.UI_ACCENT, Vector3(0, 0.45, 1.3), "SlideBase", true)
+	StylizedMesh.add_box(play, Vector3(0.7, 0.1, 1.4), WorldPalette.UI_ACCENT.lightened(0.1), Vector3(0, 0.85, 0.6), "Slide")
 
 
 static func _picnic_set(parent: Node3D, pos: Vector3) -> void:
 	var p := Node3D.new()
 	p.position = pos
 	parent.add_child(p)
-	StylizedMesh.add_box(p, Vector3(2.4, 0.12, 1.1), Color(0.52, 0.34, 0.18), Vector3(0, 0.55, 0), "Table", false, 0.72)
-	StylizedMesh.add_box(p, Vector3(0.14, 0.55, 0.14), Color(0.38, 0.24, 0.12), Vector3(-0.9, 0.28, -0.35), "Leg1", false, 0.75)
-	StylizedMesh.add_box(p, Vector3(0.14, 0.55, 0.14), Color(0.38, 0.24, 0.12), Vector3(0.9, 0.28, 0.35), "Leg2", false, 0.75)
-	StylizedMesh.add_box(p, Vector3(2.2, 0.1, 0.45), Color(0.48, 0.30, 0.16), Vector3(0, 0.35, -1.0), "BenchA", false, 0.72)
-	StylizedMesh.add_box(p, Vector3(2.2, 0.1, 0.45), Color(0.48, 0.30, 0.16), Vector3(0, 0.35, 1.0), "BenchB", false, 0.72)
+	StylizedMesh.add_box(p, Vector3(2.4, 0.12, 1.1), WorldPalette.WOOD, Vector3(0, 0.55, 0), "Table", false, 1.0, &"wood")
+	StylizedMesh.add_box(p, Vector3(0.14, 0.55, 0.14), WorldPalette.WOOD.darkened(0.15), Vector3(-0.9, 0.28, -0.35), "Leg1", false, 1.0, &"wood")
+	StylizedMesh.add_box(p, Vector3(0.14, 0.55, 0.14), WorldPalette.WOOD.darkened(0.15), Vector3(0.9, 0.28, 0.35), "Leg2", false, 1.0, &"wood")
+	StylizedMesh.add_box(p, Vector3(2.2, 0.1, 0.45), WorldPalette.WOOD.darkened(0.08), Vector3(0, 0.35, -1.0), "BenchA", false, 1.0, &"wood")
+	StylizedMesh.add_box(p, Vector3(2.2, 0.1, 0.45), WorldPalette.WOOD.darkened(0.08), Vector3(0, 0.35, 1.0), "BenchB", false, 1.0, &"wood")
 
 
 # --- Sports / fuel -----------------------------------------------------------
@@ -264,24 +272,24 @@ static func _add_sports_field(root: Node3D) -> void:
 	field.name = "SportsField"
 	field.position = Vector3(0, 0, -40)
 	root.add_child(field)
-	StylizedMesh.add_box(field, Vector3(20, 0.06, 14), Color(0.28, 0.58, 0.28), Vector3(0, 0.06, 0), "Pitch", true, 0.88)
-	StylizedMesh.add_box(field, Vector3(0.12, 0.02, 14), Color(0.95, 0.95, 0.9), Vector3(0, 0.1, 0), "MidLine", false, 0.55)
-	StylizedMesh.add_cylinder(field, 1.4, 0.03, Color(0.95, 0.95, 0.9), Vector3(0, 0.1, 0), "CenterCircle", false, 16, 0.55)
-	StylizedMesh.add_box(field, Vector3(20.2, 0.02, 0.12), Color(0.95, 0.95, 0.9), Vector3(0, 0.1, -7), "EndLineS", false, 0.55)
-	StylizedMesh.add_box(field, Vector3(20.2, 0.02, 0.12), Color(0.95, 0.95, 0.9), Vector3(0, 0.1, 7), "EndLineN", false, 0.55)
-	StylizedMesh.add_box(field, Vector3(0.12, 0.02, 14.2), Color(0.95, 0.95, 0.9), Vector3(-10, 0.1, 0), "SideW", false, 0.55)
-	StylizedMesh.add_box(field, Vector3(0.12, 0.02, 14.2), Color(0.95, 0.95, 0.9), Vector3(10, 0.1, 0), "SideE", false, 0.55)
+	StylizedMesh.add_box(field, Vector3(20, 0.06, 14), WorldPalette.GRASS_DARK, Vector3(0, 0.06, 0), "Pitch", true, 1.0, &"grass")
+	StylizedMesh.add_box(field, Vector3(0.12, 0.02, 14), Color(0.95, 0.95, 0.9), Vector3(0, 0.1, 0), "MidLine")
+	StylizedMesh.add_box(field, Vector3(2.6, 0.03, 2.6), Color(0.95, 0.95, 0.9), Vector3(0, 0.1, 0), "CenterBox")
+	StylizedMesh.add_box(field, Vector3(20.2, 0.02, 0.12), Color(0.95, 0.95, 0.9), Vector3(0, 0.1, -7), "EndLineS")
+	StylizedMesh.add_box(field, Vector3(20.2, 0.02, 0.12), Color(0.95, 0.95, 0.9), Vector3(0, 0.1, 7), "EndLineN")
+	StylizedMesh.add_box(field, Vector3(0.12, 0.02, 14.2), Color(0.95, 0.95, 0.9), Vector3(-10, 0.1, 0), "SideW")
+	StylizedMesh.add_box(field, Vector3(0.12, 0.02, 14.2), Color(0.95, 0.95, 0.9), Vector3(10, 0.1, 0), "SideE")
 	for z in [-7.0, 7.0]:
 		var goal := Node3D.new()
 		goal.position = Vector3(0, 0, z)
 		field.add_child(goal)
-		StylizedMesh.add_box(goal, Vector3(0.15, 2.0, 0.15), Color(0.92, 0.92, 0.95), Vector3(-2.2, 1.0, 0), "PostL", true, 0.4)
-		StylizedMesh.add_box(goal, Vector3(0.15, 2.0, 0.15), Color(0.92, 0.92, 0.95), Vector3(2.2, 1.0, 0), "PostR", true, 0.4)
-		StylizedMesh.add_box(goal, Vector3(4.55, 0.15, 0.15), Color(0.92, 0.92, 0.95), Vector3(0, 2.0, 0), "Crossbar", false, 0.4)
+		StylizedMesh.add_box(goal, Vector3(0.18, 2.0, 0.18), Color(0.92, 0.92, 0.95), Vector3(-2.2, 1.0, 0), "PostL", true)
+		StylizedMesh.add_box(goal, Vector3(0.18, 2.0, 0.18), Color(0.92, 0.92, 0.95), Vector3(2.2, 1.0, 0), "PostR", true)
+		StylizedMesh.add_box(goal, Vector3(4.55, 0.18, 0.18), Color(0.92, 0.92, 0.95), Vector3(0, 2.0, 0), "Crossbar")
 	## Tiered bleachers on the east sideline
 	for i in 3:
-		StylizedMesh.add_box(field, Vector3(1.15, 0.35, 7.5), Color(0.52, 0.2, 0.16), Vector3(12.0 + float(i) * 0.3, 0.35 + float(i) * 0.4, 0), "Bleacher%d" % i, true, 0.7)
-	StylizedMesh.add_box(field, Vector3(0.1, 1.4, 7.5), Color(0.75, 0.75, 0.72), Vector3(13.2, 1.0, 0), "BleacherRail", false, 0.5)
+		StylizedMesh.add_box(field, Vector3(1.15, 0.35, 7.5), WorldPalette.ROOF_RED.darkened(0.1), Vector3(12.0 + float(i) * 0.3, 0.35 + float(i) * 0.4, 0), "Bleacher%d" % i, true, 1.0, &"wood")
+	StylizedMesh.add_box(field, Vector3(0.12, 1.4, 7.5), WorldPalette.METAL, Vector3(13.2, 1.0, 0), "BleacherRail")
 
 
 static func _add_fuel_stop(root: Node3D) -> void:
@@ -290,22 +298,22 @@ static func _add_fuel_stop(root: Node3D) -> void:
 	fuel.name = "FuelStop"
 	fuel.position = Vector3(42, 0, 0)
 	root.add_child(fuel)
-	StylizedMesh.add_box(fuel, Vector3(14, 0.12, 12), Color(0.24, 0.24, 0.26), Vector3(0, 0.08, 0), "Lot", true, 0.92)
+	StylizedMesh.add_box(fuel, Vector3(14, 0.12, 12), WorldPalette.ROAD, Vector3(0, 0.08, 0), "Lot", true, 1.0, &"asphalt")
 	for i in 4:
-		StylizedMesh.add_box(fuel, Vector3(0.08, 0.02, 2.4), Color(0.9, 0.9, 0.85), Vector3(-5 + float(i) * 2.4, 0.14, -3.5), "Stall", false, 0.55)
-	StylizedMesh.add_box(fuel, Vector3(8.0, 3.5, 5.8), Color(0.86, 0.76, 0.30), Vector3(2.0, 1.75, 1.8), "Shop", true, 0.75)
-	StylizedMesh.add_box(fuel, Vector3(9.0, 0.35, 6.8), Color(0.72, 0.18, 0.16), Vector3(2.0, 3.65, 1.8), "ShopRoof", false, 0.65)
+		StylizedMesh.add_box(fuel, Vector3(0.08, 0.02, 2.4), Color(0.9, 0.9, 0.85), Vector3(-5 + float(i) * 2.4, 0.14, -3.5), "Stall")
+	StylizedMesh.add_box(fuel, Vector3(8.0, 3.5, 5.8), Color(0.86, 0.76, 0.30), Vector3(2.0, 1.75, 1.8), "Shop", true, 1.0, &"brick")
+	StylizedMesh.add_box(fuel, Vector3(9.0, 0.35, 6.8), WorldPalette.ROOF_RED, Vector3(2.0, 3.65, 1.8), "ShopRoof", false, 1.0, &"wood")
 	StylizedMesh.add_window_pane(fuel, Vector3(1.6, 1.6, 0.08), Vector3(2.0, 1.9, 4.75), "ShopWindow")
-	StylizedMesh.add_box(fuel, Vector3(9, 0.24, 5.5), Color(0.2, 0.2, 0.22), Vector3(-1.5, 3.5, -2.2), "Canopy", false, 0.55)
-	StylizedMesh.add_cylinder(fuel, 0.18, 3.3, Color(0.42, 0.42, 0.45), Vector3(-4, 1.65, -2.2), "CanopyPost1", true, 12, 0.45)
-	StylizedMesh.add_cylinder(fuel, 0.18, 3.3, Color(0.42, 0.42, 0.45), Vector3(1, 1.65, -2.2), "CanopyPost2", true, 12, 0.45)
-	StylizedMesh.add_box(fuel, Vector3(0.8, 1.5, 0.6), Color(0.82, 0.22, 0.18), Vector3(-4, 0.85, -3.0), "Pump1", true, 0.5)
-	StylizedMesh.add_box(fuel, Vector3(0.8, 1.5, 0.6), Color(0.82, 0.22, 0.18), Vector3(1, 0.85, -3.0), "Pump2", true, 0.5)
-	StylizedMesh.add_box(fuel, Vector3(0.8, 1.5, 0.6), Color(0.82, 0.22, 0.18), Vector3(-1.5, 0.85, -3.0), "Pump3", true, 0.5)
-	StylizedMesh.add_box(fuel, Vector3(0.2, 0.15, 0.15), Color(0.15, 0.15, 0.15), Vector3(-4, 1.45, -2.7), "Nozzle1", false, 0.4)
-	StylizedMesh.add_box(fuel, Vector3(2.8, 2.0, 0.3), Color(0.12, 0.42, 0.22), Vector3(2.0, 2.6, 4.85), "PriceSign", false, 0.6)
-	StylizedMesh.add_cylinder(fuel, 0.28, 0.75, Color(0.32, 0.38, 0.32), Vector3(5.5, 0.4, 4.0), "Bin", true, 12, 0.7)
-	StylizedMesh.add_cylinder(fuel, 0.15, 1.1, Color(0.85, 0.85, 0.2), Vector3(-6, 0.55, 2.5), "AirPump", true, 10, 0.5)
+	StylizedMesh.add_box(fuel, Vector3(9, 0.24, 5.5), WorldPalette.ROAD.darkened(0.1), Vector3(-1.5, 3.5, -2.2), "Canopy")
+	StylizedMesh.add_box(fuel, Vector3(0.32, 3.3, 0.32), WorldPalette.METAL, Vector3(-4, 1.65, -2.2), "CanopyPost1", true)
+	StylizedMesh.add_box(fuel, Vector3(0.32, 3.3, 0.32), WorldPalette.METAL, Vector3(1, 1.65, -2.2), "CanopyPost2", true)
+	StylizedMesh.add_box(fuel, Vector3(0.8, 1.5, 0.6), WorldPalette.ROOF_RED, Vector3(-4, 0.85, -3.0), "Pump1", true)
+	StylizedMesh.add_box(fuel, Vector3(0.8, 1.5, 0.6), WorldPalette.ROOF_RED, Vector3(1, 0.85, -3.0), "Pump2", true)
+	StylizedMesh.add_box(fuel, Vector3(0.8, 1.5, 0.6), WorldPalette.ROOF_RED, Vector3(-1.5, 0.85, -3.0), "Pump3", true)
+	StylizedMesh.add_box(fuel, Vector3(0.2, 0.15, 0.15), Color(0.15, 0.15, 0.15), Vector3(-4, 1.45, -2.7), "Nozzle1")
+	StylizedMesh.add_box(fuel, Vector3(2.8, 2.0, 0.3), WorldPalette.LEAF_DARK, Vector3(2.0, 2.6, 4.85), "PriceSign")
+	StylizedMesh.add_box(fuel, Vector3(0.55, 0.75, 0.55), WorldPalette.BUSH, Vector3(5.5, 0.4, 4.0), "Bin", true)
+	StylizedMesh.add_box(fuel, Vector3(0.28, 1.1, 0.28), WorldPalette.FLOWER_Y, Vector3(-6, 0.55, 2.5), "AirPump", true)
 
 
 # --- Houses ------------------------------------------------------------------
@@ -351,35 +359,36 @@ static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 	var style: StringName = spec["style"]
 
 	## Yard with subtle tone
-	var yard_tint := Color(0.40, 0.66, 0.36)
+	var yard_tint := WorldPalette.GRASS
 	if style == &"garden":
-		yard_tint = Color(0.34, 0.62, 0.32)
+		yard_tint = WorldPalette.GRASS_DARK
 	elif style == &"modern":
-		yard_tint = Color(0.42, 0.58, 0.40)
-	StylizedMesh.add_box(house, Vector3(11, 0.05, 10), yard_tint, Vector3(0, 0.03, 0), "Yard", false, 0.88)
+		yard_tint = WorldPalette.GRASS_LIGHT
+	StylizedMesh.add_box(house, Vector3(11, 0.05, 10), yard_tint, Vector3(0, 0.03, 0), "Yard", false, 1.0, &"grass")
 
 	## Driveway
-	StylizedMesh.add_box(house, Vector3(3.0, 0.04, 4.2), ROAD.lightened(0.08), Vector3(4.2, 0.04, 3.5), "Driveway", true, 0.9)
+	StylizedMesh.add_box(house, Vector3(3.0, 0.04, 4.2), ROAD.lightened(0.08), Vector3(4.2, 0.04, 3.5), "Driveway", true, 1.0, &"asphalt")
 
 	## Main body + foundation
-	StylizedMesh.add_box(house, Vector3(7.6, 0.25, 6.3), Color(0.55, 0.52, 0.48), Vector3(0, 0.12, 0), "Foundation", false, 0.85)
+	var wall_pattern: StringName = &"brick" if style == &"brick" else &"flat"
+	StylizedMesh.add_box(house, Vector3(7.6, 0.25, 6.3), WorldPalette.SIDEWALK, Vector3(0, 0.12, 0), "Foundation", false, 1.0, &"asphalt")
 	if enterable:
 		## Open-top shell — walls with front doorway so interiors stay visible under a faded roof.
-		_add_enterable_shell(house, wall)
+		_add_enterable_shell(house, wall, wall_pattern)
 	else:
-		StylizedMesh.add_box(house, Vector3(7.5, 3.4, 6.2), wall, Vector3(0, 1.7, 0), "Body", true, 0.78)
+		StylizedMesh.add_box(house, Vector3(7.5, 3.4, 6.2), wall, Vector3(0, 1.7, 0), "Body", true, 1.0, wall_pattern)
 
 	## Garage
-	StylizedMesh.add_box(house, Vector3(3.2, 2.4, 4.5), wall.darkened(0.05), Vector3(5.0, 1.2, -0.5), "Garage", true, 0.78)
-	StylizedMesh.add_box(house, Vector3(2.7, 1.85, 0.1), Color(0.22, 0.25, 0.32), Vector3(5.0, 1.1, 1.78), "GarageDoor", false, 0.55)
-	StylizedMesh.add_box(house, Vector3(0.15, 0.15, 0.12), Color(0.7, 0.7, 0.2), Vector3(5.9, 1.1, 1.85), "GarageHandle", false, 0.4)
+	StylizedMesh.add_box(house, Vector3(3.2, 2.4, 4.5), wall.darkened(0.05), Vector3(5.0, 1.2, -0.5), "Garage", true, 1.0, wall_pattern)
+	StylizedMesh.add_box(house, Vector3(2.7, 1.85, 0.1), WorldPalette.ROAD, Vector3(5.0, 1.1, 1.78), "GarageDoor")
+	StylizedMesh.add_box(house, Vector3(0.15, 0.15, 0.12), WorldPalette.FLOWER_Y, Vector3(5.9, 1.1, 1.85), "GarageHandle")
 
 	## Porch
-	StylizedMesh.add_box(house, Vector3(3.6, 0.22, 1.9), Color(0.62, 0.52, 0.38), Vector3(0, 0.2, 3.6), "Porch", true, 0.75)
-	var post_color := Color(0.88, 0.88, 0.82) if style != &"modern" else Color(0.35, 0.38, 0.45)
-	StylizedMesh.add_cylinder(house, 0.1, 2.0, post_color, Vector3(-1.35, 1.2, 4.25), "PorchPostL", true, 12, 0.55)
-	StylizedMesh.add_cylinder(house, 0.1, 2.0, post_color, Vector3(1.35, 1.2, 4.25), "PorchPostR", true, 12, 0.55)
-	StylizedMesh.add_box(house, Vector3(3.7, 0.14, 2.05), roof_c, Vector3(0, 2.25, 3.6), "PorchRoof", false, 0.68)
+	StylizedMesh.add_box(house, Vector3(3.6, 0.22, 1.9), WorldPalette.WOOD, Vector3(0, 0.2, 3.6), "Porch", true, 1.0, &"wood")
+	var post_color := WorldPalette.WALL_CREAM if style != &"modern" else WorldPalette.METAL
+	StylizedMesh.add_box(house, Vector3(0.18, 2.0, 0.18), post_color, Vector3(-1.35, 1.2, 4.25), "PorchPostL", true)
+	StylizedMesh.add_box(house, Vector3(0.18, 2.0, 0.18), post_color, Vector3(1.35, 1.2, 4.25), "PorchPostR", true)
+	StylizedMesh.add_box(house, Vector3(3.7, 0.14, 2.05), roof_c, Vector3(0, 2.25, 3.6), "PorchRoof", false, 1.0, &"wood")
 
 	## Roof (named Roof for enterable fade) + eaves / gutters
 	var roof_mi := MeshInstance3D.new()
@@ -390,22 +399,22 @@ static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 	if enterable:
 		roof_mi.material_override = StylizedMesh.make_transparent_material(roof_c)
 	else:
-		roof_mi.material_override = StylizedMesh.make_material(roof_c, 0.68)
+		roof_mi.material_override = StylizedMesh.make_material(roof_c, 1.0, 0.0, 0.0, &"wood")
 	roof_mi.position = Vector3(0, 3.72, 0)
 	house.add_child(roof_mi)
-	StylizedMesh.add_box(house, Vector3(5.2, 0.85, 4.6), roof_c.darkened(0.1), Vector3(0, 4.28, 0), "RoofPeak", false, 0.68)
-	StylizedMesh.add_box(house, Vector3(8.7, 0.08, 0.12), Color(0.45, 0.45, 0.48), Vector3(0, 3.35, 3.55), "GutterF", false, 0.4)
-	StylizedMesh.add_box(house, Vector3(8.7, 0.08, 0.12), Color(0.45, 0.45, 0.48), Vector3(0, 3.35, -3.55), "GutterB", false, 0.4)
-	StylizedMesh.add_cylinder(house, 0.05, 3.2, Color(0.45, 0.45, 0.48), Vector3(-4.1, 1.7, 3.5), "Downspout", false, 8, 0.4)
+	StylizedMesh.add_box(house, Vector3(5.2, 0.85, 4.6), roof_c.darkened(0.1), Vector3(0, 4.28, 0), "RoofPeak", false, 1.0, &"wood")
+	StylizedMesh.add_box(house, Vector3(8.7, 0.08, 0.12), WorldPalette.METAL, Vector3(0, 3.35, 3.55), "GutterF")
+	StylizedMesh.add_box(house, Vector3(8.7, 0.08, 0.12), WorldPalette.METAL, Vector3(0, 3.35, -3.55), "GutterB")
+	StylizedMesh.add_box(house, Vector3(0.1, 3.2, 0.1), WorldPalette.METAL, Vector3(-4.1, 1.7, 3.5), "Downspout")
 
 	## Chimney with cap
-	StylizedMesh.add_box(house, Vector3(0.75, 1.5, 0.75), Color(0.48, 0.32, 0.26), Vector3(-2.5, 4.65, -1.5), "Chimney", true, 0.75)
-	StylizedMesh.add_box(house, Vector3(0.95, 0.12, 0.95), Color(0.35, 0.32, 0.3), Vector3(-2.5, 5.4, -1.5), "ChimneyCap", false, 0.55)
+	StylizedMesh.add_box(house, Vector3(0.75, 1.5, 0.75), WorldPalette.BRICK, Vector3(-2.5, 4.65, -1.5), "Chimney", true, 1.0, &"brick")
+	StylizedMesh.add_box(house, Vector3(0.95, 0.12, 0.95), WorldPalette.ROCK, Vector3(-2.5, 5.4, -1.5), "ChimneyCap")
 
 	## Door with frame + knob
-	StylizedMesh.add_box(house, Vector3(1.35, 2.25, 0.08), Color(0.55, 0.42, 0.28), Vector3(0, 1.2, 3.12), "DoorFrame", false, 0.7)
-	StylizedMesh.add_box(house, Vector3(1.1, 2.05, 0.1), Color(0.30, 0.18, 0.12), Vector3(0, 1.15, 3.16), "Door", false, 0.65)
-	StylizedMesh.add_sphere(house, 0.05, Color(0.85, 0.75, 0.3), Vector3(0.4, 1.15, 3.25), "Knob", 8, 6, 0.3)
+	StylizedMesh.add_box(house, Vector3(1.35, 2.25, 0.08), WorldPalette.WOOD, Vector3(0, 1.2, 3.12), "DoorFrame", false, 1.0, &"wood")
+	StylizedMesh.add_box(house, Vector3(1.1, 2.05, 0.1), WorldPalette.WOOD.darkened(0.25), Vector3(0, 1.15, 3.16), "Door", false, 1.0, &"wood")
+	StylizedMesh.add_box(house, Vector3(0.1, 0.1, 0.1), WorldPalette.FLOWER_Y, Vector3(0.4, 1.15, 3.25), "Knob")
 
 	## Windows with glass
 	StylizedMesh.add_window_pane(house, Vector3(1.25, 1.05, 0.08), Vector3(-2.2, 2.0, 3.14), "WinL")
@@ -414,8 +423,8 @@ static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 	StylizedMesh.add_window_pane(house, Vector3(0.9, 0.8, 0.08), Vector3(2.2, 2.0, -3.14), "WinBackR")
 
 	## Mailbox
-	StylizedMesh.add_cylinder(house, 0.05, 0.85, Color(0.35, 0.35, 0.38), Vector3(2.9, 0.42, 5.3), "MailPost", true, 8, 0.5)
-	StylizedMesh.add_box(house, Vector3(0.4, 0.28, 0.22), Color(0.18, 0.32, 0.62), Vector3(2.9, 0.95, 5.3), "Mailbox", false, 0.55)
+	StylizedMesh.add_box(house, Vector3(0.1, 0.85, 0.1), WorldPalette.METAL, Vector3(2.9, 0.42, 5.3), "MailPost", true)
+	StylizedMesh.add_box(house, Vector3(0.4, 0.28, 0.22), WorldPalette.WINDOW, Vector3(2.9, 0.95, 5.3), "Mailbox")
 
 	_apply_house_style(house, style, wall, roof_c)
 
@@ -464,18 +473,18 @@ static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 	return house
 
 
-static func _add_enterable_shell(house: Node3D, wall: Color) -> void:
+static func _add_enterable_shell(house: Node3D, wall: Color, wall_pattern: StringName = &"flat") -> void:
 	## Perimeter walls with a front doorway. Open top = camera sees furniture when roof fades.
-	StylizedMesh.add_box(house, Vector3(7.5, 3.2, 0.22), wall, Vector3(0, 1.7, -3.0), "WallBack", true, 0.78)
-	StylizedMesh.add_box(house, Vector3(0.22, 3.2, 6.0), wall, Vector3(-3.65, 1.7, 0), "WallL", true, 0.78)
-	StylizedMesh.add_box(house, Vector3(0.22, 3.2, 6.0), wall, Vector3(3.65, 1.7, 0), "WallR", true, 0.78)
-	StylizedMesh.add_box(house, Vector3(2.7, 3.2, 0.22), wall, Vector3(-2.4, 1.7, 3.0), "WallF1", true, 0.78)
-	StylizedMesh.add_box(house, Vector3(2.7, 3.2, 0.22), wall, Vector3(2.4, 1.7, 3.0), "WallF2", true, 0.78)
+	StylizedMesh.add_box(house, Vector3(7.5, 3.2, 0.22), wall, Vector3(0, 1.7, -3.0), "WallBack", true, 1.0, wall_pattern)
+	StylizedMesh.add_box(house, Vector3(0.22, 3.2, 6.0), wall, Vector3(-3.65, 1.7, 0), "WallL", true, 1.0, wall_pattern)
+	StylizedMesh.add_box(house, Vector3(0.22, 3.2, 6.0), wall, Vector3(3.65, 1.7, 0), "WallR", true, 1.0, wall_pattern)
+	StylizedMesh.add_box(house, Vector3(2.7, 3.2, 0.22), wall, Vector3(-2.4, 1.7, 3.0), "WallF1", true, 1.0, wall_pattern)
+	StylizedMesh.add_box(house, Vector3(2.7, 3.2, 0.22), wall, Vector3(2.4, 1.7, 3.0), "WallF2", true, 1.0, wall_pattern)
 	## Invisible "Body" placeholder for cutaway API compatibility (no solid block).
 	var body_mark := Node3D.new()
 	body_mark.name = "Body"
 	house.add_child(body_mark)
-	StylizedMesh.add_box(house, Vector3(7.0, 0.08, 5.6), Color(0.58, 0.44, 0.30), Vector3(0, 0.16, 0), "ShellFloor", false, 0.82)
+	StylizedMesh.add_box(house, Vector3(7.0, 0.08, 5.6), WorldPalette.WOOD, Vector3(0, 0.16, 0), "ShellFloor", false, 1.0, &"wood")
 
 
 static func _apply_house_style(house: Node3D, style: StringName, wall: Color, _roof: Color) -> void:
@@ -488,43 +497,43 @@ static func _apply_house_style(house: Node3D, style: StringName, wall: Color, _r
 			StylizedMesh.add_box(house, Vector3(1.4, 0.35, 0.45), Color(0.35, 0.55, 0.3), Vector3(-2.2, 1.2, 3.4), "Planter", false, 0.75)
 		&"cottage":
 			_picket_fence(house, Vector3(0, 0, 5.5), 6)
-			StylizedMesh.add_box(house, Vector3(1.2, 0.3, 0.4), Color(0.4, 0.28, 0.16), Vector3(-2.2, 1.35, 3.35), "FlowerBox", false, 0.75)
-			StylizedMesh.add_sphere(house, 0.15, Color(0.9, 0.35, 0.5), Vector3(-2.2, 1.55, 3.4), "Flower", 8, 6, 0.7)
-			StylizedMesh.add_sphere(house, 0.12, Color(0.95, 0.8, 0.2), Vector3(-1.95, 1.52, 3.4), "Flower2", 8, 6, 0.7)
+			StylizedMesh.add_box(house, Vector3(1.2, 0.3, 0.4), WorldPalette.WOOD, Vector3(-2.2, 1.35, 3.35), "FlowerBox", false, 1.0, &"wood")
+			StylizedMesh.add_box(house, Vector3(0.28, 0.28, 0.28), WorldPalette.FLOWER, Vector3(-2.2, 1.55, 3.4), "Flower")
+			StylizedMesh.add_box(house, Vector3(0.24, 0.24, 0.24), WorldPalette.FLOWER_Y, Vector3(-1.95, 1.52, 3.4), "Flower2")
 		&"colonial":
-			StylizedMesh.add_cylinder(house, 0.14, 2.2, Color(0.9, 0.9, 0.88), Vector3(-1.8, 1.3, 3.9), "ColumnL", true, 12, 0.5)
-			StylizedMesh.add_cylinder(house, 0.14, 2.2, Color(0.9, 0.9, 0.88), Vector3(1.8, 1.3, 3.9), "ColumnR", true, 12, 0.5)
+			StylizedMesh.add_box(house, Vector3(0.26, 2.2, 0.26), WorldPalette.WALL_CREAM, Vector3(-1.8, 1.3, 3.9), "ColumnL", true)
+			StylizedMesh.add_box(house, Vector3(0.26, 2.2, 0.26), WorldPalette.WALL_CREAM, Vector3(1.8, 1.3, 3.9), "ColumnR", true)
 			_shutters(house, Vector3(-2.2, 2.0, 3.2), Color(0.15, 0.2, 0.35))
 			_shutters(house, Vector3(2.2, 2.0, 3.2), Color(0.15, 0.2, 0.35))
 		&"garden":
-			StylizedMesh.add_box(house, Vector3(2.8, 0.3, 1.2), Color(0.4, 0.28, 0.16), Vector3(-3.5, 0.2, 3.8), "GardenBed", true, 0.8)
+			StylizedMesh.add_box(house, Vector3(2.8, 0.3, 1.2), WorldPalette.DIRT, Vector3(-3.5, 0.2, 3.8), "GardenBed", true, 1.0, &"dirt")
 			for i in 4:
-				StylizedMesh.add_sphere(house, 0.18, Color(0.85, 0.3 + float(i) * 0.1, 0.4), Vector3(-4.2 + float(i) * 0.5, 0.5, 3.8), "Bloom", 8, 6, 0.7)
-			StylizedMesh.add_box(house, Vector3(1.6, 1.4, 1.2), Color(0.45, 0.32, 0.18), Vector3(-4.5, 0.8, -2.5), "Shed", true, 0.75)
-			StylizedMesh.add_box(house, Vector3(1.8, 0.2, 1.4), Color(0.3, 0.25, 0.18), Vector3(-4.5, 1.55, -2.5), "ShedRoof", false, 0.7)
+				StylizedMesh.add_box(house, Vector3(0.32, 0.32, 0.32), Color(0.85, 0.3 + float(i) * 0.1, 0.4), Vector3(-4.2 + float(i) * 0.5, 0.5, 3.8), "Bloom")
+			StylizedMesh.add_box(house, Vector3(1.6, 1.4, 1.2), WorldPalette.WOOD, Vector3(-4.5, 0.8, -2.5), "Shed", true, 1.0, &"wood")
+			StylizedMesh.add_box(house, Vector3(1.8, 0.2, 1.4), WorldPalette.WOOD.darkened(0.15), Vector3(-4.5, 1.55, -2.5), "ShedRoof", false, 1.0, &"wood")
 		&"modern":
-			StylizedMesh.add_box(house, Vector3(3.2, 1.4, 0.12), Color(0.2, 0.22, 0.28), Vector3(-1.5, 2.2, 3.18), "RibbonWinFrame", false, 0.45)
+			StylizedMesh.add_box(house, Vector3(3.2, 1.4, 0.12), WorldPalette.ROAD, Vector3(-1.5, 2.2, 3.18), "RibbonWinFrame")
 			var glass := MeshInstance3D.new()
 			glass.name = "RibbonGlass"
 			var gm := BoxMesh.new()
 			gm.size = Vector3(3.0, 1.2, 0.06)
 			glass.mesh = gm
-			glass.material_override = StylizedMesh.make_glass_material(Color(0.4, 0.7, 0.95, 0.65))
+			glass.material_override = StylizedMesh.make_glass_material(WorldPalette.WINDOW)
 			glass.position = Vector3(-1.5, 2.2, 3.22)
 			house.add_child(glass)
-			StylizedMesh.add_box(house, Vector3(2.0, 0.08, 1.2), Color(0.15, 0.15, 0.18), Vector3(2.5, 4.6, 0), "Solar", false, 0.35)
+			StylizedMesh.add_box(house, Vector3(2.0, 0.08, 1.2), WorldPalette.UI_INK, Vector3(2.5, 4.6, 0), "Solar")
 		&"bungalow":
-			StylizedMesh.add_box(house, Vector3(2.0, 0.5, 1.0), Color(0.55, 0.4, 0.28), Vector3(3.5, 0.35, 4.0), "PorchSwing", false, 0.7)
-			StylizedMesh.add_sphere(house, 0.35, Color(0.2, 0.5, 0.25), Vector3(-4.0, 0.4, 2.0), "Bush", 10, 8, 0.85)
+			StylizedMesh.add_box(house, Vector3(2.0, 0.5, 1.0), WorldPalette.WOOD, Vector3(3.5, 0.35, 4.0), "PorchSwing", false, 1.0, &"wood")
+			StylizedMesh.add_box(house, Vector3(0.7, 0.55, 0.7), WorldPalette.BUSH, Vector3(-4.0, 0.35, 2.0), "Bush", false, 1.0, &"grass")
 		&"ranch":
-			StylizedMesh.add_box(house, Vector3(1.4, 0.9, 0.5), Color(0.2, 0.25, 0.3), Vector3(-3.5, 0.5, 4.5), "BikeRack", false, 0.5)
-			StylizedMesh.add_cylinder(house, 0.28, 0.08, Color(0.15, 0.15, 0.15), Vector3(-3.2, 0.35, 4.5), "Wheel", false, 12, 0.4)
-			StylizedMesh.add_box(house, Vector3(1.6, 0.06, 0.9), Color(0.25, 0.28, 0.35), Vector3(2.0, 4.55, 0.5), "SolarPanel", false, 0.35)
+			StylizedMesh.add_box(house, Vector3(1.4, 0.9, 0.5), WorldPalette.METAL, Vector3(-3.5, 0.5, 4.5), "BikeRack")
+			StylizedMesh.add_box(house, Vector3(0.5, 0.12, 0.5), WorldPalette.UI_INK, Vector3(-3.2, 0.35, 4.5), "Wheel")
+			StylizedMesh.add_box(house, Vector3(1.6, 0.06, 0.9), WorldPalette.METAL.darkened(0.2), Vector3(2.0, 4.55, 0.5), "SolarPanel")
 		&"victorian":
-			StylizedMesh.add_box(house, Vector3(0.15, 2.2, 1.4), Color(0.55, 0.4, 0.65), Vector3(-3.9, 1.2, 2.5), "Trellis", false, 0.7)
-			StylizedMesh.add_sphere(house, 0.2, Color(0.85, 0.4, 0.7), Vector3(-3.9, 1.8, 2.2), "Rose", 8, 6, 0.65)
-			StylizedMesh.add_cylinder(house, 0.45, 0.25, Color(0.55, 0.55, 0.6), Vector3(3.8, 0.2, 4.2), "BirdBath", true, 12, 0.45)
-			StylizedMesh.add_cylinder(house, 0.12, 0.7, Color(0.5, 0.5, 0.55), Vector3(3.8, 0.55, 4.2), "BathStem", false, 8, 0.45)
+			StylizedMesh.add_box(house, Vector3(0.15, 2.2, 1.4), Color(0.55, 0.4, 0.65), Vector3(-3.9, 1.2, 2.5), "Trellis")
+			StylizedMesh.add_box(house, Vector3(0.32, 0.32, 0.32), WorldPalette.FLOWER, Vector3(-3.9, 1.8, 2.2), "Rose")
+			StylizedMesh.add_box(house, Vector3(0.85, 0.25, 0.85), WorldPalette.METAL, Vector3(3.8, 0.2, 4.2), "BirdBath", true)
+			StylizedMesh.add_box(house, Vector3(0.22, 0.7, 0.22), WorldPalette.METAL, Vector3(3.8, 0.55, 4.2), "BathStem")
 		_:
 			pass
 
@@ -566,13 +575,13 @@ static func _fence_line(parent: Node3D, a: Vector3, b: Vector3, posts: int) -> v
 	for i in range(posts):
 		var t := float(i) / float(maxi(posts - 1, 1))
 		var p := a.lerp(b, t)
-		StylizedMesh.add_box(parent, Vector3(0.12, 0.95, 0.12), Color(0.72, 0.72, 0.68), p + Vector3(0, 0.48, 0), "FencePost", true, 0.7)
+		StylizedMesh.add_box(parent, Vector3(0.12, 0.95, 0.12), WorldPalette.FENCE, p + Vector3(0, 0.48, 0), "FencePost", true)
 	var mid := a.lerp(b, 0.5)
 	var length := a.distance_to(b)
 	var delta := b - a
 	var rail_size := Vector3(length, 0.08, 0.08) if absf(delta.x) >= absf(delta.z) else Vector3(0.08, 0.08, length)
-	StylizedMesh.add_box(parent, rail_size, Color(0.68, 0.68, 0.64), mid + Vector3(0, 0.75, 0), "FenceRail", false, 0.7)
-	StylizedMesh.add_box(parent, rail_size, Color(0.68, 0.68, 0.64), mid + Vector3(0, 0.4, 0), "FenceRailLow", false, 0.7)
+	StylizedMesh.add_box(parent, rail_size, WorldPalette.FENCE.darkened(0.08), mid + Vector3(0, 0.75, 0), "FenceRail")
+	StylizedMesh.add_box(parent, rail_size, WorldPalette.FENCE.darkened(0.08), mid + Vector3(0, 0.4, 0), "FenceRailLow")
 
 
 static func _add_vegetation(root: Node3D) -> void:
@@ -626,8 +635,8 @@ static func _add_vegetation(root: Node3D) -> void:
 	for i in 10:
 		var a := float(i) * 1.7
 		var pos := Vector3(cos(a) * (10 + float(i)), 0.08, sin(a) * (8 + float(i % 4) * 2))
-		var c := Color(0.5, 0.48, 0.45).darkened(0.05 * float(i % 3))
-		StylizedMesh.add_box(rocks, Vector3(0.4 + float(i % 3) * 0.15, 0.2 + float(i % 2) * 0.1, 0.35), c, pos, "Rock_%d" % i, false, 0.9)
+		var c := WorldPalette.ROCK.darkened(0.05 * float(i % 3))
+		StylizedMesh.add_box(rocks, Vector3(0.4 + float(i % 3) * 0.15, 0.2 + float(i % 2) * 0.1, 0.35), c, pos, "Rock_%d" % i)
 
 	var leaves := Node3D.new()
 	leaves.name = "FallenLeaves"
@@ -644,28 +653,30 @@ static func _add_vegetation(root: Node3D) -> void:
 
 
 static func _tree(parent: Node3D, pos: Vector3, kind: StringName, scale_v: float, idx: int) -> void:
+	## Chunky low-poly pixel trees — boxes/tapered stacks, not soft multi-sphere clay.
 	var tree := Node3D.new()
 	tree.name = "Tree_%d" % idx
 	tree.position = pos
 	tree.rotation_degrees.y = float(idx * 37 % 360)
 	parent.add_child(tree)
-	var trunk_c := Color(0.40, 0.26, 0.14) if kind != &"pine" else Color(0.35, 0.24, 0.14)
-	StylizedMesh.add_cylinder(tree, 0.2 * scale_v, 1.7 * scale_v, trunk_c, Vector3(0, 0.85 * scale_v, 0), "Trunk", true, 12, 0.8)
+	var trunk_c := WorldPalette.TRUNK
+	var tw := 0.36 * scale_v
+	StylizedMesh.add_box(tree, Vector3(tw, 1.7 * scale_v, tw), trunk_c, Vector3(0, 0.85 * scale_v, 0), "Trunk", true, 1.0, &"wood")
 	match kind:
 		&"pine":
-			var leaf := Color(0.18, 0.42, 0.24)
-			StylizedMesh.add_cylinder(tree, 1.0 * scale_v, 1.4 * scale_v, leaf, Vector3(0, 2.0 * scale_v, 0), "Canopy1", false, 10, 0.85)
-			StylizedMesh.add_cylinder(tree, 0.7 * scale_v, 1.1 * scale_v, leaf.lightened(0.05), Vector3(0, 2.9 * scale_v, 0), "Canopy2", false, 10, 0.85)
-			StylizedMesh.add_cylinder(tree, 0.4 * scale_v, 0.8 * scale_v, leaf.lightened(0.1), Vector3(0, 3.6 * scale_v, 0), "Canopy3", false, 10, 0.85)
+			var leaf := WorldPalette.LEAF_DARK
+			StylizedMesh.add_box(tree, Vector3(1.8 * scale_v, 1.1 * scale_v, 1.8 * scale_v), leaf, Vector3(0, 2.0 * scale_v, 0), "Canopy1", false, 1.0, &"grass")
+			StylizedMesh.add_box(tree, Vector3(1.3 * scale_v, 0.95 * scale_v, 1.3 * scale_v), leaf.lightened(0.05), Vector3(0, 2.85 * scale_v, 0), "Canopy2", false, 1.0, &"grass")
+			StylizedMesh.add_box(tree, Vector3(0.75 * scale_v, 0.7 * scale_v, 0.75 * scale_v), leaf.lightened(0.1), Vector3(0, 3.5 * scale_v, 0), "Canopy3", false, 1.0, &"grass")
 		&"oak":
-			var leaf := Color(0.22, 0.52, 0.26) if idx % 2 == 0 else Color(0.26, 0.58, 0.30)
-			StylizedMesh.add_sphere(tree, 1.2 * scale_v, leaf, Vector3(0, 2.4 * scale_v, 0), "Canopy", 14, 10, 0.85)
-			StylizedMesh.add_sphere(tree, 0.85 * scale_v, leaf.lightened(0.06), Vector3(0.45 * scale_v, 2.7 * scale_v, 0.25), "Canopy2", 12, 8, 0.85)
-			StylizedMesh.add_sphere(tree, 0.7 * scale_v, leaf.darkened(0.05), Vector3(-0.4 * scale_v, 2.5 * scale_v, -0.3), "Canopy3", 12, 8, 0.85)
+			var leaf := WorldPalette.LEAF if idx % 2 == 0 else WorldPalette.LEAF_LIT
+			StylizedMesh.add_box(tree, Vector3(2.1 * scale_v, 1.5 * scale_v, 2.1 * scale_v), leaf, Vector3(0, 2.35 * scale_v, 0), "Canopy", false, 1.0, &"grass")
+			StylizedMesh.add_box(tree, Vector3(1.2 * scale_v, 1.0 * scale_v, 1.2 * scale_v), leaf.lightened(0.06), Vector3(0.55 * scale_v, 2.85 * scale_v, 0.2), "Canopy2", false, 1.0, &"grass")
+			StylizedMesh.add_box(tree, Vector3(1.0 * scale_v, 0.9 * scale_v, 1.0 * scale_v), leaf.darkened(0.05), Vector3(-0.5 * scale_v, 2.55 * scale_v, -0.25), "Canopy3", false, 1.0, &"grass")
 		_:
-			var leaf := Color(0.28, 0.60, 0.32)
-			StylizedMesh.add_sphere(tree, 1.05 * scale_v, leaf, Vector3(0, 2.2 * scale_v, 0), "Canopy", 14, 10, 0.85)
-			StylizedMesh.add_sphere(tree, 0.65 * scale_v, leaf.lightened(0.08), Vector3(0.35 * scale_v, 2.5 * scale_v, 0.15), "Canopy2", 12, 8, 0.85)
+			var leaf := WorldPalette.LEAF_LIT
+			StylizedMesh.add_box(tree, Vector3(1.8 * scale_v, 1.35 * scale_v, 1.8 * scale_v), leaf, Vector3(0, 2.15 * scale_v, 0), "Canopy", false, 1.0, &"grass")
+			StylizedMesh.add_box(tree, Vector3(1.0 * scale_v, 0.85 * scale_v, 1.0 * scale_v), leaf.lightened(0.08), Vector3(0.4 * scale_v, 2.55 * scale_v, 0.15), "Canopy2", false, 1.0, &"grass")
 
 
 static func _bush(parent: Node3D, pos: Vector3, idx: int) -> void:
@@ -673,20 +684,20 @@ static func _bush(parent: Node3D, pos: Vector3, idx: int) -> void:
 	b.name = "Bush_%d" % idx
 	b.position = pos
 	parent.add_child(b)
-	var c := Color(0.18, 0.48, 0.22) if idx % 2 == 0 else Color(0.22, 0.52, 0.26)
-	var s := 0.55 + float(idx % 3) * 0.12
-	StylizedMesh.add_sphere(b, s, c, Vector3(0, s * 0.7, 0), "A", 10, 8, 0.88)
-	StylizedMesh.add_sphere(b, s * 0.75, c.lightened(0.06), Vector3(s * 0.45, s * 0.55, 0.1), "B", 10, 8, 0.88)
+	var c := WorldPalette.BUSH if idx % 2 == 0 else WorldPalette.LEAF
+	var s := 0.7 + float(idx % 3) * 0.15
+	StylizedMesh.add_box(b, Vector3(s, s * 0.85, s), c, Vector3(0, s * 0.4, 0), "A", false, 1.0, &"grass")
+	StylizedMesh.add_box(b, Vector3(s * 0.7, s * 0.65, s * 0.7), c.lightened(0.06), Vector3(s * 0.35, s * 0.35, 0.08), "B", false, 1.0, &"grass")
 
 
 static func _flower_bed(parent: Node3D, pos: Vector3) -> void:
 	var bed := Node3D.new()
 	bed.position = pos
 	parent.add_child(bed)
-	StylizedMesh.add_box(bed, Vector3(2.6, 0.22, 1.0), Color(0.38, 0.26, 0.16), Vector3(0, 0.15, 0), "Bed", true, 0.8)
-	var colors := [Color(0.9, 0.35, 0.5), Color(0.95, 0.8, 0.2), Color(0.4, 0.55, 0.95), Color(0.85, 0.45, 0.85)]
+	StylizedMesh.add_box(bed, Vector3(2.6, 0.22, 1.0), WorldPalette.DIRT, Vector3(0, 0.15, 0), "Bed", true, 1.0, &"dirt")
+	var colors := [WorldPalette.FLOWER, WorldPalette.FLOWER_Y, WorldPalette.WINDOW, Color(0.85, 0.45, 0.85)]
 	for i in 4:
-		StylizedMesh.add_sphere(bed, 0.2, colors[i], Vector3(-0.9 + float(i) * 0.55, 0.42, 0.0), "Flower", 8, 6, 0.65)
+		StylizedMesh.add_box(bed, Vector3(0.32, 0.32, 0.32), colors[i], Vector3(-0.9 + float(i) * 0.55, 0.42, 0.0), "Flower")
 
 
 # --- Street furniture / cars -------------------------------------------------
@@ -727,17 +738,18 @@ static func _street_lamp(parent: Node3D, pos: Vector3, with_light: bool) -> void
 	var lamp := Node3D.new()
 	lamp.position = pos
 	parent.add_child(lamp)
-	StylizedMesh.add_cylinder(lamp, 0.11, 3.4, Color(0.32, 0.32, 0.36), Vector3(0, 1.7, 0), "Pole", true, 12, 0.45)
-	StylizedMesh.add_box(lamp, Vector3(0.9, 0.12, 0.28), Color(0.28, 0.28, 0.3), Vector3(0, 3.35, 0.15), "Arm", false, 0.45)
-	var bulb := StylizedMesh.add_sphere(lamp, 0.2, Color(1.0, 0.95, 0.75), Vector3(0, 3.2, 0.4), "Bulb", 10, 8, 0.25)
-	bulb.material_override = StylizedMesh.make_material(Color(1.0, 0.95, 0.7), 0.3, 0.0, 0.8)
+	StylizedMesh.add_box(lamp, Vector3(0.2, 3.4, 0.2), WorldPalette.METAL, Vector3(0, 1.7, 0), "Pole", true)
+	StylizedMesh.add_box(lamp, Vector3(0.9, 0.12, 0.28), WorldPalette.METAL.darkened(0.1), Vector3(0, 3.35, 0.15), "Arm")
+	var bulb := StylizedMesh.add_box(lamp, Vector3(0.32, 0.32, 0.32), WorldPalette.LAMP_GLOW, Vector3(0, 3.2, 0.4), "Bulb")
+	if bulb is MeshInstance3D:
+		(bulb as MeshInstance3D).material_override = StylizedMesh.make_material(WorldPalette.LAMP_GLOW, 1.0, 0.0, 0.35)
 	if with_light:
 		var light := OmniLight3D.new()
 		light.name = "LampLight"
 		light.position = Vector3(0, 3.1, 0.4)
-		light.light_color = Color(1.0, 0.92, 0.7)
-		light.light_energy = 0.55
-		light.omni_range = 8.0
+		light.light_color = WorldPalette.LAMP_GLOW
+		light.light_energy = 0.35
+		light.omni_range = 6.5
 		light.shadow_enabled = false
 		lamp.add_child(light)
 
@@ -747,10 +759,10 @@ static func _bench(parent: Node3D, pos: Vector3, yaw: float) -> void:
 	b.position = pos
 	b.rotation_degrees.y = yaw
 	parent.add_child(b)
-	StylizedMesh.add_box(b, Vector3(1.9, 0.12, 0.52), Color(0.48, 0.30, 0.16), Vector3(0, 0.45, 0), "Seat", false, 0.72)
-	StylizedMesh.add_box(b, Vector3(1.9, 0.55, 0.1), Color(0.48, 0.30, 0.16), Vector3(0, 0.72, -0.22), "Back", false, 0.72)
-	StylizedMesh.add_box(b, Vector3(0.12, 0.45, 0.42), Color(0.28, 0.28, 0.3), Vector3(-0.75, 0.22, 0), "LegL", true, 0.5)
-	StylizedMesh.add_box(b, Vector3(0.12, 0.45, 0.42), Color(0.28, 0.28, 0.3), Vector3(0.75, 0.22, 0), "LegR", true, 0.5)
+	StylizedMesh.add_box(b, Vector3(1.9, 0.12, 0.52), WorldPalette.WOOD, Vector3(0, 0.45, 0), "Seat", false, 1.0, &"wood")
+	StylizedMesh.add_box(b, Vector3(1.9, 0.55, 0.1), WorldPalette.WOOD, Vector3(0, 0.72, -0.22), "Back", false, 1.0, &"wood")
+	StylizedMesh.add_box(b, Vector3(0.12, 0.45, 0.42), WorldPalette.METAL, Vector3(-0.75, 0.22, 0), "LegL", true)
+	StylizedMesh.add_box(b, Vector3(0.12, 0.45, 0.42), WorldPalette.METAL, Vector3(0.75, 0.22, 0), "LegR", true)
 
 
 static func _utility_pole(parent: Node3D, pos: Vector3) -> void:
@@ -798,8 +810,8 @@ static func _car(parent: Node3D, pos: Vector3, yaw: float, color: Color, idx: in
 	car.position = pos
 	car.rotation_degrees.y = yaw
 	parent.add_child(car)
-	StylizedMesh.add_box(car, Vector3(1.8, 0.55, 3.6), color, Vector3(0, 0.45, 0), "Body", true, 0.45)
-	StylizedMesh.add_box(car, Vector3(1.6, 0.5, 1.8), color.lightened(0.08), Vector3(0, 0.95, -0.2), "Cabin", false, 0.45)
+	StylizedMesh.add_box(car, Vector3(1.8, 0.55, 3.6), color, Vector3(0, 0.45, 0), "Body", true)
+	StylizedMesh.add_box(car, Vector3(1.6, 0.5, 1.8), color.lightened(0.08), Vector3(0, 0.95, -0.2), "Cabin")
 	## Windows
 	var win := MeshInstance3D.new()
 	win.name = "Windshield"
@@ -809,11 +821,11 @@ static func _car(parent: Node3D, pos: Vector3, yaw: float, color: Color, idx: in
 	win.material_override = StylizedMesh.make_glass_material()
 	win.position = Vector3(0, 0.95, 0.7)
 	car.add_child(win)
-	## Wheels
+	## Wheels — chunky boxes, not smooth cylinders
 	for wp in [Vector3(-0.85, 0.28, 1.1), Vector3(0.85, 0.28, 1.1), Vector3(-0.85, 0.28, -1.1), Vector3(0.85, 0.28, -1.1)]:
-		StylizedMesh.add_cylinder(car, 0.28, 0.18, Color(0.12, 0.12, 0.12), wp, "Wheel", false, 10, 0.7)
-	StylizedMesh.add_box(car, Vector3(0.25, 0.12, 0.15), Color(0.95, 0.9, 0.6), Vector3(-0.6, 0.45, 1.8), "HeadL", false, 0.3)
-	StylizedMesh.add_box(car, Vector3(0.25, 0.12, 0.15), Color(0.95, 0.9, 0.6), Vector3(0.6, 0.45, 1.8), "HeadR", false, 0.3)
+		StylizedMesh.add_box(car, Vector3(0.22, 0.45, 0.45), Color(0.12, 0.12, 0.12), wp, "Wheel")
+	StylizedMesh.add_box(car, Vector3(0.25, 0.12, 0.15), WorldPalette.LAMP_GLOW, Vector3(-0.6, 0.45, 1.8), "HeadL")
+	StylizedMesh.add_box(car, Vector3(0.25, 0.12, 0.15), WorldPalette.LAMP_GLOW, Vector3(0.6, 0.45, 1.8), "HeadR")
 
 
 # --- Gameplay props (contracts preserved) ------------------------------------

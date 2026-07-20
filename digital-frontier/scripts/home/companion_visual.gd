@@ -365,12 +365,13 @@ func _build_sparkbit() -> void:
 
 
 func _build_aura() -> void:
+	## Soft presence only — no AAA bloom orb.
 	_aura = OmniLight3D.new()
 	_aura.name = "CompanionAura"
 	_aura.position = Vector3(0, 0.55, 0)
 	_aura.light_color = core_color
-	_aura.light_energy = 0.55
-	_aura.omni_range = 2.2
+	_aura.light_energy = 0.18
+	_aura.omni_range = 1.4
 	_aura.shadow_enabled = false
 	add_child(_aura)
 
@@ -431,10 +432,10 @@ func _sphere(radius: float, color: Color, pos: Vector3, node_name: String) -> Me
 	var mesh := SphereMesh.new()
 	mesh.radius = radius
 	mesh.height = radius * 2.0
-	mesh.radial_segments = 12
-	mesh.rings = 7
+	mesh.radial_segments = 8
+	mesh.rings = 5
 	mi.mesh = mesh
-	mi.material_override = StylizedMesh.make_material(color, 0.6)
+	mi.material_override = StylizedMesh.make_material(color, 1.0)
 	mi.position = pos
 	_root.add_child(mi)
 	return mi

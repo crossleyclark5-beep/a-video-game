@@ -219,18 +219,19 @@ func _update_hint() -> void:
 
 
 func _apply_device_chrome() -> void:
+	## Square ink/paper handheld chrome — matches adventure Field Unit.
 	var panel_style := StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.08, 0.1, 0.16, 0.88)
-	panel_style.set_corner_radius_all(8)
+	panel_style.bg_color = WorldPalette.UI_PAPER
+	panel_style.set_corner_radius_all(0)
 	panel_style.content_margin_left = 4
 	panel_style.content_margin_right = 4
 	panel_style.content_margin_top = 4
 	panel_style.content_margin_bottom = 4
-	panel_style.border_width_left = 2
-	panel_style.border_width_right = 2
-	panel_style.border_width_top = 2
-	panel_style.border_width_bottom = 2
-	panel_style.border_color = Color(0.35, 0.7, 0.65, 0.55)
+	panel_style.border_width_left = 3
+	panel_style.border_width_right = 3
+	panel_style.border_width_top = 3
+	panel_style.border_width_bottom = 3
+	panel_style.border_color = WorldPalette.UI_BORDER
 
 	for path in ["TopBar", "NeedsPanel", "BottomBar", "InventoryPanel"]:
 		var node := get_node_or_null(path) as PanelContainer
@@ -238,25 +239,25 @@ func _apply_device_chrome() -> void:
 			node.add_theme_stylebox_override("panel", panel_style.duplicate())
 
 	_normal_btn_style = StyleBoxFlat.new()
-	_normal_btn_style.bg_color = Color(0.16, 0.22, 0.34, 0.95)
-	_normal_btn_style.set_corner_radius_all(6)
+	_normal_btn_style.bg_color = WorldPalette.UI_INK
+	_normal_btn_style.set_corner_radius_all(0)
 	_normal_btn_style.content_margin_left = 10
 	_normal_btn_style.content_margin_right = 10
 	_normal_btn_style.content_margin_top = 8
 	_normal_btn_style.content_margin_bottom = 8
-	_normal_btn_style.border_width_bottom = 2
-	_normal_btn_style.border_color = Color(0.4, 0.7, 0.85, 0.5)
+	_normal_btn_style.border_width_bottom = 3
+	_normal_btn_style.border_color = WorldPalette.UI_ACCENT
 
 	_focus_style = _normal_btn_style.duplicate()
-	_focus_style.bg_color = Color(0.28, 0.45, 0.42, 0.98)
-	_focus_style.border_color = Color(0.55, 0.95, 0.85, 0.95)
-	_focus_style.border_width_left = 2
-	_focus_style.border_width_right = 2
-	_focus_style.border_width_top = 2
-	_focus_style.border_width_bottom = 2
+	_focus_style.bg_color = WorldPalette.UI_ACCENT
+	_focus_style.border_color = WorldPalette.UI_INK
+	_focus_style.border_width_left = 3
+	_focus_style.border_width_right = 3
+	_focus_style.border_width_top = 3
+	_focus_style.border_width_bottom = 3
 
 	var btn_hover := _normal_btn_style.duplicate()
-	btn_hover.bg_color = Color(0.22, 0.32, 0.48, 0.98)
+	btn_hover.bg_color = WorldPalette.UI_INK.lightened(0.15)
 
 	for button in _find_buttons(self):
 		button.focus_mode = Control.FOCUS_ALL
@@ -264,12 +265,13 @@ func _apply_device_chrome() -> void:
 		button.add_theme_stylebox_override("hover", btn_hover.duplicate())
 		button.add_theme_stylebox_override("pressed", btn_hover.duplicate())
 		button.add_theme_stylebox_override("focus", _focus_style.duplicate())
-		button.add_theme_color_override("font_color", Color(0.88, 0.93, 1.0))
+		button.add_theme_color_override("font_color", WorldPalette.UI_PAPER)
 		button.add_theme_font_size_override("font_size", 16)
 
 	var adv := _focus_style.duplicate()
-	adv.bg_color = Color(0.2, 0.55, 0.55, 0.98)
+	adv.bg_color = WorldPalette.UI_ACCENT
 	_adventure_btn.add_theme_stylebox_override("normal", adv)
+	_adventure_btn.add_theme_color_override("font_color", WorldPalette.UI_INK)
 
 
 func _find_buttons(node: Node) -> Array[Button]:
