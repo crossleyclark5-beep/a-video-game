@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3 uid="uid://creature_pixel_fox"]
+
+[ext_resource type="Script" path="res://resources/definitions/creature_data.gd" id="1_creature"]
+
+[resource]
+script = ExtResource("1_creature")
+id = &"pixel_fox"
+display_name = "Pixel Fox"
+description = "A small digital creature found in starter regions."
+rarity = 0
+base_stats = {
+"hp": 45,
+"attack": 8,
+"defense": 6,
+"speed": 12
+}
+capture_rate = 0.35
+habitat_region_ids = PackedStringArray("starter_plains")

@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3 uid="uid://game_world_scene"]
+
+[ext_resource type="Script" path="res://scenes/world/game_world.gd" id="1_world"]
+
+[node name="GameWorld" type="Node3D"]
+script = ExtResource("1_world")
+
+[node name="HexGridLayer" type="Node3D" parent="."]
+
+[node name="BuildingLayer" type="Node3D" parent="."]
+
+[node name="EntityLayer" type="Node3D" parent="."]
+
+[node name="EffectsLayer" type="Node3D" parent="."]
+
+[node name="CameraRig" type="Node3D" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 12, 12)
+projection = 1
+size = 20.0

@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://template_entity"]
+
+[node name="EntityTemplate" type="CharacterBody3D"]
+collision_layer = 8
+collision_mask = 3
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+
+[node name="VisualRoot" type="Node3D" parent="."]
+
+[node name="InteractionArea" type="Area3D" parent="."]
+collision_layer = 16
+collision_mask = 4
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionArea"]

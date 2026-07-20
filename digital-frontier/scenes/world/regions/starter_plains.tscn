@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://starter_plains_region"]
+
+[node name="StarterPlains" type="Node3D"]
+
+[node name="RegionRoot" type="Node3D" parent="."]
+
+[node name="HexGrid" type="Node3D" parent="RegionRoot"]
+
+[node name="Props" type="Node3D" parent="RegionRoot"]

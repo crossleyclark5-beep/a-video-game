@@ -1,0 +1,26 @@
+# Godot 4
+.godot/
+*.translation
+export_presets.cfg
+
+# Imported assets (keep source assets in assets/)
+*.import
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Build outputs
+build/
+exports/
+*.apk
+*.aab
+*.exe
+*.pck
+*.zip
+
+# Logs and temp
+*.log
+.tmp/

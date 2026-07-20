@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=2 format=3 uid="uid://quest_first_steps"]
+
+[ext_resource type="Script" path="res://resources/definitions/quest_data.gd" id="1_quest"]
+
+[resource]
+script = ExtResource("1_quest")
+id = &"first_steps"
+display_name = "First Steps"
+description = "Meet the village elder and receive your first companion device."
+quest_type = 0
+stages = Array[Dictionary]([{
+"type": "talk",
+"target_id": "elder_mira",
+"count": 1
+}])
+start_npc_id = &"elder_mira"
+turn_in_npc_id = &"elder_mira"

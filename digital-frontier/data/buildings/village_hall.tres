@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="BuildingData" load_steps=2 format=3 uid="uid://building_village_hall"]
+
+[ext_resource type="Script" path="res://resources/definitions/building_data.gd" id="1_building"]
+
+[resource]
+script = ExtResource("1_building")
+id = &"village_hall"
+display_name = "Village Hall"
+description = "The central hub of the starter settlement."
+building_type = 2
+interior_scene_path = "res://scenes/world/buildings/interiors/village_hall_interior.tscn"
+exterior_scene_path = "res://scenes/world/buildings/exteriors/village_hall_exterior.tscn"
+region_id = &"starter_plains"
+hex_coords = Vector3i(4, 0, -4)
+npc_ids = PackedStringArray("elder_mira")

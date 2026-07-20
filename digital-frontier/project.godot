@@ -1,0 +1,69 @@
+; Engine configuration file.
+; Godot 4.7.1 — Digital Frontier
+;
+; See docs/ARCHITECTURE.md for system overview and expansion guidelines.
+
+config_version=5
+
+[application]
+
+config/name="Digital Frontier"
+config/description="A 2.5D top-down hex-world adventure."
+config/version="0.1.0"
+run/main_scene="res://scenes/bootstrap/boot.tscn"
+config/features=PackedStringArray("4.3", "Forward Plus")
+config/icon="res://icon.svg"
+
+[autoload]
+
+EventBus="*res://scripts/autoload/event_bus.gd"
+GameConfig="*res://scripts/autoload/game_config.gd"
+ResourceRegistry="*res://scripts/autoload/resource_registry.gd"
+SceneManager="*res://scripts/autoload/scene_manager.gd"
+SaveManager="*res://scripts/autoload/save_manager.gd"
+AudioManager="*res://scripts/autoload/audio_manager.gd"
+InputManager="*res://scripts/autoload/input_manager.gd"
+WorldManager="*res://scripts/autoload/world_manager.gd"
+InventoryManager="*res://scripts/autoload/inventory_manager.gd"
+QuestManager="*res://scripts/autoload/quest_manager.gd"
+CreatureManager="*res://scripts/autoload/creature_manager.gd"
+NPCManager="*res://scripts/autoload/npc_manager.gd"
+VehicleManager="*res://scripts/autoload/vehicle_manager.gd"
+UIManager="*res://scripts/autoload/ui_manager.gd"
+
+[debug]
+
+gdscript/warnings/untyped_declaration=1
+gdscript/warnings/inferred_declaration=1
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[input]
+
+; Input actions are defined in project settings and mirrored in GameConfig.
+; Gameplay bindings are added when systems are implemented.
+
+[layer_names]
+
+3d_physics/layer_1="world_static"
+3d_physics/layer_2="world_dynamic"
+3d_physics/layer_3="player"
+3d_physics/layer_4="entities"
+3d_physics/layer_5="interactables"
+3d_physics/layer_6="vehicles"
+3d_physics/layer_7="projectiles"
+3d_physics/layer_8="triggers"
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+anti_aliasing/quality/msaa_3d=2
+
+[audio]
+
+buses/default_bus_layout="res://default_bus_layout.tres"

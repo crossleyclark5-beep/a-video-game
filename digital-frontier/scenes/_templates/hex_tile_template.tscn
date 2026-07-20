@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://template_hex_tile"]
+
+[node name="HexTileTemplate" type="Node3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+collision_layer = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]

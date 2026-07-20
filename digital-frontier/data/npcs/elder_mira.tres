@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="NPCData" load_steps=2 format=3 uid="uid://npc_elder_mira"]
+
+[ext_resource type="Script" path="res://resources/definitions/npc_data.gd" id="1_npc"]
+
+[resource]
+script = ExtResource("1_npc")
+id = &"elder_mira"
+display_name = "Elder Mira"
+description = "Village elder and first quest giver."
+role = 2
+dialogue_tree_id = &"elder_mira_intro"
+region_id = &"starter_plains"
+default_hex_coords = Vector3i(4, 0, -4)

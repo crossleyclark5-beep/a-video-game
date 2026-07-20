@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://village_hall_exterior"]
+
+[node name="VillageHallExterior" type="Node3D"]
+
+[node name="MeshRoot" type="Node3D" parent="."]
+
+[node name="EntranceMarker" type="Marker3D" parent="."]

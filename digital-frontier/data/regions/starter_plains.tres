@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="RegionData" load_steps=2 format=3 uid="uid://region_starter_plains"]
+
+[ext_resource type="Script" path="res://resources/definitions/region_data.gd" id="1_region"]
+
+[resource]
+script = ExtResource("1_region")
+id = &"starter_plains"
+display_name = "Starter Plains"
+description = "The first region players explore. Rolling grasslands with scattered settlements."
+hex_width = 16
+hex_height = 16
+hex_size = 1.0
+hex_orientation = &"pointy"
+scene_path = "res://scenes/world/regions/starter_plains.tscn"
+music_track_id = &"music_starter_plains"
+neighbor_regions = PackedStringArray("northern_forest")
+creature_spawn_table_id = &"spawn_starter_plains"
