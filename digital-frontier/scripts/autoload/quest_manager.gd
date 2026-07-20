@@ -14,6 +14,7 @@ func _initialize_manager() -> void:
 	EventBus.location_discovered.connect(_on_location_discovered)
 	EventBus.chest_opened.connect(_on_chest_opened)
 	EventBus.npc_dialogue_ended.connect(_on_npc_talked)
+	EventBus.creature_discovered.connect(_on_creature_discovered)
 	_log("QuestManager initialized")
 
 
@@ -83,7 +84,7 @@ func _offer_followups() -> void:
 	## Side / hidden quests unlock after the tutorial completes (or while active post-start).
 	if not is_quest_completed(&"first_steps"):
 		return
-	for qid in [&"park_explorer", &"secret_seeker", &"spark_snack", &"field_patrol", &"wildlife_watch"]:
+	for qid in [&"park_explorer", &"secret_seeker", &"spark_snack", &"field_patrol", &"wildlife_watch", &"index_novice"]:
 		if not is_quest_active(qid) and not is_quest_completed(qid):
 			start_quest(qid)
 
@@ -235,3 +236,8 @@ func _on_chest_opened(_chest_id: StringName, rarity: StringName) -> void:
 
 func _on_npc_talked(npc_id: StringName) -> void:
 	notify_objective(&"talk", npc_id, 1)
+
+
+func _on_creature_discovered(species_id: StringName, _rarity: int = 0) -> void:
+	notify_objective(&"discover_creature", species_id, 1)
+	notify_objective(&"discover_creature", &"any", 1)

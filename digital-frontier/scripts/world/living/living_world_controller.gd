@@ -20,6 +20,9 @@ var _tick: float = 0.0
 var _rng := RandomNumberGenerator.new()
 var _water_volumes: Array[AABB] = []
 var _spawn_slots: Array[Dictionary] = []  ## precomputed wilderness points
+var _encounters: WorldEncounterDirector = null
+var _boss: RegionBossActor = null
+var _root_encounters: Node3D = null
 
 
 func setup(player: Node3D) -> void:
@@ -37,8 +40,16 @@ func setup(player: Node3D) -> void:
 	_root_aquatic = Node3D.new()
 	_root_aquatic.name = "Aquatics"
 	add_child(_root_aquatic)
+	_root_encounters = Node3D.new()
+	_root_encounters.name = "Encounters"
+	add_child(_root_encounters)
 	_build_spawn_slots()
 	_seed_near_hubs()
+	_spawn_region_boss()
+	_encounters = WorldEncounterDirector.new()
+	_encounters.name = "EncounterDirector"
+	add_child(_encounters)
+	_encounters.setup(_player, self, _root_encounters)
 	call_deferred("_collect_water_volumes")
 
 
@@ -115,17 +126,33 @@ func _build_spawn_slots() -> void:
 
 
 func _seed_near_hubs() -> void:
-	## Immediate life so the world never boots empty near spawn.
+	## Immediate ecosystem life so the world never boots empty near spawn.
 	if _player == null:
 		return
-	_spawn_wildlife_at(_player.global_position + Vector3(12, 0, -8), LivingWorldCatalog.pick_weighted(LivingWorldCatalog.grassland_wildlife(), _rng))
-	_spawn_wildlife_at(_player.global_position + Vector3(-10, 0, 14), LivingWorldCatalog.pick_weighted(LivingWorldCatalog.grassland_wildlife(), _rng))
-	_spawn_wildlife_at(_player.global_position + Vector3(18, 0, 10), LivingWorldCatalog.pick_weighted(LivingWorldCatalog.grassland_wildlife(), _rng))
+	var phase := WorldAtmosphere.current_phase_index()
+	var weather := WorldAtmosphere.current_weather_id()
+	_spawn_eco_at(_player.global_position + Vector3(12, 0, -8), EcosystemCatalog.pick_for_conditions(EcosystemCatalog.grassland_species(), phase, weather, _rng, false), false)
+	_spawn_eco_at(_player.global_position + Vector3(-10, 0, 14), EcosystemCatalog.pick_for_conditions(EcosystemCatalog.grassland_species(), phase, weather, _rng, false), false)
+	_spawn_eco_at(_player.global_position + Vector3(18, 0, 10), EcosystemCatalog.pick_for_conditions(EcosystemCatalog.grassland_species(), phase, weather, _rng, false), false)
+	## Pack pups travel together.
+	var pack := EcosystemCatalog.find_species(&"pack_pup")
+	_spawn_eco_at(_player.global_position + Vector3(22, 0, -16), pack, false)
+	_spawn_eco_at(_player.global_position + Vector3(24, 0, -14), pack, false)
 	## Hostiles farther from park center.
-	_spawn_hostile_at(GrasslandLayout.PLEASANT_PARK + Vector3(70, 0.15, 40), LivingWorldCatalog.pick_weighted(LivingWorldCatalog.grassland_hostiles(), _rng))
-	_spawn_hostile_at(GrasslandLayout.PLEASANT_PARK + Vector3(-55, 0.15, 65), LivingWorldCatalog.pick_weighted(LivingWorldCatalog.grassland_hostiles(), _rng))
+	_spawn_eco_at(GrasslandLayout.PLEASANT_PARK + Vector3(70, 0.15, 40), EcosystemCatalog.pick_for_conditions(EcosystemCatalog.grassland_species(), phase, weather, _rng, true), true)
+	_spawn_eco_at(GrasslandLayout.PLEASANT_PARK + Vector3(-55, 0.15, 65), EcosystemCatalog.pick_for_conditions(EcosystemCatalog.grassland_species(), phase, weather, _rng, true), true)
 	var ranger := LivingWorldCatalog.grassland_npcs()[0]
 	_spawn_npc_at(GrasslandLayout.PLEASANT_PARK + Vector3(16, 0.15, 22), ranger)
+
+
+func _spawn_region_boss() -> void:
+	if bool(WorldManager.get_world_flag(&"boss_hollow_warden_down", false)):
+		return
+	var def := EcosystemCatalog.grassland_boss()
+	_boss = RegionBossActor.new()
+	_boss.name = "HollowWarden"
+	_root_hostiles.add_child(_boss)
+	_boss.setup(def, _player, GrasslandLayout.LANDMARK_PINE_HOLLOW + Vector3(4, 0.15, -3))
 
 
 func _maintain_population() -> void:
@@ -135,11 +162,15 @@ func _maintain_population() -> void:
 	_despawn_far(_root_aquatic, DESPAWN_RADIUS)
 
 	var wildlife_n := _root_wildlife.get_child_count()
-	var hostile_n := _root_hostiles.get_child_count()
+	var hostile_n := _count_non_boss_hostiles()
 	var npc_n := _root_npcs.get_child_count()
 	var aquatic_n := _root_aquatic.get_child_count()
+	var phase := WorldAtmosphere.current_phase_index()
+	var weather := WorldAtmosphere.current_weather_id()
 
-	## Fill toward caps using nearby slots.
+	## Night / storm: slightly higher hostile pressure.
+	var hostile_cap := HOSTILE_CAP + (2 if phase == WorldAtmosphere.Phase.NIGHT or weather == &"storm" else 0)
+
 	var nearby: Array[Dictionary] = []
 	for slot in _spawn_slots:
 		var pos: Vector3 = slot["pos"]
@@ -147,29 +178,33 @@ func _maintain_population() -> void:
 		if d < SPAWN_RADIUS and d > 14.0:
 			nearby.append(slot)
 	if nearby.is_empty():
+		if aquatic_n < AQUATIC_CAP:
+			_fill_aquatics(aquatic_n)
 		return
 	nearby.shuffle()
 
 	for slot in nearby:
-		if wildlife_n >= WILDLIFE_CAP and hostile_n >= HOSTILE_CAP and npc_n >= NPC_CAP:
+		if wildlife_n >= WILDLIFE_CAP and hostile_n >= hostile_cap and npc_n >= NPC_CAP:
 			break
 		var kind: StringName = slot["kind"]
 		var pos2: Vector3 = slot["pos"]
 		if kind == &"wild" and wildlife_n < WILDLIFE_CAP:
+			if weather == &"rain" and _rng.randf() < 0.35:
+				continue  ## Some hide in rain.
 			if _too_close_to_existing(_root_wildlife, pos2, 10.0):
 				continue
-			var def := LivingWorldCatalog.pick_weighted(LivingWorldCatalog.grassland_wildlife(), _rng)
+			var def := EcosystemCatalog.pick_for_conditions(EcosystemCatalog.grassland_species(), phase, weather, _rng, false)
 			if not def.is_empty():
-				_spawn_wildlife_at(pos2, def)
+				_spawn_eco_at(pos2, def, false)
 				wildlife_n += 1
-		elif kind == &"hostile" and hostile_n < HOSTILE_CAP:
+		elif kind == &"hostile" and hostile_n < hostile_cap:
 			if _near_hub(pos2, 48.0):
 				continue
 			if _too_close_to_existing(_root_hostiles, pos2, 16.0):
 				continue
-			var hdef := LivingWorldCatalog.pick_weighted(LivingWorldCatalog.grassland_hostiles(), _rng)
+			var hdef := EcosystemCatalog.pick_for_conditions(EcosystemCatalog.grassland_species(), phase, weather, _rng, true)
 			if not hdef.is_empty():
-				_spawn_hostile_at(pos2, hdef)
+				_spawn_eco_at(pos2, hdef, true)
 				hostile_n += 1
 		elif kind == &"npc" and npc_n < NPC_CAP:
 			if _too_close_to_existing(_root_npcs, pos2, 22.0):
@@ -181,6 +216,15 @@ func _maintain_population() -> void:
 
 	if aquatic_n < AQUATIC_CAP:
 		_fill_aquatics(aquatic_n)
+
+
+func _count_non_boss_hostiles() -> int:
+	var n := 0
+	for child in _root_hostiles.get_children():
+		if child is RegionBossActor:
+			continue
+		n += 1
+	return n
 
 
 func _fill_aquatics(current: int) -> void:
@@ -203,22 +247,25 @@ func _fill_aquatics(current: int) -> void:
 		_spawn_aquatic_at(origin, bounds, def)
 
 
-func _spawn_wildlife_at(pos: Vector3, def: Dictionary) -> void:
+func _spawn_eco_at(pos: Vector3, def: Dictionary, as_hostile: bool) -> void:
 	if def.is_empty():
 		return
-	var actor := WildlifeActor.new()
-	actor.name = "Wildlife_%s" % String(def.get("id", "x"))
-	_root_wildlife.add_child(actor)
+	var actor := EcosystemCreature.new()
+	actor.name = "Eco_%s" % String(def.get("id", "x"))
+	if as_hostile:
+		_root_hostiles.add_child(actor)
+	else:
+		_root_wildlife.add_child(actor)
 	actor.setup(def, _player, pos)
+
+
+func _spawn_wildlife_at(pos: Vector3, def: Dictionary) -> void:
+	## Legacy path — route through ecosystem.
+	_spawn_eco_at(pos, def if def.has("temperament") else EcosystemCatalog.find_species(def.get("id", &"cotton_rabbit")), false)
 
 
 func _spawn_hostile_at(pos: Vector3, def: Dictionary) -> void:
-	if def.is_empty():
-		return
-	var actor := HostileCreatureActor.new()
-	actor.name = "Hostile_%s" % String(def.get("id", "x"))
-	_root_hostiles.add_child(actor)
-	actor.setup(def, _player, pos)
+	_spawn_eco_at(pos, def if def.has("temperament") else EcosystemCatalog.find_species(def.get("id", &"glitchmite")), true)
 
 
 func _spawn_npc_at(pos: Vector3, def: Dictionary) -> void:
@@ -251,6 +298,8 @@ func _despawn_far(root: Node3D, radius: float) -> void:
 	if _player == null:
 		return
 	for child in root.get_children():
+		if child is RegionBossActor:
+			continue
 		if child is Node3D:
 			if _player.global_position.distance_to((child as Node3D).global_position) > radius:
 				child.queue_free()

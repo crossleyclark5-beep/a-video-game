@@ -8,10 +8,11 @@ enum DeviceSheet {
 	MAP,
 	QUESTS,
 	LOG,
+	INDEX,
 	BITS,
 }
 
-const PANEL_ORDER: Array[DeviceSheet] = [DeviceSheet.PACK, DeviceSheet.MAP, DeviceSheet.QUESTS, DeviceSheet.LOG, DeviceSheet.BITS]
+const PANEL_ORDER: Array[DeviceSheet] = [DeviceSheet.PACK, DeviceSheet.MAP, DeviceSheet.QUESTS, DeviceSheet.LOG, DeviceSheet.INDEX, DeviceSheet.BITS]
 
 var _panel: DeviceSheet = DeviceSheet.NONE
 var _root: PanelContainer
@@ -49,6 +50,9 @@ func _ready() -> void:
 	EventBus.companion_noticed.connect(_on_companion_notice)
 	EventBus.player_damaged.connect(_on_player_damaged)
 	EventBus.player_respawned.connect(_on_player_respawned)
+	EventBus.creature_discovered.connect(_on_creature_discovered)
+	EventBus.day_phase_changed.connect(_on_phase_chrome)
+	EventBus.weather_changed.connect(_on_weather_chrome)
 	_refresh()
 
 
@@ -324,6 +328,8 @@ func _panel_title(p: DeviceSheet) -> String:
 			return "◆ QUESTS"
 		DeviceSheet.LOG:
 			return "◆ COLLECTION"
+		DeviceSheet.INDEX:
+			return "◆ INDEX"
 		DeviceSheet.BITS:
 			return "◆ BITS"
 		_:
@@ -353,6 +359,8 @@ func _refresh(_a = null) -> void:
 			_body.text = DFFormat.quest_sheet()
 		DeviceSheet.LOG:
 			_body.text = DFFormat.collection_sheet()
+		DeviceSheet.INDEX:
+			_body.text = DFFormat.creature_index_sheet()
 		DeviceSheet.BITS:
 			_body.text = DFFormat.bits_sheet()
 		_:
@@ -364,7 +372,12 @@ func _refresh_chrome() -> void:
 	_quest_line.text = "Quest · " + QuestManager.get_quest_status_line().split("\n")[0]
 	_companion_line.text = CreatureManager.get_adventure_status_line()
 	var disc := CollectionManager.get_discovery_progress()
-	_companion_line.text += "  ·  Map %d/%d" % [disc.x, disc.y]
+	var idx := CollectionManager.get_creature_index_progress()
+	_companion_line.text += "  ·  Map %d/%d  ·  Index %d/%d" % [disc.x, disc.y, idx.x, idx.y]
+	_companion_line.text += "  ·  %s / %s" % [
+		WorldAtmosphere.phase_label(WorldAtmosphere.current_phase_index()),
+		String(WorldAtmosphere.current_weather_id()).capitalize(),
+	]
 	if _companion and _companion.has_active_notice():
 		_notice_line.visible = true
 		_notice_line.text = _companion.get_notice_prompt()
@@ -392,6 +405,20 @@ func _on_player_damaged(_amount: float, _source: Node = null) -> void:
 func _on_player_respawned(_pos: Vector3 = Vector3.ZERO) -> void:
 	if _health:
 		_on_health_changed(_health.hp, _health.max_hp)
+
+
+func _on_creature_discovered(_id: StringName = &"", _rarity: int = 0) -> void:
+	_refresh_chrome()
+	if _panel == DeviceSheet.INDEX or _panel == DeviceSheet.LOG:
+		_refresh()
+
+
+func _on_phase_chrome(_phase: int = 0) -> void:
+	_refresh_chrome()
+
+
+func _on_weather_chrome(_weather: StringName = &"") -> void:
+	_refresh_chrome()
 
 
 func _on_companion_notice(_id: StringName = &"", _kind: StringName = &"") -> void:
