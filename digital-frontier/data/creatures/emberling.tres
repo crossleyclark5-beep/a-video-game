@@ -51,9 +51,9 @@ care_affinities = {
 "train": 1.2,
 "pet": 1.35
 }
-body_color = Color(0.96, 0.52, 0.22, 1)
-accent_color = Color(0.98, 0.78, 0.28, 1)
-core_color = Color(1, 0.92, 0.75, 1)
+body_color = Color(0.98, 0.55, 0.18, 1)
+accent_color = Color(0.95, 0.88, 0.62, 1)
+core_color = Color(0.98, 0.92, 0.78, 1)
 lore_blurb = "Legend says Emberlings hatch wherever a lonely traveler first feels brave. Their orange scales hold soft pixel-fire — warm to friends, bright against the dark."
 likes = PackedStringArray("Sunny parks", "Treasure hunts", "Belly rubs", "Chasing leaves", "Sharing snacks")
 dislikes = PackedStringArray("Long loneliness", "Cold rain without a coat", "Being ignored", "Empty bowls")

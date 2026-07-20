@@ -214,81 +214,115 @@ func _build_profile(profile: StringName, stage: int) -> void:
 
 
 func _build_emberling(stage: int) -> void:
-	## Scale grows with evolution — silhouette stays the same family.
-	var s := 1.0 + float(stage) * 0.18
+	## Classic companion-dino silhouette: oversized head, cream belly, stubby arms,
+	## thick biped legs, friendly snout. Original Emberling — not franchise IP.
+	var s := 1.0 + float(stage) * 0.16
 	_root.scale = Vector3(s, s, s)
 
-	## Strong legs + round body — readable from top-down handheld camera.
-	_body = _sphere(0.30, body_color, Vector3(0, 0.42, 0), "Body")
-	_body.scale = Vector3(1.05, 1.0, 0.95)
+	var cream := core_color
+	var claw := Color(0.95, 0.92, 0.85)
+	var eye_green := Color(0.22, 0.72, 0.28)
+
+	## Compact oval torso (smaller than the head — chibi read).
+	_body = _sphere(0.26, body_color, Vector3(0, 0.36, 0.02), "Body")
+	_body.scale = Vector3(1.15, 1.05, 1.0)
 	_body.material_override = _body_mat
 
-	_belly = _sphere(0.18, core_color, Vector3(0, 0.38, 0.16), "Belly")
-	_belly.scale = Vector3(1.1, 0.95, 0.55)
-	_belly.material_override = _emit_mat(core_color, 0.25)
+	## Cream belly — strong contrast on a small screen.
+	_belly = _sphere(0.18, cream, Vector3(0, 0.34, 0.14), "Belly")
+	_belly.scale = Vector3(1.05, 1.15, 0.55)
+	_belly.material_override = _emit_mat(cream, 0.15)
 
-	_head = _sphere(0.26, body_color, Vector3(0, 0.78, 0.08), "Head")
-	_head.scale = Vector3(1.05, 0.95, 1.0)
+	## Big rounded head (signature silhouette).
+	_head = _sphere(0.34, body_color, Vector3(0, 0.78, 0.06), "Head")
+	_head.scale = Vector3(1.12, 1.0, 1.05)
 	_head.material_override = _body_mat
 
-	_snout = _sphere(0.11, body_color.lightened(0.08), Vector3(0, 0.70, 0.28), "Snout")
-	_snout.scale = Vector3(0.9, 0.7, 1.1)
+	## Soft muzzle + cream lower jaw.
+	_snout = _sphere(0.14, body_color.lightened(0.05), Vector3(0, 0.68, 0.30), "Snout")
+	_snout.scale = Vector3(1.05, 0.75, 1.15)
+	var jaw := _sphere(0.11, cream, Vector3(0, 0.62, 0.28), "Jaw")
+	jaw.scale = Vector3(0.95, 0.55, 1.0)
+	jaw.material_override = _emit_mat(cream, 0.12)
 
-	## Oversized eyes — mood readable on a small screen.
-	_eye_l = _sphere(0.075, Color(0.08, 0.09, 0.14), Vector3(-0.10, 0.82, 0.26), "EyeL")
-	_eye_r = _sphere(0.075, Color(0.08, 0.09, 0.14), Vector3(0.10, 0.82, 0.26), "EyeR")
-	_sphere(0.025, Color(1, 1, 1), Vector3(-0.08, 0.85, 0.31), "HiliteL")
-	_sphere(0.025, Color(1, 1, 1), Vector3(0.12, 0.85, 0.31), "HiliteR")
+	## Tiny teeth hint (readable smile).
+	var tooth_l := _box(Vector3(0.04, 0.05, 0.03), claw, Vector3(-0.05, 0.64, 0.38), "ToothL")
+	_root.add_child(tooth_l)
+	var tooth_r := _box(Vector3(0.04, 0.05, 0.03), claw, Vector3(0.05, 0.64, 0.38), "ToothR")
+	_root.add_child(tooth_r)
 
-	_cheek_l = _sphere(0.05, Color(1.0, 0.45, 0.35), Vector3(-0.18, 0.72, 0.22), "CheekL")
-	_cheek_r = _sphere(0.05, Color(1.0, 0.45, 0.35), Vector3(0.18, 0.72, 0.22), "CheekR")
+	## Large green eyes — friendly + readable at handheld distance.
+	_eye_l = _sphere(0.09, eye_green, Vector3(-0.12, 0.84, 0.28), "EyeL")
+	_eye_r = _sphere(0.09, eye_green, Vector3(0.12, 0.84, 0.28), "EyeR")
+	_eye_l.material_override = _emit_mat(eye_green, 0.35)
+	_eye_r.material_override = _emit_mat(eye_green, 0.35)
+	_sphere(0.035, Color(0.05, 0.08, 0.1), Vector3(-0.12, 0.84, 0.35), "PupilL")
+	_sphere(0.035, Color(0.05, 0.08, 0.1), Vector3(0.12, 0.84, 0.35), "PupilR")
+	_sphere(0.02, Color(1, 1, 1), Vector3(-0.10, 0.87, 0.36), "HiliteL")
+	_sphere(0.02, Color(1, 1, 1), Vector3(0.14, 0.87, 0.36), "HiliteR")
 
-	## Short arms
-	_arm_l = _capsule(0.045, 0.14, body_color.darkened(0.05), Vector3(-0.28, 0.48, 0.08), "ArmL")
-	_arm_r = _capsule(0.045, 0.14, body_color.darkened(0.05), Vector3(0.28, 0.48, 0.08), "ArmR")
-	_arm_l.rotation_degrees.z = 25.0
-	_arm_r.rotation_degrees.z = -25.0
+	## Soft cheeks
+	_cheek_l = _sphere(0.055, Color(1.0, 0.48, 0.32), Vector3(-0.22, 0.72, 0.22), "CheekL")
+	_cheek_r = _sphere(0.055, Color(1.0, 0.48, 0.32), Vector3(0.22, 0.72, 0.22), "CheekR")
 
-	## Bipedal legs (front pair primary; rear stubs for silhouette thickness).
-	_leg_fl = _capsule(0.07, 0.22, body_color.darkened(0.12), Vector3(-0.11, 0.14, 0.06), "LegL")
-	_leg_fr = _capsule(0.07, 0.22, body_color.darkened(0.12), Vector3(0.11, 0.14, 0.06), "LegR")
-	_leg_bl = _sphere(0.06, body_color.darkened(0.15), Vector3(-0.09, 0.06, -0.04), "FootL")
-	_leg_br = _sphere(0.06, body_color.darkened(0.15), Vector3(0.09, 0.06, -0.04), "FootR")
-	_leg_bl.scale = Vector3(1.3, 0.55, 1.5)
-	_leg_br.scale = Vector3(1.3, 0.55, 1.5)
+	## Nostrils
+	_sphere(0.02, body_color.darkened(0.2), Vector3(-0.04, 0.72, 0.40), "NostrilL")
+	_sphere(0.02, body_color.darkened(0.2), Vector3(0.04, 0.72, 0.40), "NostrilR")
 
-	## Long expressive tail
-	_tail = _sphere(0.11, body_color, Vector3(0, 0.38, -0.32), "Tail")
-	_tail.scale = Vector3(0.7, 0.65, 1.55)
+	## Stubby arms + claw tips
+	_arm_l = _capsule(0.055, 0.13, body_color.darkened(0.04), Vector3(-0.30, 0.42, 0.06), "ArmL")
+	_arm_r = _capsule(0.055, 0.13, body_color.darkened(0.04), Vector3(0.30, 0.42, 0.06), "ArmR")
+	_arm_l.rotation_degrees.z = 18.0
+	_arm_r.rotation_degrees.z = -18.0
+	var claw_l := _box(Vector3(0.08, 0.035, 0.06), claw, Vector3(-0.36, 0.34, 0.10), "ClawL")
+	_root.add_child(claw_l)
+	var claw_r := _box(Vector3(0.08, 0.035, 0.06), claw, Vector3(0.36, 0.34, 0.10), "ClawR")
+	_root.add_child(claw_r)
+
+	## Thick biped legs + big feet
+	_leg_fl = _capsule(0.085, 0.20, body_color.darkened(0.1), Vector3(-0.12, 0.14, 0.04), "LegL")
+	_leg_fr = _capsule(0.085, 0.20, body_color.darkened(0.1), Vector3(0.12, 0.14, 0.04), "LegR")
+	_leg_bl = _sphere(0.09, body_color.darkened(0.12), Vector3(-0.12, 0.05, 0.02), "FootL")
+	_leg_br = _sphere(0.09, body_color.darkened(0.12), Vector3(0.12, 0.05, 0.02), "FootR")
+	_leg_bl.scale = Vector3(1.35, 0.5, 1.7)
+	_leg_br.scale = Vector3(1.35, 0.5, 1.7)
+	## Toe claws
+	for side_i in [-1, 1]:
+		var side := float(side_i)
+		for i in 3:
+			var ox: float = side * (0.08 + float(i) * 0.04)
+			var oz: float = 0.10 - float(i) * 0.02
+			var toe := _box(Vector3(0.035, 0.03, 0.05), claw, Vector3(ox, 0.03, oz), "Toe_%d_%d" % [side_i, i])
+			_root.add_child(toe)
+
+	## Thick friendly tail
+	_tail = _sphere(0.13, body_color, Vector3(0, 0.34, -0.28), "Tail")
+	_tail.scale = Vector3(0.85, 0.75, 1.35)
 	_tail.material_override = _body_mat
-	_tail_tip = _sphere(0.07, accent_color, Vector3(0, 0.36, -0.58), "TailTip")
-	_tail_tip.material_override = _emit_mat(accent_color, 0.7)
+	_tail_tip = _sphere(0.08, body_color.darkened(0.05), Vector3(0, 0.30, -0.48), "TailTip")
+	_tail_tip.material_override = _body_mat
 
-	## Back spikes — grow with stage
-	_spike_a = _sphere(0.07, accent_color, Vector3(0, 0.62, -0.08), "SpikeA")
-	_spike_a.scale = Vector3(0.45, 1.1 + 0.25 * stage, 0.45)
-	_spike_a.material_override = _emit_mat(accent_color, 0.6)
-	_spike_b = _sphere(0.06, accent_color, Vector3(0, 0.55, -0.18), "SpikeB")
-	_spike_b.scale = Vector3(0.4, 0.95 + 0.2 * stage, 0.4)
-	_spike_b.material_override = _emit_mat(accent_color, 0.55)
+	## Tiny head nubs — grow a bit with evolution.
+	_spike_a = _sphere(0.06, body_color.darkened(0.08), Vector3(-0.18, 1.02, 0.0), "NubL")
+	_spike_a.scale = Vector3(0.55, 0.7 + 0.15 * stage, 0.5)
+	_spike_b = _sphere(0.06, body_color.darkened(0.08), Vector3(0.18, 1.02, 0.0), "NubR")
+	_spike_b.scale = Vector3(0.55, 0.7 + 0.15 * stage, 0.5)
 	if stage >= 1:
-		_spike_c = _sphere(0.055, accent_color, Vector3(0, 0.88, 0.0), "CrestSpike")
-		_spike_c.scale = Vector3(0.35, 1.2, 0.35)
-		_spike_c.material_override = _emit_mat(accent_color, 0.9)
+		_spike_c = _sphere(0.05, body_color.darkened(0.1), Vector3(0, 1.08, -0.04), "NubMid")
+		_spike_c.scale = Vector3(0.45, 0.85, 0.45)
 	if stage >= 2:
-		## Shoulder plates — guardian presence without changing species ID.
-		var plate_l := _box(Vector3(0.14, 0.1, 0.18), accent_color.darkened(0.1), Vector3(-0.26, 0.58, 0.0), "PlateL")
-		_root.add_child(plate_l)
-		var plate_r := _box(Vector3(0.14, 0.1, 0.18), accent_color.darkened(0.1), Vector3(0.26, 0.58, 0.0), "PlateR")
-		_root.add_child(plate_r)
+		var pad_l := _sphere(0.08, body_color.darkened(0.06), Vector3(-0.28, 0.48, 0.0), "ShoulderL")
+		pad_l.scale = Vector3(1.1, 0.7, 0.9)
+		var pad_r := _sphere(0.08, body_color.darkened(0.06), Vector3(0.28, 0.48, 0.0), "ShoulderR")
+		pad_r.scale = Vector3(1.1, 0.7, 0.9)
 
-	## Soft brow ridges as "fins" for happy/sad posing reuse
-	_fin_l = _sphere(0.06, body_color.darkened(0.08), Vector3(-0.16, 0.92, 0.1), "BrowL")
-	_fin_l.scale = Vector3(0.8, 0.4, 0.5)
-	_fin_r = _sphere(0.06, body_color.darkened(0.08), Vector3(0.16, 0.92, 0.1), "BrowR")
-	_fin_r.scale = Vector3(0.8, 0.4, 0.5)
+	## Brow ridges for expression posing
+	_fin_l = _sphere(0.05, body_color.darkened(0.1), Vector3(-0.14, 0.96, 0.16), "BrowL")
+	_fin_l.scale = Vector3(0.9, 0.35, 0.55)
+	_fin_r = _sphere(0.05, body_color.darkened(0.1), Vector3(0.14, 0.96, 0.16), "BrowR")
+	_fin_r.scale = Vector3(0.9, 0.35, 0.55)
 
-	_crest = _spike_c if _spike_c else _spike_a
+	_crest = _spike_a
 	_core = _belly
 
 

@@ -34,6 +34,7 @@ Emberlings hatch from warm sunrise code in the Digital Frontier — a spark that
 - Evolution: `CreatureManager.try_evolve()` using level + friendship thresholds
 - Adventure: follow + Secret Sense (`sense_secrets`)
 
-## Handheld design
-
-Clear orange silhouette, oversized eyes, readable moods without text spam.
+## Look
+Bright orange scales, cream belly/jaw, big green eyes, stubby arms with claws,
+thick biped legs, friendly snout — classic companion-dino silhouette for a
+handheld screen (original Emberling design).
