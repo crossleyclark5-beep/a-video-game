@@ -4,6 +4,9 @@ extends BaseManager
 const FLAG_DISCOVERED_PREFIX := "discovered_"
 const FLAG_CHEST_PREFIX := "chest_opened_"
 const FLAG_CHEST_TIME_PREFIX := "chest_opened_at_"
+const FLAG_EXPLORED_CELLS := &"explored_cells"
+const EXPLORE_CELL_SIZE := 180.0
+const MAX_EXPLORED_CELLS := 420
 
 var _active_region_id: StringName = &""
 var _active_hex_coords: Vector3i = Vector3i.ZERO
@@ -102,24 +105,59 @@ func get_discovered_names() -> PackedStringArray:
 
 
 func get_map_blurb() -> String:
-	## Placeholder map text for the adventure device HUD.
+	## Text legend for the adventure device MAP sheet (pairs with RegionMiniMap).
 	var region := String(_active_region_id) if _active_region_id != &"" else "unknown"
 	var lines: PackedStringArray = PackedStringArray()
 	lines.append("REGION: %s" % region.replace("_", " ").capitalize())
+	lines.append("Explored cells: %d" % get_explored_cells().size())
+	lines.append("")
+	lines.append("Major places:")
+	for m in RegionMapCatalog.major_markers():
+		var mark := "●" if RegionMapCatalog.is_discovered(m) else "○"
+		lines.append("%s %s" % [mark, RegionMapCatalog.display_label(m)])
 	lines.append("")
 	lines.append("Landmarks:")
 	for data in ResourceRegistry.get_all_discoverables():
 		var d: DiscoverableData = data
-		if d.region_id != &"" and d.region_id != _active_region_id and _active_region_id != &"":
-			continue
+		## Grassland sheet includes nested Pleasant Park landmarks.
+		if d.region_id != &"" and _active_region_id != &"":
+			var ok := d.region_id == _active_region_id
+			if _active_region_id == &"grassland" and d.region_id == &"pleasant_park":
+				ok = true
+			if not ok:
+				continue
 		var mark := "●" if is_location_discovered(d.id) else "○"
 		var hint := d.map_hint if not d.map_hint.is_empty() else d.display_name
 		if not is_location_discovered(d.id):
-			hint = "???" if d.is_secret else hint
-		lines.append("%s %s" % [mark, hint if is_location_discovered(d.id) else ("??? (%s)" % hint if not d.is_secret else "???")])
+			if d.is_secret:
+				continue
+			hint = "??? (%s)" % hint
+		else:
+			hint = d.display_name
+		lines.append("%s %s" % [mark, hint])
 	lines.append("")
-	lines.append("Explore to fill the map.")
+	lines.append("Mystery icons = unexplored. Color = discovered.")
 	return "\n".join(lines)
+
+
+func mark_explored_at(world_pos: Vector3) -> void:
+	var cx := int(floor(world_pos.x / EXPLORE_CELL_SIZE))
+	var cz := int(floor(world_pos.z / EXPLORE_CELL_SIZE))
+	var key := "%d,%d" % [cx, cz]
+	var cells: Array = get_explored_cells()
+	if cells.has(key):
+		return
+	cells.append(key)
+	if cells.size() > MAX_EXPLORED_CELLS:
+		cells = cells.slice(cells.size() - MAX_EXPLORED_CELLS, cells.size())
+	set_world_flag(FLAG_EXPLORED_CELLS, cells)
+
+
+func get_explored_cells() -> Array:
+	var cells = get_world_flag(FLAG_EXPLORED_CELLS, [])
+	if cells is Array:
+		return cells
+	return []
 
 
 func is_chest_opened(chest_id: StringName) -> bool:

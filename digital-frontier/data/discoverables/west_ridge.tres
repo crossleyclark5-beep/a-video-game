@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"west_ridge"
+display_name = "West Ridge"
+description = "Crest above Pleasant Park."
+category = 0
+region_id = &"grassland"
+short_blurb = "Crest above Pleasant Park."
+bits_reward = 18
+map_hint = "West of Park"
+creature_xp_reward = 8
+is_secret = false

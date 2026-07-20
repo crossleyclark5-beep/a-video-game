@@ -27,6 +27,10 @@ var _tab_label: Label
 var _toast_timer: float = 0.0
 var _refresh_timer: float = 0.0
 var _companion: AdventureCompanionActor = null
+var _mini_map: RegionMiniMap = null
+var _sheet_map: RegionMiniMap = null
+var _map_host: VBoxContainer = null
+var _player: Node3D = null
 
 
 func _ready() -> void:
@@ -46,6 +50,14 @@ func _ready() -> void:
 func bind_companion(companion: AdventureCompanionActor) -> void:
 	_companion = companion
 	_refresh_chrome()
+
+
+func bind_player(player: Node3D) -> void:
+	_player = player
+	if _mini_map:
+		_mini_map.bind_player(player)
+	if _sheet_map:
+		_sheet_map.bind_player(player)
 
 
 func _process(delta: float) -> void:
@@ -144,7 +156,7 @@ func _build_ui() -> void:
 	_root = PanelContainer.new()
 	_root.visible = false
 	_root.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_root.custom_minimum_size = Vector2(0, 260)
+	_root.custom_minimum_size = Vector2(0, 280)
 	vbox.add_child(_root)
 	var body_margin := MarginContainer.new()
 	body_margin.add_theme_constant_override("margin_left", 12)
@@ -152,14 +164,26 @@ func _build_ui() -> void:
 	body_margin.add_theme_constant_override("margin_top", 10)
 	body_margin.add_theme_constant_override("margin_bottom", 10)
 	_root.add_child(body_margin)
+	_map_host = VBoxContainer.new()
+	_map_host.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_map_host.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body_margin.add_child(_map_host)
+	_sheet_map = RegionMiniMap.new()
+	_sheet_map.name = "SheetMap"
+	_sheet_map.custom_minimum_size = Vector2(0, 210)
+	_sheet_map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_sheet_map.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_sheet_map.show_labels = true
+	_sheet_map.visible = false
+	_map_host.add_child(_sheet_map)
 	_body = RichTextLabel.new()
 	_body.bbcode_enabled = false
 	_body.scroll_active = true
 	_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_body.custom_minimum_size = Vector2(0, 220)
-	_body.add_theme_font_size_override("normal_font_size", 18)
-	body_margin.add_child(_body)
+	_body.custom_minimum_size = Vector2(0, 80)
+	_body.add_theme_font_size_override("normal_font_size", 16)
+	_map_host.add_child(_body)
 
 	_toast = Label.new()
 	_toast.visible = false
@@ -178,6 +202,22 @@ func _build_ui() -> void:
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_hint.add_theme_font_size_override("font_size", 15)
 	vbox.add_child(_hint)
+
+	## Always-on corner mini map (handheld glanceable).
+	_mini_map = RegionMiniMap.new()
+	_mini_map.name = "CornerMiniMap"
+	_mini_map.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_mini_map.anchor_left = 1.0
+	_mini_map.anchor_right = 1.0
+	_mini_map.anchor_top = 0.0
+	_mini_map.anchor_bottom = 0.0
+	_mini_map.offset_left = -158.0
+	_mini_map.offset_right = -14.0
+	_mini_map.offset_top = 86.0
+	_mini_map.offset_bottom = 230.0
+	_mini_map.show_labels = false
+	_mini_map.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_mini_map)
 
 	_apply_device_chrome(top)
 
@@ -232,6 +272,10 @@ func _close_panel() -> void:
 	_panel = DeviceSheet.NONE
 	_root.visible = false
 	_tab_label.visible = false
+	if _sheet_map:
+		_sheet_map.visible = false
+	if _mini_map:
+		_mini_map.visible = true
 	if UIManager.has_open_modal():
 		UIManager.pop_modal()
 	EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
@@ -260,6 +304,14 @@ func _refresh(_a = null) -> void:
 		InputManager.get_action_glyph(&"device_cycle"),
 		InputManager.get_action_glyph(&"ui_cancel"),
 	]
+	var show_map := _panel == DeviceSheet.MAP
+	if _sheet_map:
+		_sheet_map.visible = show_map
+		if show_map:
+			_sheet_map.queue_redraw()
+	if _mini_map:
+		## Hide corner map while full map sheet is open to reduce clutter.
+		_mini_map.visible = not show_map
 	match _panel:
 		DeviceSheet.PACK:
 			_body.text = InventoryManager.get_pack_text()
@@ -286,7 +338,10 @@ func _refresh_chrome() -> void:
 		_notice_line.text = _companion.get_notice_prompt()
 	else:
 		_notice_line.visible = false
-	_hint.text = InputManager.get_control_legend() + "  ·  %s companion" % InputManager.get_action_glyph(&"creature_action")
+	_hint.text = InputManager.get_control_legend() + "  ·  %s companion · %s map" % [
+		InputManager.get_action_glyph(&"creature_action"),
+		InputManager.get_action_glyph(&"map_peek"),
+	]
 
 
 func _on_companion_notice(_id: StringName = &"", _kind: StringName = &"") -> void:
@@ -312,5 +367,9 @@ func _on_bits(_t = null, _d = null) -> void:
 
 
 func _on_world_pulse(_a = null) -> void:
+	if _mini_map:
+		_mini_map.queue_redraw()
+	if _sheet_map:
+		_sheet_map.queue_redraw()
 	if _panel == DeviceSheet.MAP or _panel == DeviceSheet.LOG:
 		_refresh()
