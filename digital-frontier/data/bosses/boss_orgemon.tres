@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/boss_data.gd" id="1_boss"]
+
+[resource]
+script = ExtResource("1_boss")
+id = &"boss_orgemon"
+display_name = "Orgemon"
+description = "Ogre bruiser with a spiked club fist."
+creature_id = &"boss_orgemon"
+phase_count = 2
+phase_thresholds = PackedFloat32Array(0.5, 0.25)
+region_id = &"grassland"
+reward_item_ids = PackedStringArray("hex_shard", "crystal_dust")
+reward_quantities = PackedInt32Array(4, 2)

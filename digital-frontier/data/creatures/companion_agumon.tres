@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="CreatureData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/creature_data.gd" id="1_creature"]
+
+[resource]
+script = ExtResource("1_creature")
+id = &"companion_agumon"
+display_name = "Agumon"
+description = "Sunny orange hatchling dino — classic field partner energy."
+rarity = 1
+base_stats = {
+"hp": 50,
+"attack": 10,
+"defense": 8,
+"speed": 12
+}
+growth_rates = {
+"hp": 2.2,
+"attack": 1.7,
+"defense": 1.5,
+"speed": 1.6
+}
+ability_ids = PackedStringArray("sense_secrets")
+max_evolution_stage = 0
+capture_rate = 0.4
+habitat_region_ids = PackedStringArray("starter_plains", "pleasant_park")
+follow_distance = 1.7
+follow_lag = 0.28
+default_skin_id = &"default"
+available_skin_ids = PackedStringArray("default")
+visual_profile_id = &"companion_agumon"
+anim_set_id = &"companion_lookalike"
+default_personality = {
+"playful": 70.0,
+"curious": 75.0,
+"affectionate": 68.0,
+"lazy": 25.0,
+"brave": 60.0
+}
+body_color = Color(0.98, 0.55, 0.18, 1)
+accent_color = Color(0.95, 0.88, 0.62, 1)
+core_color = Color(0.98, 0.92, 0.78, 1)
+lore_blurb = "Digital Frontier retro look-alike — inspired silhouette, original kit."
+likes = PackedStringArray("Adventure", "Treats", "Sunny trails")
+dislikes = PackedStringArray("Long loneliness")
+habitat_blurb = "Grassland Field Unit routes."
+favorite_activities = PackedStringArray("Exploring with you", "Play", "Naps")

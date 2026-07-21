@@ -153,6 +153,11 @@ func _build_visual(def: Dictionary) -> void:
 	## Soft rarity tint ring (legendary/mythical glow).
 	if rarity >= EcosystemCatalog.Rarity.RARE:
 		StylizedMesh.add_sphere(_visual, 0.08 * scale_v, WorldPalette.UI_GOLD if rarity < EcosystemCatalog.Rarity.MYTHICAL else WorldPalette.UI_CYAN, Vector3(0, 1.1 * scale_v, 0), "RareMark")
+	## Digimon-inspired DF look-alike enemies.
+	if bool(def.get("lookalike", false)) or CreatureLookalikeCatalog.has_creature(species_id):
+		var kit := CreatureLookalikeKit.attach_for_species(_visual, species_id, 1.0)
+		if kit:
+			return
 	match String(species_id):
 		"meadow_bird":
 			_viz_bird(col, scale_v, false)

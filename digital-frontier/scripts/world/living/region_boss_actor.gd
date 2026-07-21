@@ -89,6 +89,8 @@ func _die() -> void:
 	EventBus.ui_notification_requested.emit("Boss cleared: %s · +%d Bits" % [display_name, reward_bits], 3.5)
 	EventBus.sfx_play_requested.emit(&"battle_win", global_position)
 	WorldManager.set_world_flag(&"boss_hollow_warden_down", true)
+	if CreatureLookalikeCatalog.has_creature(species_id):
+		WorldManager.set_world_flag(StringName("boss_%s_down" % String(species_id)), true)
 	queue_free()
 
 
@@ -106,6 +108,11 @@ func _build_visual(def: Dictionary) -> void:
 	_visual = Node3D.new()
 	_visual.name = "Visual"
 	add_child(_visual)
+	## Digimon-inspired DF look-alike bosses.
+	if CreatureLookalikeCatalog.has_creature(species_id):
+		var kit := CreatureLookalikeKit.build(_visual, species_id, 1.0)
+		if kit:
+			return
 	var col: Color = def.get("color", Color(0.25, 0.45, 0.28))
 	var accent: Color = def.get("accent", WorldPalette.UI_GOLD)
 	var scale_v := float(def.get("scale", 2.0))

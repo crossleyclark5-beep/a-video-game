@@ -19,8 +19,12 @@ enum Mood {
 }
 
 const STARTER_CREATURE_ID := &"emberling"
-## First-boot partner choices — each a distinct personality / path / strengths.
-const STARTER_OPTIONS: Array[StringName] = [&"emberling", &"sparkbit", &"tidepup"]
+## First-boot partner choices — classic three + Digimon-inspired look-alike roster.
+const STARTER_OPTIONS: Array[StringName] = [
+	&"emberling", &"sparkbit", &"tidepup",
+	&"companion_agumon", &"companion_gabumon", &"companion_biyomon",
+	&"companion_tentomon", &"companion_gatomon", &"companion_gomamon",
+]
 
 const CARE_FEED := {
 	"hunger": 28.0,

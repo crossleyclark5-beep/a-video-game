@@ -205,6 +205,14 @@ func _build_profile(profile: StringName, stage: int) -> void:
 	add_child(_root)
 	_body_mat = _emit_mat(body_color, 0.35)
 	_core_mat = _emit_mat(core_color, 1.4)
+	## Digimon-inspired DF look-alikes — full kit, then soft bob via _root.
+	if CreatureLookalikeCatalog.has_creature(profile):
+		var kit := CreatureLookalikeKit.build(_root, profile, 1.0)
+		if kit:
+			kit.position = Vector3(0, 0.05, 0)
+			_build_heart_particles()
+			_build_aura()
+			return
 	match profile:
 		&"sparkbit":
 			_build_sparkbit()

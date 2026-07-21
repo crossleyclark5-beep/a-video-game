@@ -87,22 +87,36 @@ static func grassland_species() -> Array[Dictionary]:
 			Rarity.UNCOMMON, Temperament.PASSIVE, Biome.MOUNTAIN,
 			Color(0.8, 0.78, 0.7), 0.9, 3.3, 12.0, 1,
 			[0, 1], [], false, 0, 0, 0),
-	]
+	] + lookalike_enemies()
 
 
-static func biome_stub_species(biome: Biome) -> Array[Dictionary]:
-	## Future region hooks — not spawned in Grassland unless biome matches.
-	match biome:
-		Biome.DESERT:
-			return [_sp(&"sand_skitter", "Sand Skitter", "Heat-adapted desert runner.", Rarity.COMMON, Temperament.DEFENSIVE, Biome.DESERT, Color(0.9, 0.75, 0.4), 0.5, 4.5, 10.0, 2, [1], [], false, 0, 0, 0)]
-		Biome.OCEAN:
-			return [_sp(&"tide_drifter", "Tide Drifter", "Ocean floater for future coasts.", Rarity.COMMON, Temperament.PASSIVE, Biome.OCEAN, Color(0.4, 0.7, 0.9), 0.7, 2.0, 8.0, 2, [0, 1], [], false, 0, 0, 0)]
-		Biome.SWAMP:
-			return [_sp(&"mire_wisp", "Mire Wisp", "Poison-glow swamp haunt.", Rarity.RARE, Temperament.AGGRESSIVE, Biome.SWAMP, Color(0.4, 0.7, 0.35), 0.55, 3.0, 9.0, 1, [3], [&"fog_boost"], false, 35, 8, 16)]
-		Biome.ICE:
-			return [_sp(&"frost_puff", "Frost Puff", "Cold-resistant ice plains fluff.", Rarity.UNCOMMON, Temperament.PASSIVE, Biome.ICE, Color(0.85, 0.92, 1.0), 0.6, 2.8, 10.0, 2, [0, 1], [], false, 0, 0, 0)]
-		_:
-			return []
+static func lookalike_enemies() -> Array[Dictionary]:
+	## Digimon-inspired DF hostiles — original kits via CreatureLookalikeKit.
+	var out: Array[Dictionary] = []
+	for id in CreatureLookalikeCatalog.enemy_ids():
+		var d := CreatureLookalikeCatalog.creature_def(id)
+		var e := _sp(
+			id,
+			String(d.get("display", id)),
+			String(d.get("blurb", "")),
+			Rarity.UNCOMMON,
+			Temperament.AGGRESSIVE,
+			Biome.GRASSLAND,
+			d.get("color", Color(0.7, 0.4, 0.5)) as Color,
+			float(d.get("scale", 0.8)),
+			3.6,
+			10.0,
+			2,
+			[1, 2, 3],
+			[&"storm_boost"],
+			false,
+			36,
+			8,
+			14,
+		)
+		e["lookalike"] = true
+		out.append(e)
+	return out
 
 
 static func grassland_boss() -> Dictionary:
@@ -119,6 +133,54 @@ static func grassland_boss() -> Dictionary:
 		"bits": 120,
 		"home": "pine_hollow",
 	}
+
+
+static func lookalike_bosses() -> Array[Dictionary]:
+	## Digimon-inspired DF bosses — unique silhouettes, dens across Grassland.
+	var homes := [
+		{"id": &"boss_andromon", "home": "market_mile", "pos_hint": "mile"},
+		{"id": &"boss_devimon", "home": "pine_hollow", "pos_hint": "hollow"},
+		{"id": &"boss_orgemon", "home": "fatal_fields", "pos_hint": "fields"},
+		{"id": &"boss_snimon", "home": "risky_reels", "pos_hint": "reels"},
+		{"id": &"boss_meramon", "home": "grease_grove", "pos_hint": "grove"},
+		{"id": &"boss_whamon", "home": "mirror_mere", "pos_hint": "mere"},
+	]
+	var out: Array[Dictionary] = []
+	for h in homes:
+		var id: StringName = h["id"]
+		var d := CreatureLookalikeCatalog.creature_def(id)
+		out.append({
+			"id": id,
+			"label": String(d.get("display", id)),
+			"blurb": String(d.get("blurb", "")),
+			"color": d.get("color", Color(0.4, 0.3, 0.5)),
+			"accent": d.get("accent", Color(0.9, 0.4, 0.3)),
+			"scale": float(d.get("scale", 1.8)),
+			"speed": 2.6,
+			"hp": 160,
+			"damage": 13,
+			"bits": 100,
+			"home": String(h["home"]),
+			"pos_hint": String(h["pos_hint"]),
+			"lookalike": true,
+			"defeat_flag": StringName("boss_%s_down" % String(id)),
+		})
+	return out
+
+
+static func biome_stub_species(biome: Biome) -> Array[Dictionary]:
+	## Future region hooks — not spawned in Grassland unless biome matches.
+	match biome:
+		Biome.DESERT:
+			return [_sp(&"sand_skitter", "Sand Skitter", "Heat-adapted desert runner.", Rarity.COMMON, Temperament.DEFENSIVE, Biome.DESERT, Color(0.9, 0.75, 0.4), 0.5, 4.5, 10.0, 2, [1], [], false, 0, 0, 0)]
+		Biome.OCEAN:
+			return [_sp(&"tide_drifter", "Tide Drifter", "Ocean floater for future coasts.", Rarity.COMMON, Temperament.PASSIVE, Biome.OCEAN, Color(0.4, 0.7, 0.9), 0.7, 2.0, 8.0, 2, [0, 1], [], false, 0, 0, 0)]
+		Biome.SWAMP:
+			return [_sp(&"mire_wisp", "Mire Wisp", "Poison-glow swamp haunt.", Rarity.RARE, Temperament.AGGRESSIVE, Biome.SWAMP, Color(0.4, 0.7, 0.35), 0.55, 3.0, 9.0, 1, [3], [&"fog_boost"], false, 35, 8, 16)]
+		Biome.ICE:
+			return [_sp(&"frost_puff", "Frost Puff", "Cold-resistant ice plains fluff.", Rarity.UNCOMMON, Temperament.PASSIVE, Biome.ICE, Color(0.85, 0.92, 1.0), 0.6, 2.8, 10.0, 2, [0, 1], [], false, 0, 0, 0)]
+		_:
+			return []
 
 
 static func pick_for_conditions(
@@ -224,4 +286,7 @@ static func find_species(id: StringName) -> Dictionary:
 	var boss := grassland_boss()
 	if boss.get("id", &"") == id:
 		return boss
+	for b in lookalike_bosses():
+		if b.get("id", &"") == id:
+			return b
 	return {}
