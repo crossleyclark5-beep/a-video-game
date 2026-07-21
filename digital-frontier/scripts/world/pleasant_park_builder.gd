@@ -234,25 +234,28 @@ static func _add_central_park(root: Node3D) -> void:
 	_picnic_set(park, Vector3(6.5, 0, -6.5))
 
 	## Small fountain offset on south path — secondary landmark, gazebo stays hero.
-	var fountain := Node3D.new()
-	fountain.name = "Fountain"
-	fountain.position = Vector3(0, 0, 7.5)
-	park.add_child(fountain)
-	StylizedMesh.add_box(fountain, Vector3(3.0, 0.28, 3.0), WorldPalette.SIDEWALK, Vector3(0, 0.22, 0), "Basin", true)
-	var water_mi := MeshInstance3D.new()
-	water_mi.name = "Water"
-	var water_mesh := BoxMesh.new()
-	water_mesh.size = Vector3(2.4, 0.12, 2.4)
-	water_mi.mesh = water_mesh
-	water_mi.material_override = StylizedMesh.make_water_material(WorldPalette.WATER)
-	water_mi.position = Vector3(0, 0.35, 0)
-	fountain.add_child(water_mi)
-	RegionPropKit.attach_living_water(water_mi, Vector3(2.4, 0.12, 2.4))
-	StylizedMesh.add_box(fountain, Vector3(0.4, 1.0, 0.4), WorldPalette.METAL, Vector3(0, 0.85, 0), "Spire")
-	StylizedMesh.add_box(fountain, Vector3(0.55, 0.28, 0.55), WorldPalette.WATER.lightened(0.15), Vector3(0, 1.35, 0), "WaterTop")
-	for i in 4:
-		var a := float(i) / 4.0 * TAU
-		StylizedMesh.add_box(fountain, Vector3(0.36, 0.16, 0.24), WorldPalette.METAL, Vector3(cos(a) * 1.55, 0.32, sin(a) * 1.55), "Rim")
+	if ExternalPropKit.is_available():
+		ExternalPropKit.spawn(park, &"fountain", Vector3(0, 0, 7.5), 0.0, 1.05, "Fountain")
+	else:
+		var fountain := Node3D.new()
+		fountain.name = "Fountain"
+		fountain.position = Vector3(0, 0, 7.5)
+		park.add_child(fountain)
+		StylizedMesh.add_box(fountain, Vector3(3.0, 0.28, 3.0), WorldPalette.SIDEWALK, Vector3(0, 0.22, 0), "Basin", true)
+		var water_mi := MeshInstance3D.new()
+		water_mi.name = "Water"
+		var water_mesh := BoxMesh.new()
+		water_mesh.size = Vector3(2.4, 0.12, 2.4)
+		water_mi.mesh = water_mesh
+		water_mi.material_override = StylizedMesh.make_water_material(WorldPalette.WATER)
+		water_mi.position = Vector3(0, 0.35, 0)
+		fountain.add_child(water_mi)
+		RegionPropKit.attach_living_water(water_mi, Vector3(2.4, 0.12, 2.4))
+		StylizedMesh.add_box(fountain, Vector3(0.4, 1.0, 0.4), WorldPalette.METAL, Vector3(0, 0.85, 0), "Spire")
+		StylizedMesh.add_box(fountain, Vector3(0.55, 0.28, 0.55), WorldPalette.WATER.lightened(0.15), Vector3(0, 1.35, 0), "WaterTop")
+		for i in 4:
+			var a := float(i) / 4.0 * TAU
+			StylizedMesh.add_box(fountain, Vector3(0.36, 0.16, 0.24), WorldPalette.METAL, Vector3(cos(a) * 1.55, 0.32, sin(a) * 1.55), "Rim")
 
 	## Playground tucked in NE park corner.
 	var play := Node3D.new()
@@ -815,6 +818,24 @@ static func _add_street_furniture(root: Node3D) -> void:
 	_bench(decor, Vector3(-8.5, 0, -3.5), 90)
 	_bench(decor, Vector3(8.5, 0, 3.5), -90)
 
+	## External stylized town kit accents (Kenney CC0 → DF toon) — lived-in plaza.
+	## Fountain lives on the park south path (see park build) — not duplicated here.
+	if ExternalPropKit.is_available():
+		ExternalPropKit.spawn(decor, &"market_stall", Vector3(18, 0, -6), -30.0, 1.0, "ParkStall")
+		ExternalPropKit.spawn(decor, &"cart", Vector3(-18, 0, 5), 40.0, 1.0, "ParkCart")
+		ExternalPropKit.spawn(decor, &"banner", Vector3(6, 0, 10), 15.0, 1.0, "ParkBanner")
+		ExternalPropKit.spawn(decor, &"lantern", Vector3(-7, 0, 7), 0.0, 1.15, "PlazaLanternA")
+		ExternalPropKit.spawn(decor, &"lantern", Vector3(7, 0, -7), 0.0, 1.15, "PlazaLanternB")
+		## Yard fence accents near west houses — not a full enclosure.
+		ExternalPropKit.spawn(decor, &"fence", Vector3(-HOUSE_RING + 4, 0, -8), 90.0, 1.0, "YardFenceA")
+		ExternalPropKit.spawn(decor, &"fence_gate", Vector3(-HOUSE_RING + 4, 0, 0), 90.0, 1.0, "YardGate")
+		ExternalPropKit.spawn(decor, &"tree_oak", Vector3(22, 0, 16), 20.0, 1.1, "PlazaOak")
+		ExternalPropKit.spawn(decor, &"tree_pine", Vector3(-22, 0, -16), -15.0, 1.2, "PlazaPine")
+		ExternalPropKit.spawn(decor, &"bush", Vector3(11, 0, 9), 25.0, 1.2, "PlazaBushA")
+		ExternalPropKit.spawn(decor, &"bush", Vector3(-11, 0, -9), -40.0, 1.1, "PlazaBushB")
+		ExternalPropKit.spawn(decor, &"flower_red", Vector3(5, 0, 9), 0.0, 1.3, "PlazaFlowerA")
+		ExternalPropKit.spawn(decor, &"flower_yellow", Vector3(-5, 0, -9), 15.0, 1.3, "PlazaFlowerB")
+
 	for p in [Vector3(9.5, 0, -9.5), Vector3(-9.5, 0, 9.5), Vector3(10.5, 0, 10.5), Vector3(-10.5, 0, -10.5), Vector3(40, 0, 4)]:
 		StylizedMesh.add_cylinder(decor, 0.28, 0.75, Color(0.32, 0.38, 0.32), p + Vector3(0, 0.4, 0), "Bin", true, 12, 0.7)
 		StylizedMesh.add_cylinder(decor, 0.3, 0.08, Color(0.25, 0.28, 0.25), p + Vector3(0, 0.8, 0), "BinLid", false, 12, 0.55)
@@ -867,7 +888,11 @@ static func _street_lamp(parent: Node3D, pos: Vector3, with_light: bool) -> void
 
 
 static func _bench(parent: Node3D, pos: Vector3, yaw: float) -> void:
+	if ExternalPropKit.is_available():
+		ExternalPropKit.spawn(parent, &"bench", pos, yaw, 1.1, "Bench")
+		return
 	var b := Node3D.new()
+	b.name = "Bench"
 	b.position = pos
 	b.rotation_degrees.y = yaw
 	parent.add_child(b)

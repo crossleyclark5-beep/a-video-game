@@ -322,6 +322,15 @@ static func _build_wilderness_fill(parent: Node3D) -> void:
 			_trail_marker(fill, c + Vector3(-12, 0, 6), 1100 + i)
 		if i % 5 == 0:
 			_camp_nook(fill, c + Vector3(8, 0, -14), 1200 + i)
+		## Landmark external trees (not every clump — handheld budget).
+		if ExternalPropKit.is_available() and i % 3 == 0:
+			var kind: StringName = &"tree_pine" if i % 2 == 0 else &"tree_oak"
+			ExternalPropKit.spawn(fill, kind, c + Vector3(-6, 0, 10), float(i * 40), 1.0 + float(i % 3) * 0.08, "LandmarkTree_%d" % i)
+			ExternalPropKit.spawn(fill, &"rock_tall", c + Vector3(10, 0, 4), float(i * 17), 1.0, "LandmarkRock_%d" % i)
+			if i % 6 == 0:
+				ExternalPropKit.spawn(fill, &"pillar", c + Vector3(-18, 0, -8), 12.0, 1.1, "RuinPillar_%d" % i)
+				ExternalPropKit.spawn(fill, &"ruin_rocks", c + Vector3(-16, 0, -6), -8.0, 1.0, "RuinRubble_%d" % i)
+				ExternalPropKit.spawn(fill, &"flag", c + Vector3(-18, 0, -8), 12.0, 1.0, "RuinFlag_%d" % i)
 
 
 static func _trail_marker(parent: Node3D, pos: Vector3, seed_i: int) -> void:
@@ -343,9 +352,15 @@ static func _camp_nook(parent: Node3D, pos: Vector3, seed_i: int) -> void:
 	camp.position = pos
 	parent.add_child(camp)
 	StylizedMesh.add_box(camp, Vector3(2.4, 0.04, 2.4), WorldPalette.DIRT.lightened(0.05), Vector3(0, 0.03, 0), "ClearDirt", false, 1.0, &"dirt")
-	StylizedMesh.add_box(camp, Vector3(0.7, 0.2, 0.7), WorldPalette.ROCK, Vector3(0, 0.12, 0), "FireRing", false, 1.0, &"dirt")
-	StylizedMesh.add_box(camp, Vector3(1.2, 0.25, 0.35), WorldPalette.WOOD, Vector3(0.9, 0.2, 0.6), "LogSeat", false, 1.0, &"wood")
-	StylizedMesh.add_box(camp, Vector3(0.35, 0.45, 0.35), Color(0.45, 0.35, 0.25), Vector3(-0.8, 0.3, -0.5), "Pack", false, 1.0, &"wood")
+	if ExternalPropKit.is_available():
+		ExternalPropKit.spawn(camp, &"campfire", Vector3(0, 0, 0), float(seed_i % 360), 1.0, "Campfire")
+		ExternalPropKit.spawn(camp, &"tent", Vector3(2.2, 0, -1.2), 35.0, 0.95, "Tent")
+		ExternalPropKit.spawn(camp, &"log", Vector3(-1.4, 0, 0.8), -20.0, 1.0, "SeatLog")
+		ExternalPropKit.spawn(camp, &"mushroom", Vector3(-2.0, 0, -1.5), 0.0, 1.2, "Shrooms")
+	else:
+		StylizedMesh.add_box(camp, Vector3(0.7, 0.2, 0.7), WorldPalette.ROCK, Vector3(0, 0.12, 0), "FireRing", false, 1.0, &"dirt")
+		StylizedMesh.add_box(camp, Vector3(1.2, 0.25, 0.35), WorldPalette.WOOD, Vector3(0.9, 0.2, 0.6), "LogSeat", false, 1.0, &"wood")
+		StylizedMesh.add_box(camp, Vector3(0.35, 0.45, 0.35), Color(0.45, 0.35, 0.25), Vector3(-0.8, 0.3, -0.5), "Pack", false, 1.0, &"wood")
 
 
 static func _build_pine_ridges(parent: Node3D) -> void:
