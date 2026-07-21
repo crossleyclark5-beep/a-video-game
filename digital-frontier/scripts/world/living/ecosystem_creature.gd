@@ -254,6 +254,12 @@ func _viz_boar(col: Color, s: float) -> void:
 
 
 func _viz_mite(col: Color, s: float) -> void:
+	## Optional digital-creature library accent (Digimon-inspired silhouette language).
+	if CharacterKit.is_available() and CharacterCatalog.has_character(&"digital_mite") and s >= 0.55:
+		var mite := CharacterKit.attach_under(_visual, &"digital_mite", clampf(s * 0.9, 0.55, 1.35), "LibraryMite")
+		if mite:
+			mite.position = Vector3(0, 0.05, 0)
+			return
 	StylizedMesh.add_box(_visual, Vector3(0.35 * s, 0.28 * s, 0.4 * s), col, Vector3(0, 0.28 * s, 0), "Body")
 	StylizedMesh.add_sphere(_visual, 0.12 * s, col.lightened(0.1), Vector3(0, 0.4 * s, -0.18 * s), "Head")
 	StylizedMesh.add_box(_visual, Vector3(0.08 * s, 0.08 * s, 0.08 * s), WorldPalette.UI_ACCENT, Vector3(0.08 * s, 0.45 * s, -0.28 * s), "Eye")
