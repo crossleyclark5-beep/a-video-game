@@ -31,29 +31,35 @@ static func build_chest(
 		_:
 			area.loot_table_id = &"loot_chest_normal"
 			area.creature_xp_on_open = 6
-	var body := MeshInstance3D.new()
-	var box := BoxMesh.new()
-	box.size = Vector3(0.95, 0.55, 0.7)
-	body.mesh = box
-	var body_color := Color(0.88, 0.68, 0.18)
-	match rarity:
-		ChestInteractable.Rarity.RARE:
-			body_color = Color(0.45, 0.65, 0.95)
-		ChestInteractable.Rarity.LEGENDARY:
-			body_color = Color(0.95, 0.55, 0.2)
-	body.material_override = StylizedMesh.make_material(body_color, 1.0, 0.0, 0.0, &"wood")
-	area.add_child(body)
-	## Metal band + latch for recognizable high-res prop silhouette.
-	StylizedMesh.add_box(area, Vector3(0.98, 0.08, 0.72), body_color.darkened(0.25), Vector3(0, 0.05, 0), "Band", false, 1.0, &"brick")
-	StylizedMesh.add_box(area, Vector3(0.14, 0.12, 0.08), WorldPalette.METAL, Vector3(0, 0.22, 0.38), "Latch")
-	var lid := MeshInstance3D.new()
-	lid.name = "Lid"
-	var lid_mesh := BoxMesh.new()
-	lid_mesh.size = Vector3(0.98, 0.18, 0.72)
-	lid.mesh = lid_mesh
-	lid.material_override = StylizedMesh.make_material(body_color.darkened(0.15), 1.0, 0.0, 0.0, &"wood")
-	lid.position = Vector3(0, 0.35, 0)
-	area.add_child(lid)
+	## Prefer curated treasure chest GLB; lid anim falls back to hop if no Lid child.
+	var used_external := false
+	if ExternalPropKit.is_available():
+		var visual := ExternalPropKit.spawn(area, &"treasure_chest", Vector3(0, -0.4, 0), 0.0, 1.05, "ChestMesh")
+		used_external = visual != null
+	if not used_external:
+		var body := MeshInstance3D.new()
+		var box := BoxMesh.new()
+		box.size = Vector3(0.95, 0.55, 0.7)
+		body.mesh = box
+		var body_color := Color(0.88, 0.68, 0.18)
+		match rarity:
+			ChestInteractable.Rarity.RARE:
+				body_color = Color(0.45, 0.65, 0.95)
+			ChestInteractable.Rarity.LEGENDARY:
+				body_color = Color(0.95, 0.55, 0.2)
+		body.material_override = StylizedMesh.make_material(body_color, 1.0, 0.0, 0.0, &"wood")
+		area.add_child(body)
+		## Metal band + latch for recognizable high-res prop silhouette.
+		StylizedMesh.add_box(area, Vector3(0.98, 0.08, 0.72), body_color.darkened(0.25), Vector3(0, 0.05, 0), "Band", false, 1.0, &"brick")
+		StylizedMesh.add_box(area, Vector3(0.14, 0.12, 0.08), WorldPalette.METAL, Vector3(0, 0.22, 0.38), "Latch")
+		var lid := MeshInstance3D.new()
+		lid.name = "Lid"
+		var lid_mesh := BoxMesh.new()
+		lid_mesh.size = Vector3(0.98, 0.18, 0.72)
+		lid.mesh = lid_mesh
+		lid.material_override = StylizedMesh.make_material(body_color.darkened(0.15), 1.0, 0.0, 0.0, &"wood")
+		lid.position = Vector3(0, 0.35, 0)
+		area.add_child(lid)
 	var shape := CollisionShape3D.new()
 	var s := BoxShape3D.new()
 	s.size = Vector3(1.5, 1.3, 1.5)
@@ -61,6 +67,23 @@ static func build_chest(
 	area.add_child(shape)
 	parent.add_child(area)
 	return area
+
+
+static func add_supply_stash(parent: Node3D, pos: Vector3, yaw: float = 0.0, node_name: String = "SupplyStash") -> Node3D:
+	## Decorative Fortnite-style loot/supply cluster — not a second loot table.
+	var stash := Node3D.new()
+	stash.name = node_name
+	stash.position = pos
+	stash.rotation_degrees.y = yaw
+	parent.add_child(stash)
+	if ExternalPropKit.is_available():
+		ExternalPropKit.spawn(stash, &"supply_crate", Vector3(0, 0, 0), 0.0, 1.1, "Crate")
+		ExternalPropKit.spawn(stash, &"barrel", Vector3(1.1, 0, 0.4), 25.0, 1.0, "Barrel")
+		if randf() < 0.5:
+			ExternalPropKit.spawn(stash, &"supply_crate_item", Vector3(-1.0, 0, -0.5), -20.0, 1.0, "CrateB")
+	else:
+		StylizedMesh.add_box(stash, Vector3(1.0, 0.9, 1.0), Color(0.55, 0.4, 0.25), Vector3(0, 0.45, 0), "Crate", true, 1.0, &"wood")
+	return stash
 
 
 static func add_discoverable(

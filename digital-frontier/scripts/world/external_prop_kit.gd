@@ -113,6 +113,21 @@ static func _add_proxy_collision(root: Node3D, prop_id: String) -> void:
 		box.size = Vector3(1.2, 0.7, 0.7)
 		shape.shape = box
 		shape.position = Vector3(0, 0.35, 0)
+	elif sid.begins_with("craft_") or sid in ["park_car", "adventure_suv"]:
+		var box_v := BoxShape3D.new()
+		box_v.size = Vector3(2.4, 1.0, 3.4)
+		shape.shape = box_v
+		shape.position = Vector3(0, 0.55, 0)
+	elif sid == "hangar_small":
+		var box_h := BoxShape3D.new()
+		box_h.size = Vector3(4.5, 2.4, 4.5)
+		shape.shape = box_h
+		shape.position = Vector3(0, 1.2, 0)
+	elif sid in ["treasure_chest", "supply_crate", "supply_crate_item", "barrel"]:
+		var box_c := BoxShape3D.new()
+		box_c.size = Vector3(1.1, 0.9, 1.1)
+		shape.shape = box_c
+		shape.position = Vector3(0, 0.45, 0)
 	elif sid in ["fence", "fence_gate"]:
 		var box2 := BoxShape3D.new()
 		box2.size = Vector3(1.6, 1.0, 0.2)

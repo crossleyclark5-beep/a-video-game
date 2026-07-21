@@ -44,10 +44,24 @@ const PROPS: Dictionary = {
 	&"television": {"path": "interior/television.glb", "scale": 1.0, "y": 0.0, "collision": false, "category": &"interior"},
 	&"potted_plant": {"path": "interior/potted_plant.glb", "scale": 1.0, "y": 0.0, "collision": false, "category": &"interior"},
 	&"floor_lamp": {"path": "interior/floor_lamp.glb", "scale": 1.0, "y": 0.0, "collision": false, "category": &"interior"},
-	## Adventure
+	## Adventure / gameplay props
 	&"pillar": {"path": "adventure/pillar.glb", "scale": 1.2, "y": 0.0, "collision": true, "category": &"adventure"},
 	&"ruin_rocks": {"path": "adventure/ruin_rocks.glb", "scale": 1.0, "y": 0.0, "collision": true, "category": &"adventure"},
 	&"flag": {"path": "adventure/flag.glb", "scale": 1.1, "y": 0.0, "collision": false, "category": &"adventure"},
+	&"treasure_chest": {"path": "adventure/treasure_chest.glb", "scale": 1.15, "y": 0.0, "collision": true, "category": &"adventure"},
+	&"supply_crate": {"path": "adventure/supply_crate.glb", "scale": 1.1, "y": 0.0, "collision": true, "category": &"adventure"},
+	&"supply_crate_item": {"path": "adventure/supply_crate_item.glb", "scale": 1.1, "y": 0.0, "collision": true, "category": &"adventure"},
+	&"barrel": {"path": "adventure/barrel.glb", "scale": 1.2, "y": 0.0, "collision": true, "category": &"adventure"},
+	&"quest_key": {"path": "adventure/quest_key.glb", "scale": 1.4, "y": 0.0, "collision": false, "category": &"adventure"},
+	&"collectible_coin": {"path": "adventure/collectible_coin.glb", "scale": 1.5, "y": 0.0, "collision": false, "category": &"adventure"},
+	## Transport — Field Skiff aircraft + town vehicles (Kenney CC0)
+	&"craft_speeder": {"path": "transport/craft_speeder.glb", "scale": 1.35, "y": 0.35, "collision": true, "category": &"transport"},
+	&"craft_speeder_alt": {"path": "transport/craft_speeder_alt.glb", "scale": 1.35, "y": 0.35, "collision": true, "category": &"transport"},
+	&"craft_racer": {"path": "transport/craft_racer.glb", "scale": 1.3, "y": 0.35, "collision": true, "category": &"transport"},
+	&"craft_cargo": {"path": "transport/craft_cargo.glb", "scale": 1.25, "y": 0.4, "collision": true, "category": &"transport"},
+	&"hangar_small": {"path": "transport/hangar_small.glb", "scale": 1.4, "y": 0.0, "collision": true, "category": &"transport"},
+	&"park_car": {"path": "transport/park_car.glb", "scale": 1.0, "y": 0.0, "collision": true, "category": &"transport"},
+	&"adventure_suv": {"path": "transport/adventure_suv.glb", "scale": 1.05, "y": 0.0, "collision": true, "category": &"transport"},
 }
 
 

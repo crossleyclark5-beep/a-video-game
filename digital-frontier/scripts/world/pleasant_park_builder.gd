@@ -41,6 +41,7 @@ static func build(root: Node3D) -> Dictionary:
 	_add_vegetation(root)
 	_add_street_furniture(root)
 	_add_parked_cars(root)
+	_add_field_hangar(root)
 	_add_chests(root, result)
 	_add_sign(root, Vector3(0.0, 0.0, 18.5), "PLEASANT PARK")
 	_add_exploration_pois(root, result)
@@ -938,7 +939,18 @@ static func _add_parked_cars(root: Node3D) -> void:
 		{"pos": Vector3(-20, 0, 12), "yaw": 90.0, "color": Color(0.9, 0.7, 0.2)},
 	]
 	for i in specs.size():
-		_car(cars, specs[i]["pos"], float(specs[i]["yaw"]), specs[i]["color"], i)
+		## Mix curated Kenney cars with procedural fillers — lived-in suburb, not a pack dump.
+		if ExternalPropKit.is_available() and i % 2 == 0:
+			var kind: StringName = &"park_car" if i % 4 == 0 else &"adventure_suv"
+			ExternalPropKit.spawn(cars, kind, specs[i]["pos"], float(specs[i]["yaw"]), 1.0, "Car_%d" % i)
+		else:
+			_car(cars, specs[i]["pos"], float(specs[i]["yaw"]), specs[i]["color"], i)
+
+
+static func _add_field_hangar(root: Node3D) -> void:
+	## East of Pass N Fuel — player's Field Skiff home pad (intro / hub hops / upgrades later).
+	AircraftPadInteractable.build_pad(root, Vector3(56, 0, 10), -90.0, "FieldHangar")
+	RegionPropKit.add_supply_stash(root, Vector3(52, 0, 16), 20.0, "HangarSupplies")
 
 
 static func _car(parent: Node3D, pos: Vector3, yaw: float, color: Color, idx: int) -> void:
@@ -1089,6 +1101,7 @@ static func _add_exploration_pois(root: Node3D, result: Dictionary) -> void:
 	_add_discoverable(pois, &"central_fountain", "Central Fountain", Vector3(0, 0.5, 7.5), 12, "The fountain hums with soft digital ripples.")
 	_add_discoverable(pois, &"sports_field", "Sports Field", Vector3(0, 0.5, -40), 10, "Cleats and chalk — the field is ready for a match.")
 	_add_discoverable(pois, &"fuel_stop", "Fuel Stop", Vector3(42, 0.5, 0), 10, "A bright canopy over sleepy pumps.")
+	_add_discoverable(pois, &"field_hangar", "Field Hangar", Vector3(56, 0.5, 10), 18, "A bright skiff waits on the pad — Grassland hops unlocked.")
 	_add_discoverable(pois, &"park_gazebo", "Park Gazebo", Vector3(0, 0.5, 0), 10, "The heart of Pleasant Park — shade, stories, and soft light.")
 
 	## Park Guide near the south park entrance (quest talk target).

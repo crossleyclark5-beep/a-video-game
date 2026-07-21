@@ -52,9 +52,12 @@ Curated paths under `assets/models/external/`:
 | `nature/` | pine/oak trees, bush, flowers, rocks, log, mushroom, campfire, tent | Wilderness + camps |
 | `town/` | lantern, fence, bench, stall, cart, fountain, banner | Pleasant Park life |
 | `interior/` | bed, sofa, table, chair, desk, fridge, stove, TV… | Modular interiors |
-| `adventure/` | pillar, ruin rocks, flag | Landmarks / ruins |
+| `adventure/` | pillar, ruins, flag, **treasure chest, crates, barrels, key, coin** | Landmarks + loot/supply |
+| `transport/` | **Field Skiff crafts, hangar, park cars, SUV** | Aircraft travel + town vehicles |
 
 Runtime: `ExternalPropCatalog` + `ExternalPropKit` (load GLB → toon rematerialize → optional collision).
+
+See also `docs/ASSET_PROTOTYPE.md` for the Field Skiff system and license gate.
 
 **Partner creatures are not replaced.**
 

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DiscoverableData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/discoverable_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"field_hangar"
+display_name = "Field Hangar"
+description = "Home pad for the Field Skiff — Digital Frontier's bright little air hopper."
+category = 0
+region_id = &"pleasant_park"
+short_blurb = "East of Pass N Fuel — board the skiff."
+bits_reward = 18
+map_hint = "East of the fuel lot"
+creature_xp_reward = 6
