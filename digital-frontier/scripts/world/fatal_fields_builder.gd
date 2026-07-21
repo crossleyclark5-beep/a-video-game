@@ -45,6 +45,9 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 		hub, "WhiteFarmhouse", Vector3(-6, 0, 6), Color(0.92, 0.92, 0.88), WorldPalette.ROOF_RED, 180.0, result, InteriorKinds.FARMHOUSE
 	)
 	StylizedMesh.add_box(hub, Vector3(2.8, 0.2, 2.0), WorldPalette.WOOD, Vector3(-6, 0.2, 10), "PorchExtra", false, 1.0, &"wood")
+	## Work truck by the farmhouse — rural utility vehicle.
+	VehicleSpawner.spawn_car(hub, &"utility_truck", Vector3(-14, 0, 10), 90.0, "FarmTruck", Color(0.5, 0.45, 0.28))
+	VehicleSpawner.spawn_car(hub, &"adventure_suv", Vector3(10, 0, 12), -20.0, "FarmSUV", Color(0.3, 0.45, 0.35))
 
 	## Big red barn east of house.
 	RegionPropKit.make_enterable_building(hub, "RedBarn", Vector3(22, 0, -6), WorldPalette.ROOF_RED, WorldPalette.ROOF, 0.0, result, InteriorKinds.BARN, Vector3(11.0, 5.5, 8.0))
