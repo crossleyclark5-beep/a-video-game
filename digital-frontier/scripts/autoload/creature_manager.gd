@@ -834,6 +834,16 @@ func import_state(data: Dictionary) -> void:
 	EventBus.companion_state_changed.emit()
 
 
+func reset_state() -> void:
+	_captured.clear()
+	_party = PackedStringArray()
+	_active = null
+	_care_initialized = false
+	_partner_chosen = false
+	EventBus.companion_state_changed.emit()
+	EventBus.party_changed.emit()
+
+
 func _migrate_legacy_flat(data: Dictionary) -> void:
 	var species_id := StringName(str(data.get(&"companion_id", data.get("companion_id", STARTER_CREATURE_ID))))
 	var species: CreatureData = ResourceRegistry.get_creature(species_id)

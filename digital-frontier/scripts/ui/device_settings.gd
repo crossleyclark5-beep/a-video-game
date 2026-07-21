@@ -115,6 +115,7 @@ func _build() -> void:
 		{"id": &"haptics", "label": "Haptics", "blurb": "Toggle rumble feedback"},
 		{"id": &"led", "label": "LED Pulse", "blurb": "Cycle device status light"},
 		{"id": &"legend", "label": "Control Legend", "blurb": "Show button map toast"},
+		{"id": &"switch_profile", "label": "Switch Profile", "blurb": "Save & choose another user"},
 		{"id": &"close", "label": "Close Settings", "blurb": "Return to device"},
 	]
 
@@ -154,6 +155,16 @@ func _activate() -> void:
 		&"legend":
 			EventBus.ui_notification_requested.emit(InputManager.get_control_legend(), 3.0)
 			EventBus.sfx_play_requested.emit(&"menu_beep", Vector3.ZERO)
+		&"switch_profile":
+			close()
+			var main := get_tree().get_first_node_in_group(&"main_shell")
+			if main == null:
+				main = get_tree().root.get_node_or_null("Main")
+			if main and main.has_method("return_to_profile_select"):
+				main.call("return_to_profile_select")
+			else:
+				EventBus.ui_notification_requested.emit("Restart device to switch profiles", 2.2)
+			return
 		&"close":
 			close()
 			return

@@ -247,6 +247,11 @@ func import_state(data: Dictionary) -> void:
 		_stage_progress = data["stage_progress"].duplicate()
 
 
+func reset_state() -> void:
+	_active_quests.clear()
+	_completed_quests.clear()
+	_stage_progress.clear()
+
 func _advance_quest(quest_id: StringName) -> void:
 	var data: QuestData = ResourceRegistry.get_quest(quest_id)
 	if data == null:

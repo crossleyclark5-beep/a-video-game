@@ -24,15 +24,17 @@
 ```mermaid
 flowchart LR
     A[boot.tscn] --> B[main.tscn]
-    B --> C{Has save?}
-    C -->|Future| D[Title Screen]
-    C -->|Dev placeholder| E[game_world.tscn]
-    D --> E
+    B --> C[DeviceBootSequence]
+    C --> D[ProfileSelect]
+    D --> E{Partner?}
+    E -->|No| F[PartnerSelect]
+    E -->|Yes| G[home_habitat.tscn]
+    F --> G
 ```
 
 1. **`boot.tscn`** — Minimal Node; verifies autoloads, emits `bootstrap_completed`, changes to main.
-2. **`main.tscn`** — Registers containers with `SceneManager` and `UIManager`, then loads first gameplay scene.
-3. Future: title screen, save slot selection, home companion screen.
+2. **`main.tscn`** — Registers containers, plays logo, opens **local profile select**, then Digi-Pet Home.
+3. See `docs/MULTI_PROFILE.md` for multi-user storage.
 
 ---
 

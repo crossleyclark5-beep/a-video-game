@@ -202,3 +202,8 @@ func import_state(data: Dictionary) -> void:
 		return
 	_owned_uniques = data.get(&"owned_uniques", data.get("owned_uniques", {})).duplicate()
 	_equipped = data.get(&"equipped", data.get("equipped", {})).duplicate()
+
+
+func reset_state() -> void:
+	_owned_uniques.clear()
+	_equipped.clear()

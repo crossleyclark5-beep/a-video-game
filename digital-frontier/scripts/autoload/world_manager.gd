@@ -234,6 +234,15 @@ func import_state(data: Dictionary) -> void:
 		_has_player_checkpoint = true
 
 
+func reset_state() -> void:
+	_active_region_id = &""
+	_active_hex_coords = Vector3i.ZERO
+	_world_flags.clear()
+	_loaded_regions.clear()
+	_player_position = Vector3.ZERO
+	_has_player_checkpoint = false
+
+
 func _on_region_load_requested(region_id: StringName) -> void:
 	var region_data: RegionData = ResourceRegistry.get_region(region_id)
 	if region_data == null:

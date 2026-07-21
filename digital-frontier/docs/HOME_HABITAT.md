@@ -14,8 +14,11 @@ When you power on, you should feel: **“This is my creature.”**
 ## Boot sequence
 
 1. Digital Frontier logo + LCD scan splash (`DeviceBootSequence`)
-2. Partner select if no companion saved (`PartnerSelect`)
-3. Digi-Pet Home LCD
+2. **Profile select** (`ProfileSelect`) — local multi-user gate
+3. Partner select if this profile has no companion saved (`PartnerSelect`)
+4. Digi-Pet Home LCD (loads the active profile’s creature)
+
+See `docs/MULTI_PROFILE.md`.
 
 ## Partner choice
 

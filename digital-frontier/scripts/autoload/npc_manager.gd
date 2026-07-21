@@ -187,6 +187,10 @@ func import_state(data: Dictionary) -> void:
 	_npc_states = data.duplicate(true)
 
 
+func reset_state() -> void:
+	_npc_states.clear()
+
+
 func _on_dialogue_ended(npc_id: StringName) -> void:
 	if npc_id == &"story" or npc_id == &"":
 		return

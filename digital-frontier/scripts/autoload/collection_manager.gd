@@ -363,6 +363,14 @@ func import_state(data: Dictionary) -> void:
 	_creature_index = data.get(&"creature_index", data.get("creature_index", {})).duplicate(true)
 
 
+func reset_state() -> void:
+	_unlocked_achievements.clear()
+	_rare_finds.clear()
+	_chests_opened_count = 0
+	_bits_earned_lifetime = 0
+	_creature_index.clear()
+
+
 func _creature_captured(creature_id: StringName) -> bool:
 	if CreatureManager.get_companion_id() == creature_id:
 		return true

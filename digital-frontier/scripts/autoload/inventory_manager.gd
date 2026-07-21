@@ -207,6 +207,16 @@ func import_state(data: Dictionary) -> void:
 	EventBus.bits_changed.emit(_bits, 0)
 
 
+func reset_state() -> void:
+	_items.clear()
+	_bits = 50
+	_bits_earned_total = 0
+	_bits_spent_total = 0
+	_ledger.clear()
+	EventBus.inventory_changed.emit()
+	EventBus.bits_changed.emit(_bits, 0)
+
+
 func _record_transaction(delta: int, reason: String, category: String) -> void:
 	_ledger.append({
 		"unix": int(Time.get_unix_time_from_system()),
