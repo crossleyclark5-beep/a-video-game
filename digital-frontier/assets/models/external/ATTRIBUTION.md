@@ -26,3 +26,6 @@ Do not redistribute Sketchfab downloads without satisfying the model’s license
 Partner creatures (Emberling, Sparkbit, Tidepup) are original Digital Frontier kits.
 Do not import Digimon / Fortnite / franchise character models — even for prototyping.
 Use original stylized CC0 packs as “inspired by” prototypes only.
+
+Item Shop roster (`docs/CHARACTER_SHOP_ROSTER.md`) uses original DF retro look-alikes
+(`CharacterLookalikeKit`) — not Sketchfab Fortnite downloads. Kenney Blocky is fallback only.

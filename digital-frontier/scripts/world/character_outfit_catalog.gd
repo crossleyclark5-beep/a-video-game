@@ -1,10 +1,10 @@
 class_name CharacterOutfitCatalog
 extends RefCounted
-## Item Shop character roster visuals — licensed Kenney meshes + DF tints.
-## Sketchfab Fortnite rips are rejected (Epic IP). Names mirror the requested
-## shop fantasy; meshes are original CC0 blocky adventurers.
+## Item Shop character roster visuals — Digital Frontier retro look-alikes.
+## Sketchfab Fortnite rips are rejected (Epic IP). Each outfit maps to a custom
+## pixel-toon silhouette kit (`CharacterLookalikeKit`) with Kenney fallback.
 
-## id -> { mesh, tint, accent, prop, unlock, quest, blurb }
+## id -> { mesh, tint, accent, prop, unlock, quest, blurb, style }
 const OUTFITS: Dictionary = {
 	&"char_jonesy": {
 		"mesh": &"hero_a",
@@ -13,7 +13,8 @@ const OUTFITS: Dictionary = {
 		"prop": &"cap",
 		"unlock": &"starter",
 		"quest": &"",
-		"blurb": "Starter operative — your look at the start.",
+		"style": &"field_agent",
+		"blurb": "Retro field agent — blue polo, DF cap, pack.",
 	},
 	&"char_ice_king": {
 		"mesh": &"hero_b",
@@ -22,7 +23,8 @@ const OUTFITS: Dictionary = {
 		"prop": &"crown",
 		"unlock": &"shop",
 		"quest": &"",
-		"blurb": "Frost-crowned monarch of the digital winter.",
+		"style": &"frost_monarch",
+		"blurb": "Crystal crown + ice cape — winter sovereign.",
 	},
 	&"char_indiana": {
 		"mesh": &"npc_explorer",
@@ -31,7 +33,8 @@ const OUTFITS: Dictionary = {
 		"prop": &"hat",
 		"unlock": &"shop",
 		"quest": &"",
-		"blurb": "Relic-running adventurer with a wide brim.",
+		"style": &"relic_runner",
+		"blurb": "Fedora, leather, satchel — relic runner.",
 	},
 	&"char_8ball": {
 		"mesh": &"hero_c",
@@ -40,7 +43,8 @@ const OUTFITS: Dictionary = {
 		"prop": &"orb",
 		"unlock": &"shop",
 		"quest": &"",
-		"blurb": "Slick black-and-white cue-ball swagger.",
+		"style": &"cue_ball",
+		"blurb": "Gloss black + white 8 medallion swagger.",
 	},
 	&"char_prisoner": {
 		"mesh": &"hero_alt",
@@ -49,7 +53,8 @@ const OUTFITS: Dictionary = {
 		"prop": &"none",
 		"unlock": &"shop",
 		"quest": &"",
-		"blurb": "Breakout orange — still got the field grit.",
+		"style": &"breakout",
+		"blurb": "Orange jumpsuit stripes — breakout grit.",
 	},
 	&"char_black_knight": {
 		"mesh": &"npc_guard",
@@ -58,7 +63,8 @@ const OUTFITS: Dictionary = {
 		"prop": &"armor",
 		"unlock": &"shop",
 		"quest": &"",
-		"blurb": "Onyx plate for the boldest sorties.",
+		"style": &"onyx_plate",
+		"blurb": "Onyx plate, crimson plume & cape.",
 	},
 	&"char_peely": {
 		"mesh": &"hero_b",
@@ -67,7 +73,8 @@ const OUTFITS: Dictionary = {
 		"prop": &"peel",
 		"unlock": &"shop",
 		"quest": &"",
-		"blurb": "Sunny peel energy — impossible to miss.",
+		"style": &"sunny_peel",
+		"blurb": "Banana-hero silhouette — sunny peel energy.",
 	},
 	&"char_marshmallow": {
 		"mesh": &"hero_alt",
@@ -76,7 +83,8 @@ const OUTFITS: Dictionary = {
 		"prop": &"soft",
 		"unlock": &"shop",
 		"quest": &"",
-		"blurb": "Puffy soft-guard look for chill ops.",
+		"style": &"soft_guard",
+		"blurb": "Stacked soft-guard snow puff + scarf.",
 	},
 	&"char_master_chief": {
 		"mesh": &"npc_guard",
@@ -85,7 +93,8 @@ const OUTFITS: Dictionary = {
 		"prop": &"helm",
 		"unlock": &"shop",
 		"quest": &"",
-		"blurb": "Chrome-green sentinel armor kit.",
+		"style": &"chrome_sentinel",
+		"blurb": "Chunky olive armor + gold visor.",
 	},
 	&"char_dj_yonder": {
 		"mesh": &"hero_c",
@@ -94,7 +103,8 @@ const OUTFITS: Dictionary = {
 		"prop": &"headset",
 		"unlock": &"shop",
 		"quest": &"",
-		"blurb": "Neon mixer vibes for the night circuit.",
+		"style": &"neon_mixer",
+		"blurb": "Neon headset + speaker pack mixer.",
 	},
 	&"char_dark_voyager": {
 		"mesh": &"hero_a",
@@ -103,7 +113,8 @@ const OUTFITS: Dictionary = {
 		"prop": &"visor",
 		"unlock": &"earn",
 		"quest": &"hollow_challenge",
-		"blurb": "Earn: clear Hollow Challenge.",
+		"style": &"void_voyager",
+		"blurb": "Earn · void suit + purple visor.",
 	},
 	&"char_omega": {
 		"mesh": &"npc_story",
@@ -112,7 +123,8 @@ const OUTFITS: Dictionary = {
 		"prop": &"armor",
 		"unlock": &"earn",
 		"quest": &"pine_threat",
-		"blurb": "Earn: clear Pine Threat.",
+		"style": &"apex_protocol",
+		"blurb": "Earn · dark armor with orange veins.",
 	},
 	&"char_raptor": {
 		"mesh": &"npc_explorer",
@@ -121,7 +133,8 @@ const OUTFITS: Dictionary = {
 		"prop": &"mask",
 		"unlock": &"earn",
 		"quest": &"wildlife_watch",
-		"blurb": "Earn: complete Wildlife Watch.",
+		"style": &"ridge_scout",
+		"blurb": "Earn · camo hood + utility vest.",
 	},
 	&"char_storm_trooper": {
 		"mesh": &"npc_researcher",
@@ -130,7 +143,8 @@ const OUTFITS: Dictionary = {
 		"prop": &"helm",
 		"unlock": &"earn",
 		"quest": &"park_explorer",
-		"blurb": "Earn: complete Park Explorer.",
+		"style": &"star_patrol",
+		"blurb": "Earn · white plate star-patrol kit.",
 	},
 }
 

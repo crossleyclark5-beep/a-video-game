@@ -6,7 +6,7 @@
 script = ExtResource("1_item")
 id = &"char_black_knight"
 display_name = "Black Knight"
-description = "Onyx plate for the boldest sorties."
+description = "Onyx plate armor with crimson plume and cape."
 item_type = 3
 shop_category = 2
 max_stack = 1

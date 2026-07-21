@@ -56,6 +56,12 @@ static func attach_outfit(
 	scale_mul: float = 1.0,
 	node_name: String = "LibraryMesh",
 ) -> Node3D:
+	## Prefer high-quality DF retro look-alikes; Kenney tint path is fallback only.
+	if CharacterOutfitCatalog.has_outfit(outfit_id):
+		var look := CharacterLookalikeKit.build(parent, outfit_id, scale_mul)
+		if look:
+			look.name = node_name
+			return look
 	var def := CharacterOutfitCatalog.outfit_def(outfit_id)
 	var mesh_id: StringName = def.get("mesh", &"hero_a") as StringName
 	var root := attach_under(parent, mesh_id, scale_mul, node_name)
