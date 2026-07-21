@@ -31,6 +31,13 @@ func _ready() -> void:
 	_health = PlayerHealth.new()
 	_health.name = "PlayerHealth"
 	add_child(_health)
+	if _interaction_agent and not _interaction_agent.interaction_performed.is_connected(_on_interaction_performed):
+		_interaction_agent.interaction_performed.connect(_on_interaction_performed)
+
+
+func _on_interaction_performed(_interactable: Interactable) -> void:
+	if _character_visual and _character_visual.has_method("play_interact"):
+		_character_visual.play_interact()
 
 
 func bind_living_world(world: LivingWorldController) -> void:

@@ -139,19 +139,24 @@ static func _pixel_tree_safe(parent: Node3D, pos: Vector3, scale_v: float, idx: 
 
 
 static func _pixel_tree(parent: Node3D, pos: Vector3, scale_v: float, idx: int) -> void:
+	## Match Pleasant Park canopy density — wilderness should not look thinner than town.
 	var tree := Node3D.new()
 	tree.name = "VTree_%d" % idx
 	tree.position = pos
 	tree.rotation_degrees.y = float(idx * 41 % 360)
 	parent.add_child(tree)
 	var tw := 0.3 * scale_v
-	StylizedMesh.add_box(tree, Vector3(tw, 1.6 * scale_v, tw), WorldPalette.TRUNK, Vector3(0, 0.8 * scale_v, 0), "Trunk", false, 1.0, &"wood")
+	StylizedMesh.add_box(tree, Vector3(tw, 1.7 * scale_v, tw), WorldPalette.TRUNK, Vector3(0, 0.85 * scale_v, 0), "Trunk", false, 1.0, &"wood")
+	StylizedMesh.add_box(tree, Vector3(tw * 0.5, 0.55 * scale_v, tw * 0.5), WorldPalette.TRUNK.lightened(0.05), Vector3(0.25 * scale_v, 1.45 * scale_v, 0.08), "Branch", false, 1.0, &"wood")
 	var leaf := WorldPalette.LEAF if idx % 2 == 0 else WorldPalette.LEAF_DARK
 	if idx % 3 == 0:
 		leaf = WorldPalette.LEAF_LIT
-	StylizedMesh.add_box(tree, Vector3(1.5 * scale_v, 1.1 * scale_v, 1.5 * scale_v), leaf, Vector3(0, 2.0 * scale_v, 0), "C1", false, 1.0, &"leaf")
-	StylizedMesh.add_box(tree, Vector3(0.9 * scale_v, 0.75 * scale_v, 0.9 * scale_v), leaf.lightened(0.06), Vector3(0.35 * scale_v, 2.55 * scale_v, 0.15), "C2", false, 1.0, &"leaf")
-	OcclusionUtil.mark_named_in(tree, PackedStringArray(["C1", "C2"]))
+	## Multi-cluster canopy for silhouette read at distance.
+	StylizedMesh.add_box(tree, Vector3(1.65 * scale_v, 1.15 * scale_v, 1.65 * scale_v), leaf, Vector3(0, 2.1 * scale_v, 0), "C1", false, 1.0, &"leaf")
+	StylizedMesh.add_box(tree, Vector3(1.0 * scale_v, 0.85 * scale_v, 1.0 * scale_v), leaf.lightened(0.06), Vector3(0.4 * scale_v, 2.7 * scale_v, 0.2), "C2", false, 1.0, &"leaf")
+	StylizedMesh.add_box(tree, Vector3(0.85 * scale_v, 0.7 * scale_v, 0.85 * scale_v), leaf.darkened(0.05), Vector3(-0.35 * scale_v, 2.5 * scale_v, -0.2), "C3", false, 1.0, &"leaf")
+	StylizedMesh.add_box(tree, Vector3(0.55 * scale_v, 0.5 * scale_v, 0.55 * scale_v), leaf.lightened(0.1), Vector3(0.1 * scale_v, 3.15 * scale_v, 0.05), "C4", false, 1.0, &"leaf")
+	OcclusionUtil.mark_named_in(tree, PackedStringArray(["C1", "C2", "C3", "C4"]))
 
 
 static func _build_grass_strips(parent: Node3D) -> void:

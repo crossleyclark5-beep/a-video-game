@@ -149,23 +149,117 @@ func _build_visual(def: Dictionary) -> void:
 	_visual.name = "Visual"
 	add_child(_visual)
 	var scale_v := float(def.get("scale", 0.7))
-	var col: Color = def.get("color", Color(0.8, 0.7, 0.6))
+	var col: Color = WorldPalette.quantize(def.get("color", Color(0.8, 0.7, 0.6)) as Color)
 	## Soft rarity tint ring (legendary/mythical glow).
 	if rarity >= EcosystemCatalog.Rarity.RARE:
 		StylizedMesh.add_sphere(_visual, 0.08 * scale_v, WorldPalette.UI_GOLD if rarity < EcosystemCatalog.Rarity.MYTHICAL else WorldPalette.UI_CYAN, Vector3(0, 1.1 * scale_v, 0), "RareMark")
 	match String(species_id):
-		"meadow_bird", "lunamoth", "byte_bat":
-			StylizedMesh.add_sphere(_visual, 0.18 * scale_v, col, Vector3(0, 0.55, 0), "Body")
-			StylizedMesh.add_box(_visual, Vector3(0.55 * scale_v, 0.06, 0.18 * scale_v), col.darkened(0.15), Vector3(0, 0.55, 0), "Wing")
+		"meadow_bird":
+			_viz_bird(col, scale_v, false)
+		"lunamoth":
+			_viz_bird(col, scale_v, true)
+		"byte_bat":
+			_viz_bat(col, scale_v)
 		"park_deer", "timber_moose", "ridge_goat":
-			var body_h := 0.55 if species_id != &"timber_moose" else 0.7
-			StylizedMesh.add_box(_visual, Vector3(0.55 * scale_v, body_h * scale_v, 1.1 * scale_v), col, Vector3(0, body_h * 0.55 * scale_v, 0), "Body")
-			StylizedMesh.add_sphere(_visual, 0.2 * scale_v, col.lightened(0.08), Vector3(0, body_h * scale_v + 0.15, -0.45 * scale_v), "Head")
+			_viz_ungulate(col, scale_v, species_id == &"timber_moose", species_id == &"ridge_goat")
+		"cotton_rabbit", "phantom_hare":
+			_viz_rabbit(col, scale_v, species_id == &"phantom_hare")
+		"hex_squirrel":
+			_viz_squirrel(col, scale_v)
+		"glow_kit", "pack_pup", "scrub_wolf":
+			_viz_canid(col, scale_v, species_id)
+		"thorn_boar":
+			_viz_boar(col, scale_v)
+		"glitchmite":
+			_viz_mite(col, scale_v)
 		_:
 			StylizedMesh.add_box(_visual, Vector3(0.4 * scale_v, 0.35 * scale_v, 0.55 * scale_v), col, Vector3(0, 0.28 * scale_v, 0), "Body")
 			StylizedMesh.add_sphere(_visual, 0.16 * scale_v, col.lightened(0.1), Vector3(0, 0.42 * scale_v, -0.22 * scale_v), "Head")
 			if is_hostile:
 				StylizedMesh.add_box(_visual, Vector3(0.1, 0.1, 0.1), WorldPalette.UI_ACCENT, Vector3(0.1 * scale_v, 0.48 * scale_v, -0.3 * scale_v), "Eye")
+
+
+func _viz_bird(col: Color, s: float, moth: bool) -> void:
+	StylizedMesh.add_sphere(_visual, 0.16 * s, col, Vector3(0, 0.5 * s, 0), "Body")
+	var wing_c := col.lightened(0.15) if moth else col.darkened(0.1)
+	var w := StylizedMesh.add_box(_visual, Vector3((0.7 if moth else 0.55) * s, 0.05 * s, 0.2 * s), wing_c, Vector3(0, 0.52 * s, 0), "Wing")
+	if moth:
+		w.material_override = StylizedMesh.make_material(wing_c, 1.0, 0.0, 0.25, &"flat")
+	StylizedMesh.add_box(_visual, Vector3(0.06 * s, 0.06 * s, 0.18 * s), col.darkened(0.2), Vector3(0, 0.48 * s, -0.2 * s), "Tail")
+	StylizedCreatureKit.eye_pair(_visual, Vector3(0, 0.55 * s, 0.12 * s), 0.05 * s, 0.025 * s)
+
+
+func _viz_bat(col: Color, s: float) -> void:
+	StylizedMesh.add_sphere(_visual, 0.15 * s, col, Vector3(0, 0.48 * s, 0), "Body")
+	StylizedMesh.add_box(_visual, Vector3(0.75 * s, 0.04 * s, 0.22 * s), col.darkened(0.15), Vector3(0, 0.5 * s, 0), "Wing")
+	StylizedCreatureKit.ear_pair(_visual, 0.62 * s, 0.1 * s, Vector3(0.06 * s, 0.12 * s, 0.04 * s), col.lightened(0.05))
+	StylizedCreatureKit.eye_pair(_visual, Vector3(0, 0.5 * s, 0.12 * s), 0.05 * s, 0.03 * s, WorldPalette.UI_ACCENT)
+
+
+func _viz_ungulate(col: Color, s: float, moose: bool, goat: bool) -> void:
+	var body_h := 0.7 if moose else 0.55
+	StylizedMesh.add_box(_visual, Vector3(0.5 * s, body_h * s, 1.05 * s), col, Vector3(0, body_h * 0.55 * s, 0), "Body")
+	StylizedMesh.add_sphere(_visual, 0.18 * s, col.lightened(0.08), Vector3(0, body_h * s + 0.12 * s, -0.48 * s), "Head")
+	StylizedCreatureKit.quadruped_legs(_visual, body_h * 0.35 * s, s, col)
+	if moose:
+		StylizedMesh.add_box(_visual, Vector3(0.45 * s, 0.08 * s, 0.2 * s), col.darkened(0.1), Vector3(-0.15 * s, body_h * s + 0.35 * s, -0.45 * s), "AntlerL")
+		StylizedMesh.add_box(_visual, Vector3(0.45 * s, 0.08 * s, 0.2 * s), col.darkened(0.1), Vector3(0.15 * s, body_h * s + 0.35 * s, -0.45 * s), "AntlerR")
+	elif goat:
+		StylizedMesh.add_box(_visual, Vector3(0.04 * s, 0.16 * s, 0.04 * s), Color(0.9, 0.88, 0.8), Vector3(-0.06 * s, body_h * s + 0.28 * s, -0.42 * s), "HornL")
+		StylizedMesh.add_box(_visual, Vector3(0.04 * s, 0.16 * s, 0.04 * s), Color(0.9, 0.88, 0.8), Vector3(0.06 * s, body_h * s + 0.28 * s, -0.42 * s), "HornR")
+	else:
+		StylizedCreatureKit.ear_pair(_visual, body_h * s + 0.22 * s, 0.12 * s, Vector3(0.05 * s, 0.1 * s, 0.04 * s), col)
+	StylizedCreatureKit.tail(_visual, Vector3(0, body_h * 0.6 * s, 0.5 * s), 0.25 * s, 0.06 * s, col.darkened(0.1))
+
+
+func _viz_rabbit(col: Color, s: float, phantom: bool) -> void:
+	StylizedMesh.add_sphere(_visual, 0.18 * s, col, Vector3(0, 0.28 * s, 0), "Body")
+	StylizedMesh.add_sphere(_visual, 0.14 * s, col.lightened(0.08), Vector3(0, 0.42 * s, -0.12 * s), "Head")
+	StylizedCreatureKit.ear_pair(_visual, 0.58 * s, 0.08 * s, Vector3(0.05 * s, 0.2 * s, 0.04 * s), col)
+	StylizedCreatureKit.tail(_visual, Vector3(0, 0.28 * s, 0.18 * s), 0.12 * s, 0.1 * s, Color(0.95, 0.95, 0.92), true)
+	if phantom:
+		StylizedMesh.add_sphere(_visual, 0.08 * s, WorldPalette.UI_CYAN, Vector3(0, 0.55 * s, 0), "GhostGlow")
+
+
+func _viz_squirrel(col: Color, s: float) -> void:
+	StylizedMesh.add_sphere(_visual, 0.14 * s, col, Vector3(0, 0.28 * s, 0), "Body")
+	StylizedMesh.add_sphere(_visual, 0.11 * s, col.lightened(0.08), Vector3(0, 0.4 * s, -0.1 * s), "Head")
+	StylizedCreatureKit.ear_pair(_visual, 0.5 * s, 0.07 * s, Vector3(0.04 * s, 0.08 * s, 0.03 * s), col)
+	StylizedCreatureKit.tail(_visual, Vector3(0, 0.35 * s, 0.2 * s), 0.35 * s, 0.12 * s, col.lightened(0.05), true)
+	StylizedCreatureKit.eye_pair(_visual, Vector3(0, 0.42 * s, -0.02 * s), 0.04 * s, 0.022 * s)
+
+
+func _viz_canid(col: Color, s: float, sid: StringName) -> void:
+	StylizedMesh.add_box(_visual, Vector3(0.35 * s, 0.32 * s, 0.6 * s), col, Vector3(0, 0.32 * s, 0), "Body")
+	StylizedMesh.add_sphere(_visual, 0.14 * s, col.lightened(0.06), Vector3(0, 0.4 * s, -0.32 * s), "Head")
+	StylizedCreatureKit.snout(_visual, Vector3(0, 0.36 * s, -0.45 * s), Vector3(0.1 * s, 0.08 * s, 0.14 * s), col.darkened(0.05))
+	StylizedCreatureKit.ear_pair(_visual, 0.52 * s, 0.1 * s, Vector3(0.06 * s, 0.12 * s, 0.04 * s), col)
+	StylizedCreatureKit.quadruped_legs(_visual, 0.22 * s, s * 0.85, col)
+	var bushy := sid == &"glow_kit"
+	var tip_c := WorldPalette.UI_CYAN if sid == &"glow_kit" else col.darkened(0.1)
+	var tip := StylizedCreatureKit.tail(_visual, Vector3(0, 0.35 * s, 0.32 * s), 0.35 * s, 0.08 * s, tip_c, bushy)
+	if sid == &"glow_kit":
+		tip.material_override = StylizedMesh.make_material(tip_c, 1.0, 0.0, 0.35, &"flat")
+	if sid == &"scrub_wolf":
+		StylizedMesh.add_box(_visual, Vector3(0.08 * s, 0.08 * s, 0.08 * s), WorldPalette.UI_ACCENT, Vector3(0.06 * s, 0.42 * s, -0.48 * s), "Eye")
+
+
+func _viz_boar(col: Color, s: float) -> void:
+	StylizedMesh.add_box(_visual, Vector3(0.5 * s, 0.4 * s, 0.75 * s), col, Vector3(0, 0.35 * s, 0), "Body")
+	StylizedMesh.add_sphere(_visual, 0.18 * s, col.darkened(0.05), Vector3(0, 0.38 * s, -0.42 * s), "Head")
+	StylizedMesh.add_box(_visual, Vector3(0.04 * s, 0.04 * s, 0.14 * s), Color(0.9, 0.88, 0.8), Vector3(-0.08 * s, 0.32 * s, -0.55 * s), "TuskL")
+	StylizedMesh.add_box(_visual, Vector3(0.04 * s, 0.04 * s, 0.14 * s), Color(0.9, 0.88, 0.8), Vector3(0.08 * s, 0.32 * s, -0.55 * s), "TuskR")
+	StylizedCreatureKit.quadruped_legs(_visual, 0.22 * s, s, col)
+	StylizedMesh.add_box(_visual, Vector3(0.12 * s, 0.1 * s, 0.08 * s), col.darkened(0.15), Vector3(0, 0.55 * s, -0.1 * s), "Ridge")
+
+
+func _viz_mite(col: Color, s: float) -> void:
+	StylizedMesh.add_box(_visual, Vector3(0.35 * s, 0.28 * s, 0.4 * s), col, Vector3(0, 0.28 * s, 0), "Body")
+	StylizedMesh.add_sphere(_visual, 0.12 * s, col.lightened(0.1), Vector3(0, 0.4 * s, -0.18 * s), "Head")
+	StylizedMesh.add_box(_visual, Vector3(0.08 * s, 0.08 * s, 0.08 * s), WorldPalette.UI_ACCENT, Vector3(0.08 * s, 0.45 * s, -0.28 * s), "Eye")
+	## Glitchy antennae
+	StylizedMesh.add_box(_visual, Vector3(0.03 * s, 0.18 * s, 0.03 * s), WorldPalette.UI_CYAN, Vector3(-0.08 * s, 0.55 * s, -0.15 * s), "AntL")
+	StylizedMesh.add_box(_visual, Vector3(0.03 * s, 0.18 * s, 0.03 * s), WorldPalette.UI_CYAN, Vector3(0.08 * s, 0.55 * s, -0.15 * s), "AntR")
 
 
 func _physics_process(delta: float) -> void:

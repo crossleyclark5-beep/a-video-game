@@ -47,15 +47,39 @@ func setup(def: Dictionary, player: Node3D, origin: Vector3) -> void:
 
 
 func _build_visual(def: Dictionary) -> void:
-	_visual = Node3D.new()
-	_visual.name = "Visual"
-	add_child(_visual)
 	var col: Color = def.get("color", NpcCatalog.role_color(role))
-	StylizedMesh.add_box(_visual, Vector3(0.45, 0.7, 0.35), col, Vector3(0, 0.55, 0), "Torso")
-	StylizedMesh.add_sphere(_visual, 0.2, Color(0.95, 0.78, 0.62), Vector3(0, 1.15, 0), "Head")
-	StylizedMesh.add_box(_visual, Vector3(0.42, 0.08, 0.42), col.darkened(0.25), Vector3(0, 1.32, 0), "Hat")
-	## Role accent — small shoulder badge.
-	StylizedMesh.add_box(_visual, Vector3(0.12, 0.12, 0.08), NpcCatalog.role_color(role).lightened(0.2), Vector3(0.28, 0.75, 0.1), "Badge")
+	var accent := NpcCatalog.role_color(role)
+	var hat := 0
+	match role:
+		NpcCatalog.Role.MERCHANT:
+			hat = 0
+		NpcCatalog.Role.EXPLORER:
+			hat = 3
+		NpcCatalog.Role.RESEARCHER:
+			hat = 1
+		NpcCatalog.Role.STORY:
+			hat = 2
+		_:
+			hat = 0 if _rng.randf() < 0.55 else 1
+	## Hair variation from id hash — personality without unique meshes.
+	var hair_tones: Array[Color] = [
+		Color(0.35, 0.22, 0.15),
+		Color(0.55, 0.35, 0.2),
+		Color(0.15, 0.12, 0.1),
+		Color(0.75, 0.65, 0.45),
+		Color(0.85, 0.55, 0.35),
+	]
+	var hair: Color = hair_tones[absi(hash(String(npc_id))) % hair_tones.size()]
+	var human := HumanoidVisual.new()
+	human.name = "Visual"
+	human.build(col, accent, hat, hair)
+	## Story anchors slightly taller; researchers a touch leaner.
+	if role == NpcCatalog.Role.STORY:
+		human.scale = Vector3(1.05, 1.08, 1.05)
+	elif role == NpcCatalog.Role.RESEARCHER:
+		human.scale = Vector3(0.95, 1.0, 0.95)
+	add_child(human)
+	_visual = human
 
 
 func _build_talk() -> void:
@@ -86,16 +110,21 @@ func _on_dialogue_ended(ended_id: StringName) -> void:
 
 func _process(delta: float) -> void:
 	if pinned or move_speed <= 0.01:
+		if _visual is HumanoidVisual:
+			(_visual as HumanoidVisual).set_move_amount(0.0, false)
 		return
 	_state_timer -= delta
 	if _state_timer <= 0.0:
 		_pick_target()
 	var flat := Vector3(_target.x - global_position.x, 0.0, _target.z - global_position.z)
-	if flat.length() > 0.25:
+	var moving := flat.length() > 0.25
+	if moving:
 		var dir := flat.normalized()
 		global_position += dir * move_speed * delta
 		if _visual:
 			_visual.rotation.y = lerp_angle(_visual.rotation.y, atan2(dir.x, dir.z), clampf(8.0 * delta, 0.0, 1.0))
+	if _visual is HumanoidVisual:
+		(_visual as HumanoidVisual).set_move_amount(1.0 if moving else 0.0, false)
 	## Soft leash — schedules can wander farther than random leash.
 	var max_leash := 28.0 if schedule_id != &"story_anchor" else 6.0
 	var home_d := Vector3(_home.x - global_position.x, 0.0, _home.z - global_position.z)
