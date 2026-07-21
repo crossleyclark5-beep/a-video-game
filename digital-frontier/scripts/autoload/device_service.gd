@@ -121,3 +121,15 @@ func exchange_creature_snapshot() -> Dictionary:
 		&"stage": CreatureManager.get_evolution_stage(),
 		&"friendship": CreatureManager.get_friendship(),
 	}
+
+
+func exchange_profile_snapshot() -> Dictionary:
+	## Future NFC: battle / trade / event unlock between Field Units — offline.
+	var rec := SaveManager.get_active_profile()
+	return {
+		&"schema": 1,
+		&"profile_id": SaveManager.get_active_profile_id(),
+		&"display_name": str(rec.get("display_name", "")),
+		&"avatar_id": str(rec.get("avatar_id", "ember")),
+		&"creature": exchange_creature_snapshot(),
+	}

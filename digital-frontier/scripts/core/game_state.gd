@@ -5,9 +5,14 @@ extends Resource
 ## Managers populate sections of this resource during save.
 ## Keeps save format decoupled from scene/node structure.
 
-@export var schema_version: int = 2
+@export var schema_version: int = 3
 @export var timestamp_unix: int = 0
 @export var playtime_seconds: float = 0.0
+
+## Local profile identity (offline multi-user Field Unit).
+@export var profile_id: String = ""
+@export var profile_display_name: String = ""
+@export var profile_avatar_id: StringName = &"ember"
 
 @export var current_region_id: StringName = &""
 @export var current_hex_coords: Vector3i = Vector3i.ZERO

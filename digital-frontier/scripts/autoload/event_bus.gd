@@ -41,6 +41,7 @@ signal save_requested(slot: int)
 signal save_completed(slot: int, success: bool)
 signal load_requested(slot: int)
 signal load_completed(slot: int, success: bool)
+signal profile_changed(profile_id: String)
 
 # --- Inventory ---
 signal item_added(item_id: StringName, quantity: int)

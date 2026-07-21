@@ -32,3 +32,8 @@ func import_state(data: Dictionary) -> void:
 		_unlocked = data[&"unlocked"].duplicate()
 	if data.has(&"active_vehicle_id"):
 		_active_vehicle_id = data[&"active_vehicle_id"]
+
+
+func reset_state() -> void:
+	_unlocked.clear()
+	_active_vehicle_id = &""

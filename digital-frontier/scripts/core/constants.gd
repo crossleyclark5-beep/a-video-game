@@ -3,8 +3,10 @@ extends RefCounted
 ## Project-wide constants. Prefer data files for content; use this for engine-level values only.
 
 const PROJECT_NAME := &"Cooper Game"
-const SAVE_FILE_EXTENSION := &".sav"
+const SAVE_FILE_EXTENSION := &".res"
 const SAVE_SLOT_COUNT := 3
+## Local multi-user profiles on one Field Unit (offline).
+const PROFILE_MAX_COUNT := 8
 
 ## Hex grid defaults (overridden per-region via RegionData).
 const DEFAULT_HEX_SIZE := 1.0

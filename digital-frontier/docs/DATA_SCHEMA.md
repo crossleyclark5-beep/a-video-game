@@ -211,11 +211,16 @@ All content resources extend **`IdentifiableResource`** and require:
 
 ## GameState (Save Format)
 
-**Path:** `user://saves/slot_N.sav` (runtime)
+**Path:** `user://saves/profiles/{profile_id}/slot_N.res` (runtime)  
+**Index:** `user://saves/profiles.json` — see `docs/MULTI_PROFILE.md`
 
 | Field | Type | Owner |
 |-------|------|-------|
-| `schema_version` | `int` | SaveManager (migration) |
+| `schema_version` | `int` | SaveManager (currently 3) |
+| `profile_id` | `String` | SaveManager |
+| `profile_display_name` | `String` | SaveManager |
+| `profile_avatar_id` | `StringName` | SaveManager |
+| `playtime_seconds` | `float` | SaveManager |
 | `current_region_id` | `StringName` | WorldManager |
 | `current_hex_coords` | `Vector3i` | WorldManager |
 | `inventory_data` | `Dictionary` | InventoryManager |
@@ -224,7 +229,9 @@ All content resources extend **`IdentifiableResource`** and require:
 | `npc_data` | `Dictionary` | NPCManager |
 | `vehicle_data` | `Dictionary` | VehicleManager |
 | `world_flags` | `Dictionary` | WorldManager |
-| `settings_data` | `Dictionary` | GameConfig |
+| `collection_data` | `Dictionary` | CollectionManager |
+| `shop_data` | `Dictionary` | ShopManager |
+| `settings_data` | `Dictionary` | GameConfig (per-profile volumes) |
 
 ---
 
