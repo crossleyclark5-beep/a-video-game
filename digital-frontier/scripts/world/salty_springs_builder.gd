@@ -48,9 +48,10 @@ static func build_at(root: Node3D, origin: Vector3, result: Dictionary) -> void:
 	## Gas station — NE corner of the hollow (OG Salty landmark).
 	_gas_station(hub, Vector3(16, 0.2, -14), result)
 
-	## Parked cars / street clutter.
-	_car(hub, Vector3(-4, 0, -2), Color(0.75, 0.22, 0.2), 20.0)
-	_car(hub, Vector3(8, 0, 4), Color(0.2, 0.4, 0.7), -15.0)
+	## Drivable cars on the hollow streets + a work truck at the pumps.
+	VehicleSpawner.spawn_car(hub, &"park_cruiser", Vector3(-4, 0, -2), 20.0, "SaltyCruiser", Color(0.75, 0.22, 0.2))
+	VehicleSpawner.spawn_car(hub, &"adventure_suv", Vector3(8, 0, 4), -15.0, "SaltySUV", Color(0.2, 0.4, 0.7))
+	VehicleSpawner.spawn_car(hub, &"utility_truck", Vector3(14, 0, -10), 40.0, "SaltyTruck", Color(0.6, 0.55, 0.35))
 
 	result[&"chests"].append(
 		RegionPropKit.build_chest(hub, "SaltyBlueBasementChest", Vector3(-18, 0.4, -10), ChestInteractable.Rarity.RARE, 0.0, "Search the blue house yard")
@@ -96,12 +97,3 @@ static func _gas_station(parent: Node3D, pos: Vector3, result: Dictionary) -> vo
 	StylizedMesh.add_box(g, Vector3(0.7, 1.4, 0.55), WorldPalette.ROOF_RED, Vector3(-4, 0.8, -2.2), "Pump1", true)
 	StylizedMesh.add_box(g, Vector3(0.7, 1.4, 0.55), WorldPalette.ROOF_RED, Vector3(0, 0.8, -2.2), "Pump2", true)
 	RegionPropKit.add_discoverable(g, &"salty_gas", "Salty Gas Station", Vector3(0, 0.6, 3.5), 12, "Yellow shop, red canopy — fuel for the hills.")
-
-
-static func _car(parent: Node3D, pos: Vector3, color: Color, yaw: float) -> void:
-	var car := Node3D.new()
-	car.position = pos
-	car.rotation_degrees.y = yaw
-	parent.add_child(car)
-	StylizedMesh.add_box(car, Vector3(1.7, 0.5, 3.2), color, Vector3(0, 0.4, 0), "Body", true)
-	StylizedMesh.add_box(car, Vector3(1.4, 0.4, 1.5), color.lightened(0.08), Vector3(0, 0.85, -0.2), "Cabin")

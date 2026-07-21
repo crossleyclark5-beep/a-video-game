@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="VehicleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/vehicle_data.gd" id="1_vehicle"]
+
+[resource]
+script = ExtResource("1_vehicle")
+id = &"adventure_suv"
+display_name = "Trail SUV"
+description = "A sturdy adventure wagon for dirt paths, hills, and long Grassland runs."
+vehicle_class = 0
+scene_path = ""
+max_speed = 15.0
+acceleration = 11.0
+brake_force = 18.0
+reverse_speed = 6.0
+turn_rate = 2.2
+coast_friction = 5.0
+offroad_mul = 0.88
+camera_zoom = 18.5
+camera_follow = Vector3(0, 27, 21)
+camera_look_ahead = 3.4
+visual_prop_id = &"adventure_suv"
+body_color = Color(0.25, 0.42, 0.55, 1)
+exit_offset = Vector3(2.4, 0, 0.5)
+can_own = true
+starter_unlock = true

@@ -29,11 +29,16 @@ var _battle_mode: bool = false
 var _battle_anchor: Vector3 = Vector3.ZERO
 var _pre_battle_zoom: float = 14.5
 var _pre_battle_follow: Vector3 = Vector3.ZERO
+var _vehicle_mode: bool = false
+var _pre_vehicle_zoom: float = 14.5
+var _pre_vehicle_follow: Vector3 = Vector3.ZERO
+var _vehicle_look_ahead: float = 3.2
 
 @onready var _camera: Camera3D = $Camera3D
 
 
 func _ready() -> void:
+	add_to_group(&"camera_rig")
 	_target_zoom = default_zoom
 	_active_follow_distance = follow_distance
 	if _camera:
@@ -115,6 +120,36 @@ func exit_battle_mode() -> void:
 	set_zoom_size(_pre_battle_zoom if _pre_battle_zoom > 0.0 else default_zoom, false)
 
 
+func set_vehicle_mode(active: bool, vehicle: Node3D = null, data: VehicleData = null) -> void:
+	## Third-person driving frame — higher, wider, stronger look-ahead with speed.
+	if active:
+		if not _vehicle_mode:
+			_pre_vehicle_zoom = _target_zoom
+			_pre_vehicle_follow = _active_follow_distance
+		_vehicle_mode = true
+		_battle_mode = false
+		if data:
+			_active_follow_distance = data.camera_follow
+			_vehicle_look_ahead = data.camera_look_ahead
+			set_zoom_size(data.camera_zoom, false)
+		else:
+			_active_follow_distance = Vector3(0.0, 26.0, 20.0)
+			_vehicle_look_ahead = 3.2
+			set_zoom_size(18.0, false)
+		if vehicle:
+			set_target(vehicle)
+	else:
+		if not _vehicle_mode:
+			return
+		_vehicle_mode = false
+		_vehicle_look_ahead = look_ahead
+		_active_follow_distance = interior_follow_distance if _interior_mode else follow_distance
+		if _pre_vehicle_follow != Vector3.ZERO and not _interior_mode:
+			_active_follow_distance = follow_distance
+		set_zoom_size(_pre_vehicle_zoom if _pre_vehicle_zoom > 0.0 else default_zoom, false)
+		call_deferred("_find_player")
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	## Zoom is optional on handheld — Prefer fixed framing. Keep wheel for PC editor only.
 	if event is InputEventMouseButton and event.pressed:
@@ -138,19 +173,23 @@ func _process(delta: float) -> void:
 	if _target is CharacterBody3D:
 		vel = (_target as CharacterBody3D).velocity
 	var flat := Vector3(vel.x, 0.0, vel.z)
-	var speed_factor := clampf(flat.length() / 6.0, 0.0, 1.0)
+	var speed_ref := 18.0 if _vehicle_mode else 6.0
+	var speed_factor := clampf(flat.length() / speed_ref, 0.0, 1.0)
 	## Less look-ahead indoors so framing stays on the room.
+	var ahead_base := _vehicle_look_ahead if _vehicle_mode else look_ahead
 	var ahead_scale := 0.25 if _interior_mode else 1.0
-	var desired_look := flat.normalized() * look_ahead * ahead_scale * (0.45 + speed_factor * 0.35) if flat.length() > 0.4 else Vector3.ZERO
+	var desired_look := flat.normalized() * ahead_base * ahead_scale * (0.45 + speed_factor * 0.55) if flat.length() > 0.4 else Vector3.ZERO
 	_look_ahead_offset = _look_ahead_offset.lerp(desired_look, clampf(6.5 * delta, 0.0, 1.0))
 
 	_floor_focus_y = lerpf(_floor_focus_y, _floor_focus_target, clampf(5.5 * delta, 0.0, 1.0))
 	var floor_lift := Vector3(0.0, _floor_focus_y, 0.0)
 
 	var focus := _target.global_position + _look_ahead_offset + floor_lift * 0.35
-	var height_boost := speed_factor * (0.2 if _interior_mode else 0.45)
+	var height_boost := speed_factor * (0.2 if _interior_mode else (1.4 if _vehicle_mode else 0.45))
 	var desired_pos := focus + _active_follow_distance + Vector3(0, height_boost, 0) + floor_lift
-	var smooth := follow_smoothing if flat.length() > 0.2 else settle_smoothing
+	var smooth := (follow_smoothing * 0.85) if _vehicle_mode else follow_smoothing
+	if flat.length() <= 0.2:
+		smooth = settle_smoothing
 	global_position = global_position.lerp(desired_pos, clampf(smooth * delta, 0.0, 1.0))
 	_camera.look_at(focus + look_at_offset, Vector3.UP)
 

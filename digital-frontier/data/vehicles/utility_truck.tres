@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="VehicleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/vehicle_data.gd" id="1_vehicle"]
+
+[resource]
+script = ExtResource("1_vehicle")
+id = &"utility_truck"
+display_name = "Utility Truck"
+description = "A chunky work truck parked near farms and fuel stops — slower, grippier off-road."
+vehicle_class = 0
+scene_path = ""
+max_speed = 13.5
+acceleration = 9.5
+brake_force = 16.0
+reverse_speed = 5.5
+turn_rate = 2.0
+coast_friction = 4.5
+offroad_mul = 0.95
+camera_zoom = 19.0
+camera_follow = Vector3(0, 28, 22)
+camera_look_ahead = 3.0
+visual_prop_id = &""
+body_color = Color(0.55, 0.5, 0.32, 1)
+exit_offset = Vector3(2.5, 0, 0.5)
+can_own = true
+starter_unlock = false

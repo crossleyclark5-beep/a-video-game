@@ -1,10 +1,13 @@
 extends BaseManager
-## Vehicle ownership, mounting, and Field Skiff air hops.
+## Vehicle ownership, mounting, garage foundation, and Field Skiff air hops.
 
 
 var _unlocked: Dictionary = {}  ## vehicle_id -> true
+var _owned: Dictionary = {}  ## vehicle_id -> { customization: {}, upgrades: [] }
 var _active_vehicle_id: StringName = &""
 var _traveling: bool = false
+var _mounted: VehicleBase = null
+var _world_vehicles: Dictionary = {}  ## instance_id -> VehicleBase
 
 
 func _initialize_manager() -> void:
@@ -19,10 +22,30 @@ func unlock(vehicle_id: StringName, announce: bool = true) -> void:
 	if _unlocked.has(vehicle_id):
 		return
 	_unlocked[vehicle_id] = true
+	if not _owned.has(vehicle_id):
+		_owned[vehicle_id] = {"customization": {}, "upgrades": []}
 	if announce:
 		var data: VehicleData = ResourceRegistry.get_vehicle(vehicle_id)
 		var label := data.display_name if data else String(vehicle_id)
 		EventBus.ui_notification_requested.emit("Unlocked: %s" % label, 2.6)
+
+
+func own_vehicle(vehicle_id: StringName, announce: bool = true) -> void:
+	## Personal garage slot foundation — customization / upgrades later.
+	unlock(vehicle_id, announce)
+	if not _owned.has(vehicle_id):
+		_owned[vehicle_id] = {"customization": {}, "upgrades": []}
+
+
+func is_owned(vehicle_id: StringName) -> bool:
+	return _owned.has(vehicle_id)
+
+
+func get_owned_ids() -> Array[StringName]:
+	var out: Array[StringName] = []
+	for k in _owned.keys():
+		out.append(k)
+	return out
 
 
 func get_active_vehicle_id() -> StringName:
@@ -33,11 +56,48 @@ func is_traveling() -> bool:
 	return _traveling
 
 
+func is_driving() -> bool:
+	return _mounted != null and is_instance_valid(_mounted)
+
+
+func get_mounted_vehicle() -> VehicleBase:
+	return _mounted
+
+
+func register_world_vehicle(vehicle: VehicleBase) -> void:
+	if vehicle == null:
+		return
+	_world_vehicles[vehicle.instance_id] = vehicle
+
+
+func unregister_world_vehicle(vehicle: VehicleBase) -> void:
+	if vehicle == null:
+		return
+	_world_vehicles.erase(vehicle.instance_id)
+	if _mounted == vehicle:
+		_mounted = null
+
+
+func mount_vehicle(vehicle: VehicleBase, _player: Node3D) -> void:
+	if vehicle == null:
+		return
+	if is_traveling():
+		return
+	_mounted = vehicle
+	enter_vehicle(vehicle.vehicle_id)
+
+
+func dismount_vehicle() -> void:
+	_mounted = null
+	exit_vehicle()
+
+
 func enter_vehicle(vehicle_id: StringName) -> void:
 	if not is_unlocked(vehicle_id):
 		unlock(vehicle_id, false)
 	_active_vehicle_id = vehicle_id
-	InputManager.push_context(InputManager.Context.VEHICLE)
+	if InputManager.get_context() != InputManager.Context.VEHICLE:
+		InputManager.push_context(InputManager.Context.VEHICLE)
 	EventBus.vehicle_entered.emit(vehicle_id)
 
 
@@ -53,6 +113,9 @@ func exit_vehicle() -> void:
 ## Arc hop between Grassland hubs. Keeps one continuous scene (no region reload).
 func fly_to(player: Node3D, destination: Vector3, vehicle_id: StringName = &"field_skiff") -> void:
 	if player == null or _traveling:
+		return
+	if is_driving():
+		EventBus.ui_notification_requested.emit("Exit the car before boarding the skiff.", 2.0)
 		return
 	if not is_unlocked(vehicle_id):
 		unlock(vehicle_id, true)
@@ -125,6 +188,7 @@ func _bezier(a: Vector3, b: Vector3, c: Vector3, t: float) -> Vector3:
 func export_state() -> Dictionary:
 	return {
 		&"unlocked": _unlocked.duplicate(),
+		&"owned": _owned.duplicate(true),
 		&"active_vehicle_id": _active_vehicle_id,
 	}
 
@@ -132,11 +196,19 @@ func export_state() -> Dictionary:
 func import_state(data: Dictionary) -> void:
 	if data.has(&"unlocked"):
 		_unlocked = data[&"unlocked"].duplicate()
+	if data.has(&"owned"):
+		_owned = data[&"owned"].duplicate(true)
+	## Back-compat: unlocked vehicles become owned garage entries.
+	for id in _unlocked.keys():
+		if not _owned.has(id):
+			_owned[id] = {"customization": {}, "upgrades": []}
 	if data.has(&"active_vehicle_id"):
 		_active_vehicle_id = data[&"active_vehicle_id"]
 
 
 func reset_state() -> void:
 	_unlocked.clear()
+	_owned.clear()
 	_active_vehicle_id = &""
 	_traveling = false
+	_mounted = null

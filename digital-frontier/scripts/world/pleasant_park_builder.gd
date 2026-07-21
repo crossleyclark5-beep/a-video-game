@@ -930,51 +930,22 @@ static func _add_parked_cars(root: Node3D) -> void:
 	var cars := Node3D.new()
 	cars.name = "ParkedCars"
 	root.add_child(cars)
+	## Drivable fleet — curb / driveway / fuel lot. Not random scatter.
 	var specs := [
-		{"pos": Vector3(-12, 0, -20), "yaw": 0.0, "color": Color(0.75, 0.2, 0.18)},
-		{"pos": Vector3(12, 0, -20), "yaw": 0.0, "color": Color(0.2, 0.35, 0.7)},
-		{"pos": Vector3(20, 0, -12), "yaw": -90.0, "color": Color(0.85, 0.85, 0.82)},
-		{"pos": Vector3(20, 0, 12), "yaw": -90.0, "color": Color(0.2, 0.55, 0.35)},
-		{"pos": Vector3(40, 0, -4), "yaw": 90.0, "color": Color(0.15, 0.15, 0.18)},
-		{"pos": Vector3(-20, 0, 12), "yaw": 90.0, "color": Color(0.9, 0.7, 0.2)},
+		{"pos": Vector3(-12, 0, -20), "yaw": 0.0, "color": Color(0.75, 0.2, 0.18), "vehicle_id": &"park_cruiser"},
+		{"pos": Vector3(12, 0, -20), "yaw": 0.0, "color": Color(0.2, 0.35, 0.7), "vehicle_id": &"park_cruiser"},
+		{"pos": Vector3(20, 0, -12), "yaw": -90.0, "color": Color(0.85, 0.85, 0.82), "vehicle_id": &"adventure_suv"},
+		{"pos": Vector3(20, 0, 12), "yaw": -90.0, "color": Color(0.2, 0.55, 0.35), "vehicle_id": &"park_cruiser"},
+		{"pos": Vector3(40, 0, -4), "yaw": 90.0, "color": Color(0.15, 0.15, 0.18), "vehicle_id": &"utility_truck"},
+		{"pos": Vector3(-20, 0, 12), "yaw": 90.0, "color": Color(0.9, 0.7, 0.2), "vehicle_id": &"adventure_suv"},
 	]
-	for i in specs.size():
-		## Mix curated Kenney cars with procedural fillers — lived-in suburb, not a pack dump.
-		if ExternalPropKit.is_available() and i % 2 == 0:
-			var kind: StringName = &"park_car" if i % 4 == 0 else &"adventure_suv"
-			ExternalPropKit.spawn(cars, kind, specs[i]["pos"], float(specs[i]["yaw"]), 1.0, "Car_%d" % i)
-		else:
-			_car(cars, specs[i]["pos"], float(specs[i]["yaw"]), specs[i]["color"], i)
+	VehicleSpawner.spawn_park_fleet(cars, specs)
 
 
 static func _add_field_hangar(root: Node3D) -> void:
 	## East of Pass N Fuel — player's Field Skiff home pad (intro / hub hops / upgrades later).
 	AircraftPadInteractable.build_pad(root, Vector3(56, 0, 10), -90.0, "FieldHangar")
 	RegionPropKit.add_supply_stash(root, Vector3(52, 0, 16), 20.0, "HangarSupplies")
-
-
-static func _car(parent: Node3D, pos: Vector3, yaw: float, color: Color, idx: int) -> void:
-	var car := Node3D.new()
-	car.name = "Car_%d" % idx
-	car.position = pos
-	car.rotation_degrees.y = yaw
-	parent.add_child(car)
-	StylizedMesh.add_box(car, Vector3(1.8, 0.55, 3.6), color, Vector3(0, 0.45, 0), "Body", true)
-	StylizedMesh.add_box(car, Vector3(1.6, 0.5, 1.8), color.lightened(0.08), Vector3(0, 0.95, -0.2), "Cabin")
-	## Windows
-	var win := MeshInstance3D.new()
-	win.name = "Windshield"
-	var wm := BoxMesh.new()
-	wm.size = Vector3(1.5, 0.4, 0.08)
-	win.mesh = wm
-	win.material_override = StylizedMesh.make_glass_material()
-	win.position = Vector3(0, 0.95, 0.7)
-	car.add_child(win)
-	## Wheels — chunky boxes, not smooth cylinders
-	for wp in [Vector3(-0.85, 0.28, 1.1), Vector3(0.85, 0.28, 1.1), Vector3(-0.85, 0.28, -1.1), Vector3(0.85, 0.28, -1.1)]:
-		StylizedMesh.add_box(car, Vector3(0.22, 0.45, 0.45), Color(0.12, 0.12, 0.12), wp, "Wheel")
-	StylizedMesh.add_box(car, Vector3(0.25, 0.12, 0.15), WorldPalette.LAMP_GLOW, Vector3(-0.6, 0.45, 1.8), "HeadL")
-	StylizedMesh.add_box(car, Vector3(0.25, 0.12, 0.15), WorldPalette.LAMP_GLOW, Vector3(0.6, 0.45, 1.8), "HeadR")
 
 
 # --- Gameplay props (contracts preserved) ------------------------------------
