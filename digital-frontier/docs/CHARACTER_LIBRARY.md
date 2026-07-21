@@ -19,6 +19,8 @@ Digital Frontier keeps a deliberate contrast:
 
 **Partners (Emberling, Sparkbit, Tidepup) stay custom `CompanionVisual` kits.** Digimon-style influence is silhouette language only — never IP meshes.
 
+**Expanded look-alike roster:** see `docs/CREATURE_LOOKALIKES.md` — 6 companion / 15 enemy / 6 boss Digimon-inspired DF kits (`CreatureLookalikeKit`).
+
 ## Curated roster (`assets/models/external/characters/`)
 
 ### Humans (Kenney Blocky Characters — CC0)
