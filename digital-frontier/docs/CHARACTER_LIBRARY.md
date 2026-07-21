@@ -53,7 +53,7 @@ Wired into:
 
 Search for **original** stylized adventurers / cute digital monsters with download + CC-BY. Do not import Fortnite/Digimon named rips.
 
-**Item Shop roster:** requested Fortnite Sketchfab characters are **not** imported (Epic IP). See `CHARACTER_SHOP_ROSTER.md` for the licensed Kenney + tint stand-ins (Jonesy starter + buy/earn unlocks).
+**Item Shop roster:** requested Fortnite Sketchfab characters are **not** imported (Epic IP). See `CHARACTER_SHOP_ROSTER.md` — Digital Frontier ships original retro look-alikes (`CharacterLookalikeKit`) with Jonesy starter + buy/earn unlocks.
 
 Suggested search terms (style, not IP):
 

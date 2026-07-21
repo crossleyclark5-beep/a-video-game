@@ -6,7 +6,7 @@
 script = ExtResource("1_item")
 id = &"char_storm_trooper"
 display_name = "Storm Trooper"
-description = "Star patrol white kit. Earn by completing Park Explorer."
+description = "White star-patrol plates and bucket helm. Earn: Park Explorer."
 item_type = 3
 shop_category = 2
 max_stack = 1

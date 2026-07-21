@@ -6,7 +6,7 @@
 script = ExtResource("1_item")
 id = &"char_peely"
 display_name = "Peely"
-description = "Sunny peel energy — impossible to miss on the trail."
+description = "Banana-hero silhouette with sunny peel flaps."
 item_type = 3
 shop_category = 2
 max_stack = 1

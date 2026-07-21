@@ -6,7 +6,7 @@
 script = ExtResource("1_item")
 id = &"char_8ball"
 display_name = "8 Ball"
-description = "Slick black-and-white cue-ball swagger."
+description = "Gloss black suit with white 8 medallion — cue-ball swagger."
 item_type = 3
 shop_category = 2
 max_stack = 1

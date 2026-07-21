@@ -6,7 +6,7 @@
 script = ExtResource("1_item")
 id = &"char_marshmallow"
 display_name = "Marshmallow"
-description = "Puffy soft-guard look for chill ops."
+description = "Stacked soft-guard snow puff with scarf and coal dots."
 item_type = 3
 shop_category = 2
 max_stack = 1
