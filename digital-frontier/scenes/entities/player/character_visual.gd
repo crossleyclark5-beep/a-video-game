@@ -1,18 +1,21 @@
 class_name CharacterVisual
 extends Node3D
-## Stylized low-poly humanoid with idle / walk / run motion.
-## AnimationPlayer-ready hierarchy for future authored clips.
+## Stylized Field Unit adventurer — pixel-toon materials + locomotion / interact.
+## Hierarchy stays AnimationPlayer-ready; meshes upgraded to WorldPalette language.
 
-enum AnimState { IDLE, WALK, RUN }
+enum AnimState { IDLE, WALK, RUN, INTERACT }
 
 @export var body_color := Color(0.25, 0.55, 0.95)
 @export var accent_color := Color(0.95, 0.8, 0.25)
 @export var skin_color := Color(0.96, 0.78, 0.62)
+@export var pants_color := Color(0.2, 0.28, 0.45)
 
 var _state: AnimState = AnimState.IDLE
 var _bob_time: float = 0.0
 var _move_amount: float = 0.0
 var _running: bool = false
+var _interact_t: float = 0.0
+var _detailed: bool = false
 
 @onready var _hip: Node3D = $Hip
 @onready var _torso: Node3D = $Hip/Torso
@@ -23,7 +26,13 @@ var _running: bool = false
 @onready var _arm_r: Node3D = $Hip/Torso/ArmR
 
 
+func _ready() -> void:
+	_apply_stylized_pass()
+
+
 func set_move_amount(amount: float, running: bool = false) -> void:
+	if _interact_t > 0.0:
+		return
 	_move_amount = clampf(amount, 0.0, 1.0)
 	_running = running and _move_amount > 0.15
 	if _move_amount <= 0.08:
@@ -34,12 +43,25 @@ func set_move_amount(amount: float, running: bool = false) -> void:
 		_state = AnimState.WALK
 
 
+func play_interact() -> void:
+	## Reach / inspect — used when opening doors, chests, talk.
+	_state = AnimState.INTERACT
+	_interact_t = 0.42
+	EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
+
+
 func get_anim_state() -> AnimState:
 	return _state
 
 
 func _process(delta: float) -> void:
 	_bob_time += delta
+	if _interact_t > 0.0:
+		_interact_t -= delta
+		_animate_interact()
+		if _interact_t <= 0.0:
+			_state = AnimState.IDLE if _move_amount <= 0.08 else (AnimState.RUN if _running else AnimState.WALK)
+		return
 	match _state:
 		AnimState.IDLE:
 			_animate_idle()
@@ -47,6 +69,36 @@ func _process(delta: float) -> void:
 			_animate_locomotion(9.0, 26.0)
 		AnimState.RUN:
 			_animate_locomotion(14.0, 38.0)
+		_:
+			_animate_idle()
+
+
+func _apply_stylized_pass() -> void:
+	## Retint existing meshes into quantized toon materials + add silhouette details.
+	_override_named("TorsoMesh", body_color)
+	_override_named("HeadMesh", skin_color)
+	_override_named("Hair", accent_color)
+	_override_named("ArmLMesh", skin_color)
+	_override_named("ArmRMesh", skin_color)
+	_override_named("LegLMesh", pants_color)
+	_override_named("LegRMesh", pants_color)
+	if _detailed or _head == null:
+		return
+	_detailed = true
+	## Face + gear — readable on handheld without extra draw-heavy meshes.
+	StylizedCreatureKit.eye_pair(_head, Vector3(0, 0.0, 0.18), 0.08, 0.04)
+	StylizedMesh.add_box(_torso, Vector3(0.32, 0.08, 0.32), accent_color, Vector3(0, 0.42, 0.02), "Collar")
+	StylizedMesh.add_box(_torso, Vector3(0.3, 0.24, 0.14), body_color.darkened(0.18), Vector3(0, 0.15, -0.2), "Backpack")
+	StylizedMesh.add_box(_leg_l, Vector3(0.14, 0.08, 0.2), Color(0.18, 0.18, 0.2), Vector3(0, -0.42, 0.05), "ShoeL")
+	StylizedMesh.add_box(_leg_r, Vector3(0.14, 0.08, 0.2), Color(0.18, 0.18, 0.2), Vector3(0, -0.42, 0.05), "ShoeR")
+	StylizedMesh.add_box(_arm_l, Vector3(0.1, 0.08, 0.1), skin_color.darkened(0.05), Vector3(0, -0.32, 0), "HandL")
+	StylizedMesh.add_box(_arm_r, Vector3(0.1, 0.08, 0.1), skin_color.darkened(0.05), Vector3(0, -0.32, 0), "HandR")
+
+
+func _override_named(mesh_name: String, color: Color) -> void:
+	var mi := find_child(mesh_name, true, false) as MeshInstance3D
+	if mi:
+		StylizedCreatureKit.apply_toon_override(mi, color)
 
 
 func _animate_idle() -> void:
@@ -54,11 +106,11 @@ func _animate_idle() -> void:
 		return
 	_hip.position.y = sin(_bob_time * 2.2) * 0.025
 	_torso.rotation_degrees.x = sin(_bob_time * 1.6) * 2.0
-	_arm_l.rotation_degrees.x = lerp(_arm_l.rotation_degrees.x, 8.0, 0.12)
-	_arm_r.rotation_degrees.x = lerp(_arm_r.rotation_degrees.x, -8.0, 0.12)
-	_leg_l.rotation_degrees.x = lerp(_leg_l.rotation_degrees.x, 0.0, 0.15)
-	_leg_r.rotation_degrees.x = lerp(_leg_r.rotation_degrees.x, 0.0, 0.15)
-	_head.rotation_degrees.y = lerp(_head.rotation_degrees.y, 0.0, 0.1)
+	_arm_l.rotation_degrees.x = lerpf(_arm_l.rotation_degrees.x, 8.0, 0.12)
+	_arm_r.rotation_degrees.x = lerpf(_arm_r.rotation_degrees.x, -8.0, 0.12)
+	_leg_l.rotation_degrees.x = lerpf(_leg_l.rotation_degrees.x, 0.0, 0.15)
+	_leg_r.rotation_degrees.x = lerpf(_leg_r.rotation_degrees.x, 0.0, 0.15)
+	_head.rotation_degrees.y = lerpf(_head.rotation_degrees.y, 0.0, 0.1)
 
 
 func _animate_locomotion(speed: float, swing_deg: float) -> void:
@@ -73,3 +125,13 @@ func _animate_locomotion(speed: float, swing_deg: float) -> void:
 	_arm_l.rotation_degrees.x = -swing * 0.9
 	_arm_r.rotation_degrees.x = swing * 0.9
 	_head.rotation_degrees.y = sin(_bob_time * speed * 0.5) * 8.0 * _move_amount
+
+
+func _animate_interact() -> void:
+	if _arm_r == null:
+		return
+	var t := 1.0 - (_interact_t / 0.42)
+	_arm_r.rotation_degrees.x = -75.0 * sin(t * PI)
+	_arm_l.rotation_degrees.x = lerpf(_arm_l.rotation_degrees.x, 12.0, 0.2)
+	_torso.rotation_degrees.x = lerpf(_torso.rotation_degrees.x, 10.0, 0.2)
+	_head.rotation_degrees.x = lerpf(_head.rotation_degrees.x, 8.0, 0.15)

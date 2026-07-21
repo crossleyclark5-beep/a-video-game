@@ -49,3 +49,11 @@ Not AAA realism. Not soft clay toy 3D. Not a low-res remake limited by old hardw
 ## Feel test
 
 If you squint at Adventure, it should read as a **colorful high-res handheld town** — more pixels and detail than a chunky remake, still proudly pixel-art.
+
+## Character & creature kits (Asset Quality phase)
+
+- `HumanoidVisual` / `CharacterVisual` — shared Field Unit adventurer language  
+- `StylizedCreatureKit` — eyes, ears, tails, legs for wildlife  
+- `CompanionVisual` — Emberling / Sparkbit / Tidepup unique silhouettes  
+
+See `docs/ASSET_QUALITY.md`.

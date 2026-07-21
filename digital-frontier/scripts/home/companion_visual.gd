@@ -205,10 +205,13 @@ func _build_profile(profile: StringName, stage: int) -> void:
 	add_child(_root)
 	_body_mat = _emit_mat(body_color, 0.35)
 	_core_mat = _emit_mat(core_color, 1.4)
-	if profile == &"sparkbit":
-		_build_sparkbit()
-	else:
-		_build_emberling(stage)
+	match profile:
+		&"sparkbit":
+			_build_sparkbit()
+		&"tidepup":
+			_build_tidepup(stage)
+		_:
+			_build_emberling(stage)
 	_build_heart_particles()
 	_build_aura()
 
@@ -323,6 +326,67 @@ func _build_emberling(stage: int) -> void:
 	_fin_r.scale = Vector3(0.9, 0.35, 0.55)
 
 	_crest = _spike_a
+	_core = _belly
+
+
+func _build_tidepup(stage: int) -> void:
+	## Soft guardian pup — wider body, ear flaps, gentle snout (matches LCD silhouette).
+	var s := 1.0 + float(stage) * 0.14
+	_root.scale = Vector3(s, s, s)
+	var cream := core_color
+	var eye_blue := Color(0.25, 0.55, 0.95)
+
+	_body = _sphere(0.30, body_color, Vector3(0, 0.34, 0.02), "Body")
+	_body.scale = Vector3(1.35, 1.0, 1.15)
+	_body.material_override = _body_mat
+	_belly = _sphere(0.2, cream, Vector3(0, 0.32, 0.16), "Belly")
+	_belly.scale = Vector3(1.15, 1.05, 0.55)
+	_belly.material_override = _emit_mat(cream, 0.15)
+
+	_head = _sphere(0.28, body_color, Vector3(0, 0.72, 0.08), "Head")
+	_head.scale = Vector3(1.2, 1.0, 1.05)
+	_head.material_override = _body_mat
+	_snout = _sphere(0.12, cream, Vector3(0, 0.64, 0.28), "Snout")
+	_snout.scale = Vector3(1.1, 0.7, 1.2)
+
+	## Floppy ear flaps — Tidepup signature.
+	_fin_l = _sphere(0.12, body_color.darkened(0.05), Vector3(-0.28, 0.82, 0.0), "EarL")
+	_fin_l.scale = Vector3(0.55, 1.15, 0.35)
+	_fin_l.rotation_degrees.z = 28.0
+	_fin_r = _sphere(0.12, body_color.darkened(0.05), Vector3(0.28, 0.82, 0.0), "EarR")
+	_fin_r.scale = Vector3(0.55, 1.15, 0.35)
+	_fin_r.rotation_degrees.z = -28.0
+
+	_eye_l = _sphere(0.08, eye_blue, Vector3(-0.1, 0.76, 0.26), "EyeL")
+	_eye_r = _sphere(0.08, eye_blue, Vector3(0.1, 0.76, 0.26), "EyeR")
+	_eye_l.material_override = _emit_mat(eye_blue, 0.3)
+	_eye_r.material_override = _emit_mat(eye_blue, 0.3)
+	_sphere(0.03, Color(0.05, 0.08, 0.12), Vector3(-0.1, 0.76, 0.32), "PupilL")
+	_sphere(0.03, Color(0.05, 0.08, 0.12), Vector3(0.1, 0.76, 0.32), "PupilR")
+	_cheek_l = _sphere(0.05, Color(0.55, 0.75, 1.0), Vector3(-0.2, 0.66, 0.2), "CheekL")
+	_cheek_r = _sphere(0.05, Color(0.55, 0.75, 1.0), Vector3(0.2, 0.66, 0.2), "CheekR")
+
+	_arm_l = _capsule(0.05, 0.12, body_color.darkened(0.04), Vector3(-0.32, 0.38, 0.06), "ArmL")
+	_arm_r = _capsule(0.05, 0.12, body_color.darkened(0.04), Vector3(0.32, 0.38, 0.06), "ArmR")
+	_leg_fl = _capsule(0.08, 0.18, body_color.darkened(0.1), Vector3(-0.14, 0.12, 0.04), "LegL")
+	_leg_fr = _capsule(0.08, 0.18, body_color.darkened(0.1), Vector3(0.14, 0.12, 0.04), "LegR")
+	_leg_bl = _sphere(0.09, body_color.darkened(0.12), Vector3(-0.14, 0.04, 0.04), "FootL")
+	_leg_br = _sphere(0.09, body_color.darkened(0.12), Vector3(0.14, 0.04, 0.04), "FootR")
+	_leg_bl.scale = Vector3(1.3, 0.45, 1.5)
+	_leg_br.scale = Vector3(1.3, 0.45, 1.5)
+
+	_tail = _sphere(0.1, body_color, Vector3(0, 0.32, -0.3), "Tail")
+	_tail.scale = Vector3(0.7, 0.7, 1.4)
+	_tail.material_override = _body_mat
+	_tail_tip = _sphere(0.07, accent_color, Vector3(0, 0.3, -0.48), "TailTip")
+	_tail_tip.material_override = _emit_mat(accent_color, 0.4)
+
+	if stage >= 1:
+		_spike_a = _sphere(0.06, accent_color, Vector3(-0.16, 0.95, -0.02), "CrestL")
+		_spike_b = _sphere(0.06, accent_color, Vector3(0.16, 0.95, -0.02), "CrestR")
+	if stage >= 2:
+		_spike_c = _sphere(0.07, accent_color.lightened(0.1), Vector3(0, 1.0, -0.04), "CrestMid")
+	_crest = _fin_l
 	_core = _belly
 
 
