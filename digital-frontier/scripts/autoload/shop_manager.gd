@@ -19,7 +19,9 @@ func get_catalog(shop_id: StringName = SHOP_ID_HOME) -> Array[ItemData]:
 		var data: ItemData = item
 		if data == null or data.shop_category == ItemData.ShopCategory.NONE:
 			continue
-		if data.buy_value <= 0:
+		## Character roster entries stay visible even at 0 Bits (earn / starter).
+		var is_character := data.equip_slot == CharacterOutfitCatalog.EQUIP_SLOT
+		if data.buy_value <= 0 and not is_character:
 			continue
 		## Mile stock skews adventure + creature; home has full catalog.
 		if shop_id == SHOP_ID_MILE and data.shop_category == ItemData.ShopCategory.HOME:
@@ -57,7 +59,11 @@ func category_label(cat: ItemData.ShopCategory) -> String:
 
 func can_buy(item_id: StringName) -> bool:
 	var data: ItemData = ResourceRegistry.get_item(item_id)
-	if data == null or data.buy_value <= 0:
+	if data == null:
+		return false
+	if data.equip_slot == CharacterOutfitCatalog.EQUIP_SLOT and data.buy_value <= 0:
+		return false
+	if data.buy_value <= 0:
 		return false
 	if data.is_unique and is_owned_unique(item_id):
 		return false
@@ -68,7 +74,13 @@ func buy(item_id: StringName) -> String:
 	var data: ItemData = ResourceRegistry.get_item(item_id)
 	if data == null:
 		return "Unknown item."
-	if data.buy_value <= 0 or data.shop_category == ItemData.ShopCategory.NONE:
+	if data.shop_category == ItemData.ShopCategory.NONE:
+		return "Not for sale."
+	if data.equip_slot == CharacterOutfitCatalog.EQUIP_SLOT and data.buy_value <= 0:
+		if is_owned_unique(item_id):
+			return equip_item(item_id)
+		return CharacterRosterManager.earn_hint(item_id)
+	if data.buy_value <= 0:
 		return "Not for sale."
 	if data.is_unique and is_owned_unique(item_id):
 		return "Already owned."
@@ -77,6 +89,9 @@ func buy(item_id: StringName) -> String:
 	InventoryManager.add_item(item_id, 1, false)
 	if data.is_unique:
 		_owned_uniques[item_id] = true
+	if data.equip_slot == CharacterOutfitCatalog.EQUIP_SLOT:
+		CharacterRosterManager.unlock(item_id, false)
+		equip_item(item_id)
 	EventBus.sfx_play_requested.emit(&"bits_gain", Vector3.ZERO)
 	EventBus.ui_notification_requested.emit("Purchased: %s (−%d Bits)" % [data.display_name, data.buy_value], 2.4)
 	return "Bought %s!" % data.display_name
@@ -115,9 +130,15 @@ func equip_item(item_id: StringName) -> String:
 		return "Not equippable."
 	if not InventoryManager.has_item(item_id, 1):
 		return "You don't have that."
-	_equipped[data.equip_slot] = item_id
+	set_equipped_slot(data.equip_slot, item_id)
+	if data.equip_slot == CharacterOutfitCatalog.EQUIP_SLOT:
+		CharacterRosterManager.note_equipped(item_id)
 	EventBus.inventory_changed.emit()
 	return "Equipped %s." % data.display_name
+
+
+func set_equipped_slot(slot: StringName, item_id: StringName) -> void:
+	_equipped[slot] = item_id
 
 
 func get_equipped(slot: StringName) -> StringName:

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/item_data.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"char_8ball"
+display_name = "8 Ball"
+description = "Slick black-and-white cue-ball swagger."
+item_type = 3
+shop_category = 2
+max_stack = 1
+sell_value = 200
+buy_value = 600
+shop_blurb = "Shop character"
+equip_slot = &"character"
+is_unique = true

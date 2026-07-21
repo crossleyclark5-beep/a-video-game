@@ -49,9 +49,14 @@ func _enable_library_mode() -> void:
 	_library_mode = true
 	if _hip:
 		_hip.visible = false
-	_library_visual = CharacterLibraryVisual.new()
-	_library_visual.name = "LibraryVisual"
-	add_child(_library_visual)
+	if _library_visual == null:
+		_library_visual = CharacterLibraryVisual.new()
+		_library_visual.name = "LibraryVisual"
+		add_child(_library_visual)
+	## Prefer equipped Item Shop outfit when roster is live.
+	if CharacterOutfitCatalog.has_outfit(CharacterRosterManager.get_equipped()):
+		_library_visual.build_outfit(CharacterRosterManager.get_equipped(), 1.2)
+		return
 	var opts := CharacterCatalog.player_options()
 	var pick := library_character_id
 	if pick == &"" or not CharacterCatalog.has_character(pick):
@@ -65,6 +70,25 @@ func set_library_character(character_id: StringName) -> void:
 		_library_visual.build(character_id, 1.2)
 	elif use_character_library and CharacterKit.is_available():
 		_enable_library_mode()
+
+
+func apply_character_outfit(outfit_id: StringName) -> void:
+	## Item Shop roster look — mesh + tint + prop from CharacterOutfitCatalog.
+	if not CharacterOutfitCatalog.has_outfit(outfit_id):
+		set_library_character(library_character_id)
+		return
+	library_character_id = CharacterOutfitCatalog.mesh_for(outfit_id)
+	if use_character_library and CharacterKit.is_available():
+		if _library_visual == null:
+			_enable_library_mode()
+		if _library_visual:
+			_library_visual.build_outfit(outfit_id, 1.2)
+		return
+	## Procedural fallback — retint body colors from outfit palette.
+	var def := CharacterOutfitCatalog.outfit_def(outfit_id)
+	body_color = def.get("tint", body_color) as Color
+	accent_color = def.get("accent", accent_color) as Color
+	_apply_stylized_pass()
 
 
 func set_move_amount(amount: float, running: bool = false) -> void:
