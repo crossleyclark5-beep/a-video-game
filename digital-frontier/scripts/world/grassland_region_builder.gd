@@ -39,8 +39,23 @@ static func build(root: Node3D) -> Dictionary:
 	RegionTerrainBuilder.build(root, result)
 	RegionVegetationBuilder.build(root)
 	_add_expansion_points(root, result)
+	_add_satellite_hangars(root)
 	_add_region_welcome(root)
 	return result
+
+
+static func _add_satellite_hangars(root: Node3D) -> void:
+	## Compact pads at major hubs so the Field Skiff can hop both ways.
+	var pads := Node3D.new()
+	pads.name = "SatelliteHangars"
+	root.add_child(pads)
+	for d in AircraftTravelCatalog.destinations():
+		var id: StringName = d["id"]
+		if id == &"pleasant_park":
+			continue  ## Hero hangar lives inside Pleasant Park builder.
+		var pos: Vector3 = d["pos"]
+		AircraftPadInteractable.build_pad(pads, pos, 0.0, "Hangar_%s" % String(id))
+		RegionPropKit.add_supply_stash(pads, pos + Vector3(4, 0, 3), 15.0, "Supplies_%s" % String(id))
 
 
 static func _add_region_ground(root: Node3D) -> void:

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="VehicleData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/definitions/vehicle_data.gd" id="1_vehicle"]
+
+[resource]
+script = ExtResource("1_vehicle")
+id = &"field_skiff"
+display_name = "Field Skiff"
+description = "A bright little air skiff for hopping between Grassland hubs. Prototype of the player's travel craft — intro flights, story beats, and future upgrades."
+vehicle_class = 2
+scene_path = "res://scenes/entities/vehicles/field_skiff.tscn"
+max_speed = 420.0
+acceleration = 80.0
+allowed_terrain = PackedInt32Array()
+unlock_quest_id = &""
+fuel_item_id = &""
