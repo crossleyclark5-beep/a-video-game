@@ -49,6 +49,21 @@ func setup(def: Dictionary, player: Node3D, origin: Vector3) -> void:
 func _build_visual(def: Dictionary) -> void:
 	var col: Color = def.get("color", NpcCatalog.role_color(role))
 	var accent := NpcCatalog.role_color(role)
+	## Prefer curated character library when imported — higher-detail humans vs world boxes.
+	var force_proc := bool(def.get("procedural_visual", false))
+	if not force_proc and CharacterKit.is_available():
+		var lib := CharacterLibraryVisual.new()
+		lib.name = "Visual"
+		var cid: StringName = def.get("character_id", CharacterCatalog.id_for_npc_role(role))
+		var scale_mul := 1.0
+		if role == NpcCatalog.Role.STORY:
+			scale_mul = 1.08
+		elif role == NpcCatalog.Role.RESEARCHER:
+			scale_mul = 0.96
+		lib.build(cid, scale_mul)
+		add_child(lib)
+		_visual = lib
+		return
 	var hat := 0
 	match role:
 		NpcCatalog.Role.MERCHANT:
@@ -110,8 +125,8 @@ func _on_dialogue_ended(ended_id: StringName) -> void:
 
 func _process(delta: float) -> void:
 	if pinned or move_speed <= 0.01:
-		if _visual is HumanoidVisual:
-			(_visual as HumanoidVisual).set_move_amount(0.0, false)
+		if _visual and _visual.has_method("set_move_amount"):
+			_visual.call("set_move_amount", 0.0, false)
 		return
 	_state_timer -= delta
 	if _state_timer <= 0.0:
@@ -123,8 +138,8 @@ func _process(delta: float) -> void:
 		global_position += dir * move_speed * delta
 		if _visual:
 			_visual.rotation.y = lerp_angle(_visual.rotation.y, atan2(dir.x, dir.z), clampf(8.0 * delta, 0.0, 1.0))
-	if _visual is HumanoidVisual:
-		(_visual as HumanoidVisual).set_move_amount(1.0 if moving else 0.0, false)
+	if _visual and _visual.has_method("set_move_amount"):
+		_visual.call("set_move_amount", 1.0 if moving else 0.0, false)
 	## Soft leash — schedules can wander farther than random leash.
 	var max_leash := 28.0 if schedule_id != &"story_anchor" else 6.0
 	var home_d := Vector3(_home.x - global_position.x, 0.0, _home.z - global_position.z)

@@ -73,18 +73,22 @@ func _ready() -> void:
 		ok = false
 	eco.queue_free()
 
-	## CharacterVisual API
-	var cv_script: Script = load("res://scenes/entities/player/character_visual.gd") as Script
-	if cv_script == null:
-		push_error("character visual missing")
+	## CharacterVisual API — library mode or procedural torso
+	var cv_probe := CharacterVisual.new()
+	add_child(cv_probe)
+	await get_tree().process_frame
+	if not cv_probe.has_method("play_interact"):
+		push_error("play_interact missing")
 		ok = false
-	elif not cv_script.has_script_method("play_interact"):
-		## has_script_method may not exist — check source via instance
-		var probe := CharacterVisual.new()
-		if not probe.has_method("play_interact"):
-			push_error("play_interact missing")
-			ok = false
-		probe.free()
+	cv_probe.play_interact()
+	cv_probe.set_move_amount(0.5, false)
+	## Library mode hides Hip; either LibraryVisual or TorsoMesh must exist.
+	var has_lib := cv_probe.find_child("LibraryVisual", true, false) != null
+	var has_torso := cv_probe.find_child("TorsoMesh", true, false) != null
+	if not has_lib and not has_torso:
+		push_error("character visual missing library and torso")
+		ok = false
+	cv_probe.queue_free()
 
 	if ok:
 		print("ASSET_QUALITY_SMOKE_OK")

@@ -21,14 +21,14 @@ Digital Frontier art is a **modern handheld 2.5D pixel diorama** — nostalgic l
 3. Box/sphere/capsule silhouettes with personality accents  
 4. Orthographic diorama readability over AAA detail  
 
-See also `PIXEL_WORLD_STYLE.md`, `MASCOT_EMBERLING.md`, `UI_STYLE_GUIDE.md`.
+See also `PIXEL_WORLD_STYLE.md`, `MASCOT_EMBERLING.md`, `UI_STYLE_GUIDE.md`, `CHARACTER_LIBRARY.md`.
 
 ## Upgrade plan (priority)
 
-1. **Player** — stylized materials, face, pack, shoes; idle / walk / run / interact  
-2. **Companion** — Tidepup unique 3D silhouette (ears + soft snout)  
-3. **NPCs** — shared `HumanoidVisual` + role hats + walk bob  
-4. **Wildlife** — species silhouettes (rabbit, squirrel, canid, ungulate, bird, bat, boar, mite)  
+1. **Player** — stylized materials, face, pack, shoes; optional Character Library hero mesh  
+2. **Companion** — Tidepup unique 3D silhouette (ears + soft snout) — **never franchise GLBs**  
+3. **NPCs** — shared `HumanoidVisual` + role hats; optional Character Library role meshes  
+4. **Wildlife** — species silhouettes + optional digital-creature accents  
 5. **Environment** — denser wilderness canopy matching town trees  
 
 ## Systems added
@@ -37,6 +37,7 @@ See also `PIXEL_WORLD_STYLE.md`, `MASCOT_EMBERLING.md`, `UI_STYLE_GUIDE.md`.
 |------|------|
 | `StylizedCreatureKit` | `scripts/world/stylized_creature_kit.gd` |
 | `HumanoidVisual` | `scripts/world/humanoid_visual.gd` |
+| `CharacterCatalog` / `CharacterKit` | `scripts/world/character_*.gd` |
 
 Gameplay contracts unchanged: movement, interaction, companion AI, ecosystem spawn/combat.
 

@@ -9,6 +9,8 @@ enum AnimState { IDLE, WALK, RUN, INTERACT }
 @export var accent_color := Color(0.95, 0.8, 0.25)
 @export var skin_color := Color(0.96, 0.78, 0.62)
 @export var pants_color := Color(0.2, 0.28, 0.45)
+@export var use_character_library: bool = true
+@export var library_character_id: StringName = &"hero_a"
 
 var _state: AnimState = AnimState.IDLE
 var _bob_time: float = 0.0
@@ -16,21 +18,59 @@ var _move_amount: float = 0.0
 var _running: bool = false
 var _interact_t: float = 0.0
 var _detailed: bool = false
+var _library_mode: bool = false
+var _library_visual: CharacterLibraryVisual = null
 
-@onready var _hip: Node3D = $Hip
-@onready var _torso: Node3D = $Hip/Torso
-@onready var _head: Node3D = $Hip/Torso/Head
-@onready var _leg_l: Node3D = $Hip/LegL
-@onready var _leg_r: Node3D = $Hip/LegR
-@onready var _arm_l: Node3D = $Hip/Torso/ArmL
-@onready var _arm_r: Node3D = $Hip/Torso/ArmR
+var _hip: Node3D
+var _torso: Node3D
+var _head: Node3D
+var _leg_l: Node3D
+var _leg_r: Node3D
+var _arm_l: Node3D
+var _arm_r: Node3D
 
 
 func _ready() -> void:
-	_apply_stylized_pass()
+	_hip = get_node_or_null("Hip") as Node3D
+	_torso = get_node_or_null("Hip/Torso") as Node3D
+	_head = get_node_or_null("Hip/Torso/Head") as Node3D
+	_leg_l = get_node_or_null("Hip/LegL") as Node3D
+	_leg_r = get_node_or_null("Hip/LegR") as Node3D
+	_arm_l = get_node_or_null("Hip/Torso/ArmL") as Node3D
+	_arm_r = get_node_or_null("Hip/Torso/ArmR") as Node3D
+	if use_character_library and CharacterKit.is_available():
+		_enable_library_mode()
+	else:
+		_apply_stylized_pass()
+
+
+func _enable_library_mode() -> void:
+	## Higher-detail adventurer mesh; keep hip root for future AnimationPlayer binding.
+	_library_mode = true
+	if _hip:
+		_hip.visible = false
+	_library_visual = CharacterLibraryVisual.new()
+	_library_visual.name = "LibraryVisual"
+	add_child(_library_visual)
+	var opts := CharacterCatalog.player_options()
+	var pick := library_character_id
+	if pick == &"" or not CharacterCatalog.has_character(pick):
+		pick = opts[0] if not opts.is_empty() else &"hero_a"
+	_library_visual.build(pick, 1.2)
+
+
+func set_library_character(character_id: StringName) -> void:
+	library_character_id = character_id
+	if _library_visual:
+		_library_visual.build(character_id, 1.2)
+	elif use_character_library and CharacterKit.is_available():
+		_enable_library_mode()
 
 
 func set_move_amount(amount: float, running: bool = false) -> void:
+	if _library_mode and _library_visual:
+		_library_visual.set_move_amount(amount, running)
+		return
 	if _interact_t > 0.0:
 		return
 	_move_amount = clampf(amount, 0.0, 1.0)
@@ -45,16 +85,24 @@ func set_move_amount(amount: float, running: bool = false) -> void:
 
 func play_interact() -> void:
 	## Reach / inspect — used when opening doors, chests, talk.
+	if _library_mode and _library_visual:
+		_library_visual.play_interact()
+		EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
+		return
 	_state = AnimState.INTERACT
 	_interact_t = 0.42
 	EventBus.sfx_play_requested.emit(&"ui_blip", Vector3.ZERO)
 
 
 func get_anim_state() -> AnimState:
+	if _library_mode and _library_visual:
+		return _library_visual.get_anim_state() as AnimState
 	return _state
 
 
 func _process(delta: float) -> void:
+	if _library_mode:
+		return
 	_bob_time += delta
 	if _interact_t > 0.0:
 		_interact_t -= delta
