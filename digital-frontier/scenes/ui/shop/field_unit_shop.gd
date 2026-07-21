@@ -303,9 +303,16 @@ func _fill_browse() -> void:
 				owned = " OWNED"
 			var can := ShopManager.can_buy(d.id)
 			var price := "%d Bits%s" % [d.buy_value, owned]
+			if d.equip_slot == CharacterOutfitCatalog.EQUIP_SLOT and d.buy_value <= 0:
+				if ShopManager.is_owned_unique(d.id):
+					price = "OWNED · equip"
+				else:
+					price = "EARN"
 			var blurb := d.shop_blurb if not d.shop_blurb.is_empty() else ShopManager.category_label(d.shop_category)
 			var card := DFStyle.card_bb(d.display_name, blurb, i == _item_index, price)
-			if not can and i == _item_index:
+			if not can and i == _item_index and d.equip_slot == CharacterOutfitCatalog.EQUIP_SLOT and d.buy_value <= 0 and not ShopManager.is_owned_unique(d.id):
+				card += "\n    " + DFStyle.color_tag(WorldPalette.UI_CYAN, CharacterRosterManager.earn_hint(d.id))
+			elif not can and i == _item_index:
 				card += "\n    " + DFStyle.color_tag(WorldPalette.UI_DANGER, "Can't afford / locked")
 			lines.append(card)
 	_list.text = "\n".join(lines)
@@ -315,12 +322,15 @@ func _fill_browse() -> void:
 		return
 	var cur: ItemData = _items[_item_index]
 	var blurb2 := cur.shop_blurb if not cur.shop_blurb.is_empty() else ShopManager.category_label(cur.shop_category)
+	var price_line := "Price  %d Bits" % cur.buy_value
+	if cur.equip_slot == CharacterOutfitCatalog.EQUIP_SLOT and cur.buy_value <= 0:
+		price_line = CharacterRosterManager.earn_hint(cur.id) if not ShopManager.is_owned_unique(cur.id) else "Owned — A to equip"
 	_detail.text = "%s[b]%s[/b]\n%s\n\n%s\n\n%s\nYou own: %d" % [
 		DFStyle.header_bb("ITEM CARD", WorldPalette.UI_CYAN),
 		DFStyle.color_tag(WorldPalette.UI_GOLD, cur.display_name),
 		DFStyle.color_tag(WorldPalette.UI_CYAN, blurb2),
 		DFStyle.color_tag(WorldPalette.UI_SHEET_TEXT, cur.description),
-		DFStyle.color_tag(WorldPalette.UI_ACCENT, "Price  %d Bits" % cur.buy_value),
+		DFStyle.color_tag(WorldPalette.UI_ACCENT, price_line),
 		InventoryManager.get_quantity(cur.id),
 	]
 

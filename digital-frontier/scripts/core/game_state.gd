@@ -27,4 +27,5 @@ extends Resource
 @export var world_flags: Dictionary = {}
 @export var collection_data: Dictionary = {}
 @export var shop_data: Dictionary = {}
+@export var character_roster_data: Dictionary = {}
 @export var settings_data: Dictionary = {}

@@ -50,6 +50,83 @@ static func attach_under(
 	return spawn(parent, character_id, Vector3.ZERO, 0.0, scale_mul, node_name)
 
 
+static func attach_outfit(
+	parent: Node3D,
+	outfit_id: StringName,
+	scale_mul: float = 1.0,
+	node_name: String = "LibraryMesh",
+) -> Node3D:
+	var def := CharacterOutfitCatalog.outfit_def(outfit_id)
+	var mesh_id: StringName = def.get("mesh", &"hero_a") as StringName
+	var root := attach_under(parent, mesh_id, scale_mul, node_name)
+	if root == null:
+		return null
+	var tint: Color = def.get("tint", Color.WHITE) as Color
+	var accent: Color = def.get("accent", tint.lightened(0.2)) as Color
+	apply_tint(root, tint)
+	_attach_prop(root, def.get("prop", &"none") as StringName, accent)
+	return root
+
+
+static func apply_tint(node: Node, tint: Color) -> void:
+	if node is MeshInstance3D:
+		var mi := node as MeshInstance3D
+		var mat := mi.material_override as StandardMaterial3D
+		if mat == null:
+			mat = StandardMaterial3D.new()
+			mat.diffuse_mode = BaseMaterial3D.DIFFUSE_TOON
+			mat.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+			mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+			mi.material_override = mat
+		else:
+			mat = mat.duplicate() as StandardMaterial3D
+			mi.material_override = mat
+		## Keep texture identity; multiply tint for outfit palette.
+		mat.albedo_color = mat.albedo_color * tint
+	for child in node.get_children():
+		apply_tint(child, tint)
+
+
+static func _attach_prop(root: Node3D, prop: StringName, accent: Color) -> void:
+	if prop == &"" or prop == &"none" or root == null:
+		return
+	var mount := Node3D.new()
+	mount.name = "OutfitProp"
+	mount.position = Vector3(0, 1.55, 0)
+	root.add_child(mount)
+	match prop:
+		&"crown":
+			StylizedMesh.add_box(mount, Vector3(0.42, 0.12, 0.42), accent, Vector3(0, 0.08, 0), "Crown")
+			StylizedMesh.add_box(mount, Vector3(0.1, 0.18, 0.1), accent.lightened(0.2), Vector3(0, 0.22, 0), "CrownTip")
+		&"hat":
+			StylizedMesh.add_box(mount, Vector3(0.55, 0.06, 0.55), accent, Vector3(0, 0.02, 0), "Brim")
+			StylizedMesh.add_box(mount, Vector3(0.28, 0.18, 0.28), accent.darkened(0.1), Vector3(0, 0.14, 0), "Crown")
+		&"cap":
+			StylizedMesh.add_box(mount, Vector3(0.34, 0.1, 0.34), accent, Vector3(0, 0.04, 0), "Cap")
+			StylizedMesh.add_box(mount, Vector3(0.22, 0.04, 0.28), accent.darkened(0.15), Vector3(0, 0.0, 0.18), "Bill")
+		&"orb":
+			StylizedMesh.add_box(mount, Vector3(0.22, 0.22, 0.22), accent, Vector3(0.28, -0.55, 0.2), "Orb")
+		&"armor":
+			StylizedMesh.add_box(mount, Vector3(0.5, 0.35, 0.28), accent, Vector3(0, -0.55, 0.05), "Plate")
+		&"peel":
+			StylizedMesh.add_box(mount, Vector3(0.18, 0.35, 0.18), accent, Vector3(0, 0.12, 0), "PeelTop")
+		&"soft":
+			StylizedMesh.add_box(mount, Vector3(0.4, 0.28, 0.4), accent, Vector3(0, 0.05, 0), "Puff")
+		&"helm":
+			StylizedMesh.add_box(mount, Vector3(0.38, 0.28, 0.42), accent, Vector3(0, 0.05, 0), "Helm")
+			StylizedMesh.add_box(mount, Vector3(0.28, 0.08, 0.12), Color(0.1, 0.1, 0.12), Vector3(0, 0.02, 0.18), "Visor")
+		&"headset":
+			StylizedMesh.add_box(mount, Vector3(0.48, 0.08, 0.08), accent, Vector3(0, 0.0, 0), "Band")
+			StylizedMesh.add_box(mount, Vector3(0.1, 0.14, 0.1), accent.lightened(0.15), Vector3(0.22, -0.02, 0), "CupL")
+			StylizedMesh.add_box(mount, Vector3(0.1, 0.14, 0.1), accent.lightened(0.15), Vector3(-0.22, -0.02, 0), "CupR")
+		&"visor":
+			StylizedMesh.add_box(mount, Vector3(0.36, 0.12, 0.2), accent, Vector3(0, 0.0, 0.12), "Visor")
+		&"mask":
+			StylizedMesh.add_box(mount, Vector3(0.32, 0.16, 0.22), accent, Vector3(0, -0.02, 0.12), "Mask")
+		_:
+			pass
+
+
 static func _load_scene(path: String) -> PackedScene:
 	if path.is_empty():
 		return null

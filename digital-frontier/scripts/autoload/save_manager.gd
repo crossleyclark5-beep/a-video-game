@@ -192,6 +192,7 @@ func reset_all_managers() -> void:
 	WorldManager.reset_state()
 	CollectionManager.reset_state()
 	ShopManager.reset_state()
+	CharacterRosterManager.reset_state()
 
 
 func save_to_slot(slot: int) -> bool:
@@ -296,6 +297,7 @@ func _collect_state_from_managers() -> void:
 	_current_state.creature_data = CreatureManager.export_state()
 	_current_state.npc_data = NPCManager.export_state()
 	_current_state.vehicle_data = VehicleManager.export_state()
+	_current_state.character_roster_data = CharacterRosterManager.export_state()
 	_current_state.collection_data = CollectionManager.export_state()
 	_current_state.shop_data = ShopManager.export_state()
 	var world := WorldManager.export_state()
@@ -322,6 +324,10 @@ func _distribute_state_to_managers() -> void:
 		CollectionManager.import_state(_current_state.collection_data)
 	if _current_state.shop_data:
 		ShopManager.import_state(_current_state.shop_data)
+	if _current_state.character_roster_data:
+		CharacterRosterManager.import_state(_current_state.character_roster_data)
+	else:
+		CharacterRosterManager.ensure_starter()
 	if _current_state.has_player_checkpoint:
 		WorldManager.set_player_checkpoint(_current_state.player_position)
 	if _current_state.settings_data.has(&"master_volume"):

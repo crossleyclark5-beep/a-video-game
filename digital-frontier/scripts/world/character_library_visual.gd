@@ -7,6 +7,7 @@ extends Node3D
 enum AnimState { IDLE, WALK, RUN, INTERACT }
 
 var character_id: StringName = &"hero_a"
+var outfit_id: StringName = &""
 var _state: AnimState = AnimState.IDLE
 var _bob_time: float = 0.0
 var _move_amount: float = 0.0
@@ -17,6 +18,7 @@ var _mesh_root: Node3D = null
 
 func build(p_character_id: StringName, scale_mul: float = 1.0) -> void:
 	character_id = p_character_id
+	outfit_id = &""
 	for c in get_children():
 		c.queue_free()
 	_mesh_root = CharacterKit.attach_under(self, character_id, scale_mul, "LibraryMesh")
@@ -26,6 +28,16 @@ func build(p_character_id: StringName, scale_mul: float = 1.0) -> void:
 		_mesh_root.name = "FallbackRoot"
 		add_child(_mesh_root)
 		StylizedMesh.add_box(_mesh_root, Vector3(0.4, 1.0, 0.3), Color(0.4, 0.55, 0.85), Vector3(0, 0.7, 0), "Fallback")
+
+
+func build_outfit(p_outfit_id: StringName, scale_mul: float = 1.0) -> void:
+	outfit_id = p_outfit_id
+	character_id = CharacterOutfitCatalog.mesh_for(p_outfit_id)
+	for c in get_children():
+		c.queue_free()
+	_mesh_root = CharacterKit.attach_outfit(self, p_outfit_id, scale_mul, "LibraryMesh")
+	if _mesh_root == null:
+		build(character_id, scale_mul)
 
 
 func set_move_amount(amount: float, running: bool = false) -> void:
