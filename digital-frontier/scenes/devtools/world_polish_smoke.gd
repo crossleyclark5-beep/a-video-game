@@ -71,6 +71,30 @@ func _process(_delta: float) -> void:
 	ok = _assert_named(garage, ["ShelfUnit", "Workbench", "Toolbox", "Pegboard"]) and ok
 	garage.free()
 
+	## Pleasant Park layout contracts — pond, frontage, enterable garage shell
+	var park_root := Node3D.new()
+	add_child(park_root)
+	var built := PleasantParkBuilder.build(park_root)
+	if park_root.find_child("ParkPond", true, false) == null:
+		push_error("park pond missing")
+		ok = false
+	if park_root.find_child("FrontageN", true, false) == null or park_root.find_child("ArterialNS", true, false) == null:
+		push_error("redesigned road network missing")
+		ok = false
+	var gcount := 0
+	for n in park_root.find_children("GarageVolume", "", true, false):
+		gcount += 1
+		if n.get_node_or_null("DoorInteractable") == null:
+			push_error("garage missing door")
+			ok = false
+	if gcount < 8:
+		push_error("expected 8 garages, got %d" % gcount)
+		ok = false
+	if (built.get(&"enterable_houses", []) as Array).size() < 8:
+		push_error("enterable houses missing")
+		ok = false
+	park_root.queue_free()
+
 	## Placement guards reject road / hub centers
 	var hub: Vector3 = GrasslandLayout.hub_exclusion_zones()[0]["pos"]
 	if RegionVegetationBuilder.placement_allowed(hub, true):
