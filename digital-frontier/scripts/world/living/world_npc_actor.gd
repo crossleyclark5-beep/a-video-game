@@ -21,6 +21,10 @@ var _state_timer: float = 0.0
 var _waypoint_index: int = 0
 var _rng := RandomNumberGenerator.new()
 var _fallback_lines: PackedStringArray = PackedStringArray()
+var _sheltering: bool = false
+var _sleeping: bool = false
+var _ai_detail: int = 2
+var _last_slot: int = -1
 
 
 func setup(def: Dictionary, player: Node3D, origin: Vector3) -> void:
@@ -44,6 +48,34 @@ func setup(def: Dictionary, player: Node3D, origin: Vector3) -> void:
 	_pick_target()
 	add_to_group(GROUP)
 	add_to_group(GameConstants.GROUP_NPCS)
+	if not EventBus.day_phase_changed.is_connected(_on_phase_changed):
+		EventBus.day_phase_changed.connect(_on_phase_changed)
+	if not EventBus.weather_changed.is_connected(_on_weather_changed):
+		EventBus.weather_changed.connect(_on_weather_changed)
+
+
+func set_ai_detail(level: int) -> void:
+	## 2 = full schedule, 1 = slower retarget, 0 = paused by controller.
+	_ai_detail = clampi(level, 0, 2)
+
+
+func current_activity() -> String:
+	var slot := NpcSchedule.slot_from_phase(NPCManager.get_day_phase())
+	if _sheltering:
+		return "seeking shelter"
+	if _sleeping:
+		return "sleeping"
+	return NpcSchedule.activity_label(schedule_id, slot)
+
+
+func _on_phase_changed(_phase: int) -> void:
+	_state_timer = 0.1
+	_pick_target()
+
+
+func _on_weather_changed(_weather: StringName) -> void:
+	_state_timer = 0.1
+	_pick_target()
 
 
 func _build_visual(def: Dictionary) -> void:
@@ -127,32 +159,57 @@ func _process(delta: float) -> void:
 		if _visual and _visual.has_method("set_move_amount"):
 			_visual.call("set_move_amount", 0.0, false)
 		return
+	if _ai_detail <= 0:
+		return
 	_state_timer -= delta
 	if _state_timer <= 0.0:
 		_pick_target()
+	var spd := move_speed
+	if _sleeping:
+		spd = 0.0
+	elif _sheltering:
+		spd *= 1.15  ## Hurry to cover.
+	elif _ai_detail == 1:
+		spd *= 0.7
 	var flat := Vector3(_target.x - global_position.x, 0.0, _target.z - global_position.z)
-	var moving := flat.length() > 0.25
+	var moving := flat.length() > 0.25 and spd > 0.01
 	if moving:
 		var dir := flat.normalized()
-		global_position += dir * move_speed * delta
+		global_position += dir * spd * delta
 		if _visual:
 			_visual.rotation.y = lerp_angle(_visual.rotation.y, atan2(dir.x, dir.z), clampf(8.0 * delta, 0.0, 1.0))
 	if _visual and _visual.has_method("set_move_amount"):
 		_visual.call("set_move_amount", 1.0 if moving else 0.0, false)
-	## Soft leash — schedules can wander farther than random leash.
-	var max_leash := 28.0 if schedule_id != &"story_anchor" else 6.0
+	## Soft leash — road merchants travel farther; story cast stays tight.
+	var max_leash := 6.0 if schedule_id == &"story_anchor" else (48.0 if schedule_id == &"merchant_road" else 28.0)
 	var home_d := Vector3(_home.x - global_position.x, 0.0, _home.z - global_position.z)
 	if home_d.length() > max_leash:
 		_target = _home
 
 
 func _pick_target() -> void:
-	_state_timer = _rng.randf_range(3.5, 8.0)
-	## Idle sometimes — feels natural.
-	if _rng.randf() < 0.28:
+	_state_timer = _rng.randf_range(3.5, 8.0) if _ai_detail >= 2 else _rng.randf_range(6.0, 12.0)
+	_sheltering = false
+	_sleeping = false
+	var weather := WorldAtmosphere.current_weather_id()
+	var slot := NpcSchedule.slot_from_phase(NPCManager.get_day_phase())
+	_last_slot = slot
+	## Rain / storm → seek porch cover (most schedules).
+	if (weather == &"rain" or weather == &"storm") and NpcSchedule.seeks_shelter_in_rain(schedule_id):
+		_sheltering = true
+		_target = _home + NpcSchedule.shelter_offset(schedule_id)
+		_state_timer = _rng.randf_range(5.0, 10.0)
+		return
+	## Night sleep for townsfolk / kids / merchants.
+	if slot == NpcSchedule.Slot.NIGHT and NpcSchedule.sleeps_at_night(schedule_id):
+		_sleeping = true
+		_target = _home
+		_state_timer = _rng.randf_range(8.0, 14.0)
+		return
+	## Idle sometimes — feels natural (less often when changing phase).
+	if _rng.randf() < 0.22:
 		_target = global_position
 		return
-	var slot := NpcSchedule.slot_from_phase(NPCManager.get_day_phase())
 	var points := NpcSchedule.waypoints(schedule_id, slot)
 	if points.is_empty():
 		_target = _home

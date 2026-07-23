@@ -28,6 +28,9 @@ var _encounters: WorldEncounterDirector = null
 var _boss: RegionBossActor = null
 var _root_encounters: Node3D = null
 var _battle: BattleDirector = null
+var _ambience: WorldAmbienceController = null
+var _veg_sway_roots: Array[Node3D] = []
+var _sway_t: float = 0.0
 
 
 func setup(player: Node3D) -> void:
@@ -56,7 +59,11 @@ func setup(player: Node3D) -> void:
 	_encounters.name = "EncounterDirector"
 	add_child(_encounters)
 	_encounters.setup(_player, self, _root_encounters)
+	_ambience = WorldAmbienceController.new()
+	add_child(_ambience)
+	_ambience.setup(_player, Callable(self, "get_focus_position"))
 	call_deferred("_collect_water_volumes")
+	call_deferred("_collect_veg_sway_roots")
 
 
 func register_water_aabb(bounds: AABB) -> void:
@@ -88,6 +95,7 @@ func population_snapshot() -> Dictionary:
 		&"hostiles": _count_non_boss_hostiles() if _root_hostiles else 0,
 		&"npcs": _root_npcs.get_child_count() if _root_npcs else 0,
 		&"aquatic": _root_aquatic.get_child_count() if _root_aquatic else 0,
+		&"ambience": 1 if _ambience != null else 0,
 	}
 
 
@@ -124,6 +132,8 @@ func try_combat_strike() -> bool:
 func _process(delta: float) -> void:
 	if _player == null or not is_instance_valid(_player):
 		return
+	_sway_t += delta
+	_tick_veg_sway()
 	_tick += delta
 	if _tick < TICK:
 		return
@@ -181,6 +191,13 @@ func _seed_near_hubs() -> void:
 	_spawn_eco_at(GrasslandLayout.PLEASANT_PARK + Vector3(-55, 0.15, 65), EcosystemCatalog.pick_for_conditions(EcosystemCatalog.grassland_species(), phase, weather, _rng, true), true)
 	var ranger := LivingWorldCatalog.grassland_npcs()[0]
 	_spawn_npc_at(GrasslandLayout.PLEASANT_PARK + Vector3(16, 0.15, 22), ranger)
+	## Kid + guard so daily life is visible near spawn without waiting for tickets.
+	var kid := LivingWorldCatalog.find_npc(&"park_kid")
+	if not kid.is_empty():
+		_spawn_npc_at(GrasslandLayout.PLEASANT_PARK + Vector3(-12, 0.15, 18), kid)
+	var guard := LivingWorldCatalog.find_npc(&"park_guard")
+	if not guard.is_empty():
+		_spawn_npc_at(GrasslandLayout.PLEASANT_PARK + Vector3(22, 0.15, -6), guard)
 
 
 func _spawn_region_boss() -> void:
@@ -228,6 +245,9 @@ func _maintain_population() -> void:
 			break
 		var kind: StringName = slot["kind"]
 		var pos2: Vector3 = slot["pos"]
+		## Cleared nests stay quiet for a while — world memory.
+		if (kind == &"wild" or kind == &"hostile") and WorldSimMemory.is_position_cleared(pos2):
+			continue
 		if kind == &"wild" and wildlife_n < WILDLIFE_CAP:
 			if weather == &"rain" and _rng.randf() < 0.35:
 				continue  ## Some hide in rain.
@@ -248,6 +268,9 @@ func _maintain_population() -> void:
 				hostile_n += 1
 		elif kind == &"npc" and npc_n < NPC_CAP:
 			if _too_close_to_existing(_root_npcs, pos2, 22.0):
+				continue
+			## Night: fewer roaming townsfolk; day: busy streets.
+			if phase == WorldAtmosphere.Phase.NIGHT and _rng.randf() < 0.55:
 				continue
 			var ndef := LivingWorldCatalog.pick_weighted(LivingWorldCatalog.grassland_npcs(), _rng)
 			if not ndef.is_empty():
@@ -386,3 +409,37 @@ func _near_hub(pos: Vector3, radius: float) -> bool:
 		if Vector3(pos.x, 0, pos.z).distance_to(Vector3(hub.x, 0, hub.z)) < radius:
 			return true
 	return false
+
+
+func _collect_veg_sway_roots() -> void:
+	_veg_sway_roots.clear()
+	var tree := get_tree()
+	if tree == null:
+		return
+	## Individual props only — never rotate MultiMesh forests (world-space instances).
+	for name in ["ForestUnderstory", "PathGuidance", "AnimalTrails"]:
+		var n := tree.root.find_child(name, true, false)
+		if n is Node3D:
+			_veg_sway_roots.append(n as Node3D)
+
+
+func _tick_veg_sway() -> void:
+	if _veg_sway_roots.is_empty():
+		return
+	var focus := get_focus_position()
+	var i := 0
+	for root in _veg_sway_roots:
+		if root == null or not is_instance_valid(root):
+			continue
+		for child in root.get_children():
+			if child is MultiMeshInstance3D:
+				continue
+			if not (child is Node3D):
+				continue
+			var n3 := child as Node3D
+			if focus.distance_to(n3.global_position) > 70.0:
+				continue
+			WorldWind.apply_sway(n3, _sway_t + float(i) * 0.37, float(i))
+			i += 1
+			if i > 18:
+				return
