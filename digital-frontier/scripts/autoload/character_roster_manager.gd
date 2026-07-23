@@ -85,12 +85,50 @@ func ensure_starter() -> void:
 	_apply_equipped()
 
 
+func is_shop_gate_open(outfit_id: StringName) -> bool:
+	## Story / Bits gates on buyable shop skins (not earn quests).
+	if CharacterOutfitCatalog.unlock_mode(outfit_id) != &"gate":
+		return true
+	var flag := CharacterOutfitCatalog.gate_flag(outfit_id)
+	if String(flag) != "" and not bool(WorldManager.get_world_flag(flag, false)):
+		return false
+	var bits_need := CharacterOutfitCatalog.gate_bits(outfit_id)
+	if bits_need > 0 and InventoryManager.get_bits_earned_total() < bits_need:
+		return false
+	return true
+
+
+func gate_hint(outfit_id: StringName) -> String:
+	if CharacterOutfitCatalog.unlock_mode(outfit_id) != &"gate":
+		return ""
+	var flag := CharacterOutfitCatalog.gate_flag(outfit_id)
+	if String(flag) != "" and not bool(WorldManager.get_world_flag(flag, false)):
+		match flag:
+			&"boss_hollow_warden_down":
+				return "Unlock: defeat Hollow Warden (Grassland boss)."
+			&"mini_boss_glitch_alpha_down":
+				return "Unlock: defeat Glitch Alpha (Grassland mini-boss)."
+			_:
+				return "Unlock: story progress (%s)." % String(flag)
+	var bits_need := CharacterOutfitCatalog.gate_bits(outfit_id)
+	if bits_need > 0:
+		var earned := InventoryManager.get_bits_earned_total()
+		if earned < bits_need:
+			return "Unlock: earn %d Bits lifetime (have %d)." % [bits_need, earned]
+	return ""
+
+
 func earn_hint(outfit_id: StringName) -> String:
 	var mode := CharacterOutfitCatalog.unlock_mode(outfit_id)
 	if mode == &"shop":
 		return "Buy this character in the Item Shop."
 	if mode == &"starter":
 		return "Starter character — already yours."
+	if mode == &"gate":
+		var locked := gate_hint(outfit_id)
+		if locked != "":
+			return locked
+		return "Unlocked — buy in the Item Shop."
 	var q := CharacterOutfitCatalog.earn_quest(outfit_id)
 	if q != &"":
 		var qd: QuestData = ResourceRegistry.get_quest(q)

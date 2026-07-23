@@ -156,35 +156,14 @@ func _seed_near_hubs() -> void:
 
 
 func _spawn_region_boss() -> void:
-	if not bool(WorldManager.get_world_flag(&"boss_hollow_warden_down", false)):
-		var def := EcosystemCatalog.grassland_boss()
-		_boss = RegionBossActor.new()
-		_boss.name = "HollowWarden"
-		_root_hostiles.add_child(_boss)
-		_boss.setup(def, _player, GrasslandLayout.LANDMARK_PINE_HOLLOW + Vector3(4, 0.15, -3))
-	_spawn_lookalike_bosses()
-
-
-func _spawn_lookalike_bosses() -> void:
-	## Digimon-inspired DF bosses dens across POIs.
-	var dens := {
-		"mile": GrasslandLayout.MARKET_MILE + Vector3(6, 0.15, -4),
-		"hollow": GrasslandLayout.LANDMARK_PINE_HOLLOW + Vector3(-10, 0.15, 8),
-		"fields": GrasslandLayout.FATAL_FIELDS + Vector3(5, 0.15, 5),
-		"reels": GrasslandLayout.RISKY_REELS + Vector3(-4, 0.15, 6),
-		"grove": GrasslandLayout.GREASE_GROVE + Vector3(4, 0.15, -5),
-		"mere": GrasslandLayout.MIRROR_MERE + Vector3(8, 0.15, 2),
-	}
-	for def in EcosystemCatalog.lookalike_bosses():
-		var flag: StringName = def.get("defeat_flag", &"")
-		if flag != &"" and bool(WorldManager.get_world_flag(flag, false)):
-			continue
-		var hint := String(def.get("pos_hint", "hollow"))
-		var origin: Vector3 = dens.get(hint, GrasslandLayout.PLEASANT_PARK + Vector3(40, 0.15, 40))
-		var boss := RegionBossActor.new()
-		boss.name = String(def.get("id", &"boss"))
-		_root_hostiles.add_child(boss)
-		boss.setup(def, _player, origin)
+	## Chapter 1: only Hollow Warden as the major boss (mini-boss is Glitch Alpha via chapter).
+	if bool(WorldManager.get_world_flag(&"boss_hollow_warden_down", false)):
+		return
+	var def := EcosystemCatalog.grassland_boss()
+	_boss = RegionBossActor.new()
+	_boss.name = "HollowWarden"
+	_root_hostiles.add_child(_boss)
+	_boss.setup(def, _player, GrasslandLayout.LANDMARK_PINE_HOLLOW + Vector3(4, 0.15, -3))
 
 
 func _maintain_population() -> void:

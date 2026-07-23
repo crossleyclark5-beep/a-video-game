@@ -18,12 +18,15 @@ enum Mood {
 	TIRED,
 }
 
-const STARTER_CREATURE_ID := &"emberling"
-## First-boot partner choices — classic three + Digimon-inspired look-alike roster.
+const STARTER_CREATURE_ID := &"companion_agumon"
+## Grassland partner choices — Digimon-inspired DF look-alikes that teach companion care.
 const STARTER_OPTIONS: Array[StringName] = [
-	&"emberling", &"sparkbit", &"tidepup",
-	&"companion_agumon", &"companion_gabumon", &"companion_biyomon",
-	&"companion_tentomon", &"companion_gatomon", &"companion_gomamon",
+	&"companion_agumon",
+	&"companion_gabumon",
+	&"companion_biyomon",
+	&"companion_tentomon",
+	&"companion_gomamon",
+	&"companion_gatomon",
 ]
 
 const CARE_FEED := {

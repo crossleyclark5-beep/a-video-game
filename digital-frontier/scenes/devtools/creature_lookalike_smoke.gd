@@ -1,5 +1,6 @@
 extends Node
 ## Smoke: Digimon-inspired DF creature look-alikes (companions / enemies / bosses).
+## Grassland only hosts beginner lookalike foes — full roster stays in the database.
 
 
 func _ready() -> void:
@@ -50,35 +51,59 @@ func _ready() -> void:
 			push_error("companion visual empty %s" % String(cid))
 			ok = false
 
-	## Starters include lookalike partners
+	## Grassland starters = six lookalike partners only
 	var starters := CreatureManager.get_starter_options()
-	if starters.size() < 9:
-		push_error("starter options %d < 9" % starters.size())
+	if starters.size() != 6:
+		push_error("starter options %d != 6" % starters.size())
 		ok = false
 
-	## Ecosystem enemies present
+	## Only three beginner lookalike hostiles spawn live in Grassland
 	var lookalike_hostile := 0
 	for e in EcosystemCatalog.grassland_species():
 		if bool(e.get("lookalike", false)):
 			lookalike_hostile += 1
-	if lookalike_hostile < 15:
-		push_error("lookalike hostiles %d" % lookalike_hostile)
+	if lookalike_hostile != 3:
+		push_error("grassland lookalike hostiles %d != 3" % lookalike_hostile)
 		ok = false
 
-	## Boss defs + data
-	if EcosystemCatalog.lookalike_bosses().size() != 6:
-		push_error("lookalike boss defs")
+	## Full enemy roster remains in the species database (spawn_live false for later biomes)
+	var db_lookalike := 0
+	for e in EcosystemCatalog.all_species_database():
+		if bool(e.get("lookalike", false)):
+			db_lookalike += 1
+	if db_lookalike < 15:
+		push_error("database lookalike enemies %d < 15" % db_lookalike)
+		ok = false
+
+	## Lookalike bosses are biome-assigned — not flooded into Grassland spawn
+	if EcosystemCatalog.lookalike_bosses().size() != 0:
+		push_error("lookalike bosses must not spawn in Grassland")
+		ok = false
+	var planned := EcosystemCatalog.all_planned_bosses()
+	if planned.size() < 7:
+		push_error("planned bosses %d < 7 (hollow + 6 lookalike)" % planned.size())
 		ok = false
 	for bid in CreatureLookalikeCatalog.boss_ids():
 		if ResourceRegistry.get_boss(bid) == null:
 			push_error("missing BossData %s" % String(bid))
 			ok = false
+		if not BiomeDistributionCatalog.has_entry(bid):
+			push_error("boss missing distribution %s" % String(bid))
+			ok = false
+		if BiomeDistributionCatalog.belongs_to_biome(bid, BiomeDistributionCatalog.Biome.GRASSLAND):
+			push_error("lookalike boss wrongly in Grassland %s" % String(bid))
+			ok = false
 
-	## RegionBossActor lookalike path
-	var boss := RegionBossActor.new()
-	add_child(boss)
-	boss.setup(EcosystemCatalog.lookalike_bosses()[0], null, Vector3.ZERO)
-	await get_tree().process_frame
+	## RegionBossActor lookalike path via future biome def
+	var forest_bosses := EcosystemCatalog.bosses_for_biome(BiomeDistributionCatalog.Biome.FOREST)
+	if forest_bosses.is_empty():
+		push_error("forest boss missing")
+		ok = false
+	else:
+		var boss := RegionBossActor.new()
+		add_child(boss)
+		boss.setup(forest_bosses[0], null, Vector3.ZERO)
+		await get_tree().process_frame
 
 	if ok:
 		print("CREATURE_LOOKALIKE_SMOKE_OK")

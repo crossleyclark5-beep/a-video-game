@@ -67,6 +67,9 @@ func can_buy(item_id: StringName) -> bool:
 		return false
 	if data.is_unique and is_owned_unique(item_id):
 		return false
+	if data.equip_slot == CharacterOutfitCatalog.EQUIP_SLOT:
+		if not CharacterRosterManager.is_shop_gate_open(item_id):
+			return false
 	return InventoryManager.get_bits() >= data.buy_value
 
 
@@ -84,6 +87,8 @@ func buy(item_id: StringName) -> String:
 		return "Not for sale."
 	if data.is_unique and is_owned_unique(item_id):
 		return "Already owned."
+	if data.equip_slot == CharacterOutfitCatalog.EQUIP_SLOT and not CharacterRosterManager.is_shop_gate_open(item_id):
+		return CharacterRosterManager.gate_hint(item_id)
 	if not InventoryManager.spend_bits(data.buy_value, "Bought %s" % data.display_name, "shop"):
 		return "Not enough Bits. Need %d." % data.buy_value
 	InventoryManager.add_item(item_id, 1, false)
