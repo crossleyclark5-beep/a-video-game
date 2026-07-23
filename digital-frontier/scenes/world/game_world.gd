@@ -21,6 +21,7 @@ var _chapter: ChapterDirector = null
 var _battle: BattleDirector = null
 var _story: StoryDirector = null
 var _checkpoint_timer: float = 0.0
+var _world_inspect: WorldInspectController = null
 
 
 func _ready() -> void:
@@ -38,6 +39,7 @@ func _ready() -> void:
 	_spawn_battle_director()
 	_bind_prompt()
 	_spawn_ambient_fx()
+	_setup_world_inspect()
 	QuestManager.ensure_starter_quest()
 	## Same CreatureInstance continues from home — tiny outing XP seed.
 	CreatureManager.grant_adventure_experience(2)
@@ -69,6 +71,16 @@ func _setup_atmosphere() -> void:
 	add_child(_atmosphere)
 	_atmosphere.setup(sun)
 	_atmosphere.apply_phase(WorldAtmosphere.Phase.AFTERNOON)
+
+
+func _setup_world_inspect() -> void:
+	## Temporary developer free-cam — debug/cheats builds only.
+	if not GameConfig.enable_cheats:
+		return
+	_world_inspect = WorldInspectController.new()
+	_world_inspect.name = "WorldInspectController"
+	add_child(_world_inspect)
+	_world_inspect.setup(camera_rig)
 
 
 func _setup_systems() -> void:

@@ -55,10 +55,15 @@ Cadence target: something interesting every ~30s of walking; interactive every f
 - River ribbon + scenic ponds as aerial landmarks.
 - Cities remain flat pads with believable road layouts.
 
+## Inspection
+
+Use **World Inspection Mode** (F3 in debug builds) to fly the same heightfield from the air. See `WORLD_INSPECT_MODE.md`.
+
 ## Smoke
 
 ```bash
 godot --headless --path digital-frontier --scene res://scenes/devtools/world_3d_foundation_smoke.tscn
+godot --headless --path digital-frontier --scene res://scenes/devtools/world_inspect_smoke.tscn
 godot --headless --path digital-frontier --scene res://scenes/devtools/adventure_stability_probe.tscn
 ```
 
