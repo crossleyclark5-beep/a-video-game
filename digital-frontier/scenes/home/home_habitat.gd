@@ -171,7 +171,8 @@ func _on_adventure() -> void:
 	await get_tree().create_timer(0.55).timeout
 	if _transition:
 		await _transition.play_and_wait()
-	SceneManager.change_scene(String(GameConstants.SCENE_GAME_WORLD), true)
+	## Must await — change_scene is async and Adventure instantiate is heavy.
+	await SceneManager.change_scene(String(GameConstants.SCENE_GAME_WORLD), true)
 
 
 func _on_collection() -> void:

@@ -3,13 +3,13 @@ extends Node3D
 ## Budgeted living world — wildlife, hostiles, NPCs, aquatics around the player.
 ## Spawns/despawns by distance so the handheld stays performant.
 
-const WILDLIFE_CAP := 18
-const HOSTILE_CAP := 8
-const NPC_CAP := 6
-const AQUATIC_CAP := 14
-const SPAWN_RADIUS := 95.0
-const DESPAWN_RADIUS := 130.0
-const TICK := 0.55
+const WILDLIFE_CAP := 14
+const HOSTILE_CAP := 6
+const NPC_CAP := 5
+const AQUATIC_CAP := 10
+const SPAWN_RADIUS := 90.0
+const DESPAWN_RADIUS := 125.0
+const TICK := 0.65
 
 var _player: Node3D = null
 var _root_wildlife: Node3D

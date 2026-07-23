@@ -1,13 +1,15 @@
 class_name WorldEncounterDirector
 extends Node
 ## Ambient world vignettes — creatures fighting, rare crossings, merchant ambush, etc.
+## Spawns must enter the tree before writing global_position (Node3D transform rule).
 
-const TICK := 7.5
+const TICK := 9.0
+const FIRST_DELAY := 12.0
 
 var _player: Node3D = null
 var _root: Node3D = null
 var _living: LivingWorldController = null
-var _timer: float = 3.0
+var _timer: float = FIRST_DELAY
 var _rng := RandomNumberGenerator.new()
 var _active: Node3D = null
 
@@ -22,10 +24,12 @@ func setup(player: Node3D, living: LivingWorldController, root: Node3D) -> void:
 func _process(delta: float) -> void:
 	if _player == null or not is_instance_valid(_player):
 		return
+	if _root == null or not is_instance_valid(_root) or not _root.is_inside_tree():
+		return
 	_timer -= delta
 	if _timer > 0.0:
 		return
-	_timer = TICK + _rng.randf_range(0.0, 4.0)
+	_timer = TICK + _rng.randf_range(0.0, 5.0)
 	if _active != null and is_instance_valid(_active):
 		if _player.global_position.distance_to(_active.global_position) > 140.0:
 			_active.queue_free()
@@ -56,12 +60,18 @@ func _try_spawn_encounter() -> void:
 		_spawn_bird_flush(pos)
 
 
-func _spawn_duel(pos: Vector3) -> void:
+func _make_holder(holder_name: String, pos: Vector3) -> Node3D:
+	## CRITICAL: add_child before global_position — otherwise Godot errors and returns identity.
 	var holder := Node3D.new()
-	holder.name = "EncounterDuel"
-	holder.global_position = pos
+	holder.name = holder_name
 	_root.add_child(holder)
+	holder.global_position = pos
 	_active = holder
+	return holder
+
+
+func _spawn_duel(pos: Vector3) -> void:
+	var holder := _make_holder("EncounterDuel", pos)
 	var a_def := EcosystemCatalog.pick_for_conditions(EcosystemCatalog.grassland_species(), _phase(), _weather(), _rng, true)
 	var b_def := EcosystemCatalog.pick_for_conditions(EcosystemCatalog.grassland_species(), _phase(), _weather(), _rng, false)
 	if a_def.is_empty():
@@ -74,11 +84,7 @@ func _spawn_duel(pos: Vector3) -> void:
 
 
 func _spawn_parent_guard(pos: Vector3) -> void:
-	var holder := Node3D.new()
-	holder.name = "EncounterGuard"
-	holder.global_position = pos
-	_root.add_child(holder)
-	_active = holder
+	var holder := _make_holder("EncounterGuard", pos)
 	var adult := EcosystemCatalog.find_species(&"park_deer")
 	var young := EcosystemCatalog.find_species(&"cotton_rabbit")
 	_spawn_eco(holder, adult, pos)
@@ -87,12 +93,11 @@ func _spawn_parent_guard(pos: Vector3) -> void:
 
 
 func _spawn_wounded(pos: Vector3) -> void:
-	var holder := Node3D.new()
-	holder.name = "EncounterWounded"
-	holder.global_position = pos
-	_root.add_child(holder)
-	_active = holder
-	var def := EcosystemCatalog.find_species(&"hex_squirrel")
+	var holder := _make_holder("EncounterWounded", pos)
+	## Grassland-only — never pull future-biome stubs into chapter 1 vignettes.
+	var def := EcosystemCatalog.find_species(&"glow_kit")
+	if def.is_empty():
+		def = EcosystemCatalog.find_species(&"pack_pup")
 	var actor := _spawn_eco(holder, def, pos)
 	if actor:
 		actor._activity = EcosystemCreature.Activity.SLEEP
@@ -101,11 +106,7 @@ func _spawn_wounded(pos: Vector3) -> void:
 
 
 func _spawn_merchant_ambush(pos: Vector3) -> void:
-	var holder := Node3D.new()
-	holder.name = "EncounterAmbush"
-	holder.global_position = pos
-	_root.add_child(holder)
-	_active = holder
+	var holder := _make_holder("EncounterAmbush", pos)
 	var npc_def := LivingWorldCatalog.grassland_npcs()[2]
 	var npc := WorldNpcActor.new()
 	npc.name = "AmbushedMerchant"
@@ -118,11 +119,7 @@ func _spawn_merchant_ambush(pos: Vector3) -> void:
 
 
 func _spawn_rare_crossing(pos: Vector3) -> void:
-	var holder := Node3D.new()
-	holder.name = "EncounterRare"
-	holder.global_position = pos
-	_root.add_child(holder)
-	_active = holder
+	var holder := _make_holder("EncounterRare", pos)
 	var rare := EcosystemCatalog.find_species(&"phantom_hare")
 	if rare.is_empty():
 		rare = EcosystemCatalog.find_species(&"glow_kit")
@@ -131,11 +128,7 @@ func _spawn_rare_crossing(pos: Vector3) -> void:
 
 
 func _spawn_bird_flush(pos: Vector3) -> void:
-	var holder := Node3D.new()
-	holder.name = "EncounterFlush"
-	holder.global_position = pos
-	_root.add_child(holder)
-	_active = holder
+	var holder := _make_holder("EncounterFlush", pos)
 	var bird := EcosystemCatalog.find_species(&"meadow_bird")
 	for i in 4:
 		var a := _spawn_eco(holder, bird, pos + Vector3(float(i) - 1.5, 0, float(i % 2)))
@@ -146,7 +139,7 @@ func _spawn_bird_flush(pos: Vector3) -> void:
 
 
 func _spawn_eco(parent: Node3D, def: Dictionary, pos: Vector3) -> EcosystemCreature:
-	if def.is_empty():
+	if def.is_empty() or parent == null or not parent.is_inside_tree():
 		return null
 	var actor := EcosystemCreature.new()
 	actor.name = "Eco_%s" % String(def.get("id", "x"))

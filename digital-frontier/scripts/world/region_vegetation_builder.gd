@@ -31,21 +31,24 @@ static func _build_corridor_forests(parent: Node3D) -> void:
 static func _forest_along(parent: Node3D, points: Array[Vector3], seed_base: int) -> void:
 	var clear := GrasslandLayout.road_clearance() + 8.0
 	for i in range(1, points.size()):
+		## Stability: skip every other segment — corridors stay green without 6k forest nodes.
+		if i % 2 == 0:
+			continue
 		var a: Vector3 = points[i - 1]
 		var b: Vector3 = points[i]
 		var mid := a.lerp(b, 0.5)
 		var perp := _perp(a, b)
-		## Belts well outside the road shoulder — denser living forest walls.
-		_tree_clump_safe(parent, mid + perp * (clear + 14.0), 7 + (i % 4), seed_base * 17 + i)
-		_tree_clump_safe(parent, mid - perp * (clear + 18.0), 6 + ((i + 1) % 4), seed_base * 31 + i)
-		_bush_cluster_safe(parent, mid + perp * (clear + 8.0), 4, seed_base * 41 + i)
-		_bush_cluster_safe(parent, mid - perp * (clear + 9.0), 3, seed_base * 43 + i)
-		if i % 2 == 0:
-			_tree_clump_safe(parent, mid + perp * (clear + 30.0), 5, seed_base * 13 + i * 3)
+		## Belts well outside the road shoulder — lighter living forest walls.
+		_tree_clump_safe(parent, mid + perp * (clear + 14.0), 4 + (i % 3), seed_base * 17 + i)
+		_tree_clump_safe(parent, mid - perp * (clear + 18.0), 3 + ((i + 1) % 3), seed_base * 31 + i)
+		_bush_cluster_safe(parent, mid + perp * (clear + 8.0), 3, seed_base * 41 + i)
+		_bush_cluster_safe(parent, mid - perp * (clear + 9.0), 2, seed_base * 43 + i)
+		if i % 4 == 0:
+			_tree_clump_safe(parent, mid + perp * (clear + 30.0), 3, seed_base * 13 + i * 3)
 			_rock_scatter_safe(parent, mid - perp * (clear + 22.0), seed_base + i)
-		if i % 3 == 0:
+		if i % 6 == 0:
 			_clearing_safe(parent, mid + perp * (-(clear + 34.0)), seed_base + i)
-			_tree_clump_safe(parent, mid - perp * (clear + 42.0), 4, seed_base * 19 + i)
+
 
 
 static func _tree_line(parent: Node3D, a: Vector3, b: Vector3, count: int, seed_i: int) -> void:
@@ -72,22 +75,23 @@ static func _tree_clump(parent: Node3D, center: Vector3, count: int, seed_i: int
 	## Imperfect cluster — not a perfect ring. Density toward the center, gaps at the edge.
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(seed_i) * 7919 + 41
-	for j in count:
+	var n := mini(count, 5)
+	for j in n:
 		var ang := rng.randf() * TAU
 		var r := rng.randf_range(0.8, 2.2 + float(j % 4) * 1.9)
 		## Slight radial bias so clumps read as groves, not grids.
-		if j < count / 2:
+		if j < n / 2:
 			r *= 0.72
 		var p := center + Vector3(cos(ang) * r + rng.randf_range(-0.6, 0.6), 0.0, sin(ang) * r + rng.randf_range(-0.6, 0.6))
 		_pixel_tree_safe(parent, p, 0.72 + rng.randf() * 0.48, seed_i + j)
 	## Satellite saplings / undergrowth offset from the main mass.
-	if count >= 4:
+	if n >= 4:
 		var sat := center + Vector3(rng.randf_range(6.0, 11.0) * (1.0 if seed_i % 2 == 0 else -1.0), 0, rng.randf_range(-4.0, 4.0))
 		_pixel_tree_safe(parent, sat, 0.65 + rng.randf() * 0.2, seed_i + 90)
 		_bush_cluster_safe(parent, sat + Vector3(2.0, 0, -1.5), 2, seed_i + 91)
-	if seed_i % 3 == 0:
+	if seed_i % 4 == 0:
 		_fallen_log(parent, center + Vector3(rng.randf_range(-2.5, 2.5), 0, rng.randf_range(-2.5, 2.5)), seed_i)
-	if seed_i % 2 == 0:
+	if seed_i % 3 == 0:
 		_leaf_litter(parent, center, seed_i)
 
 
@@ -96,11 +100,11 @@ static func _clearing(parent: Node3D, center: Vector3, seed_i: int) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(seed_i) * 4523 + 7
 	StylizedMesh.add_box(parent, Vector3(14, 0.04, 12), WorldPalette.GRASS_LIGHT, center + Vector3(0, 0.03, 0), "Clearing_%d" % seed_i, false, 1.0, &"grass")
-	for j in 7:
+	for j in 5:
 		## Skip one slot so the ring isn't a perfect fence.
-		if j == (seed_i % 7):
+		if j == (seed_i % 5):
 			continue
-		var ang := float(j) * TAU / 7.0 + rng.randf_range(-0.22, 0.22)
+		var ang := float(j) * TAU / 5.0 + rng.randf_range(-0.22, 0.22)
 		var r := 8.2 + rng.randf_range(-1.2, 1.8)
 		_pixel_tree_safe(parent, center + Vector3(cos(ang) * r, 0, sin(ang) * r), 0.82 + rng.randf() * 0.25, seed_i + j)
 	StylizedMesh.add_box(parent, Vector3(0.4, 0.22, 0.35), WorldPalette.ROCK, center + Vector3(1.5, 0.12, -1.0), "ClearRock", false, 1.0, &"dirt")
@@ -125,7 +129,7 @@ static func _leaf_litter(parent: Node3D, center: Vector3, seed_i: int) -> void:
 	## Cheap ground detail — few boxes, not particle spam.
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(seed_i) * 1301 + 3
-	for i in 4:
+	for i in 2:
 		var p := center + Vector3(rng.randf_range(-3.5, 3.5), 0, rng.randf_range(-3.5, 3.5))
 		if not _placement_ok(p, false):
 			continue
@@ -139,7 +143,7 @@ static func _pixel_tree_safe(parent: Node3D, pos: Vector3, scale_v: float, idx: 
 
 
 static func _pixel_tree(parent: Node3D, pos: Vector3, scale_v: float, idx: int) -> void:
-	## Match Pleasant Park canopy density — wilderness should not look thinner than town.
+	## Budget silhouette — trunk + two canopy boxes (was 6 meshes; caused 10k+ MeshInstances).
 	var tree := Node3D.new()
 	tree.name = "VTree_%d" % idx
 	tree.position = pos
@@ -147,16 +151,22 @@ static func _pixel_tree(parent: Node3D, pos: Vector3, scale_v: float, idx: int) 
 	parent.add_child(tree)
 	var tw := 0.3 * scale_v
 	StylizedMesh.add_box(tree, Vector3(tw, 1.7 * scale_v, tw), WorldPalette.TRUNK, Vector3(0, 0.85 * scale_v, 0), "Trunk", false, 1.0, &"wood")
-	StylizedMesh.add_box(tree, Vector3(tw * 0.5, 0.55 * scale_v, tw * 0.5), WorldPalette.TRUNK.lightened(0.05), Vector3(0.25 * scale_v, 1.45 * scale_v, 0.08), "Branch", false, 1.0, &"wood")
 	var leaf := WorldPalette.LEAF if idx % 2 == 0 else WorldPalette.LEAF_DARK
 	if idx % 3 == 0:
 		leaf = WorldPalette.LEAF_LIT
-	## Multi-cluster canopy for silhouette read at distance.
-	StylizedMesh.add_box(tree, Vector3(1.65 * scale_v, 1.15 * scale_v, 1.65 * scale_v), leaf, Vector3(0, 2.1 * scale_v, 0), "C1", false, 1.0, &"leaf")
-	StylizedMesh.add_box(tree, Vector3(1.0 * scale_v, 0.85 * scale_v, 1.0 * scale_v), leaf.lightened(0.06), Vector3(0.4 * scale_v, 2.7 * scale_v, 0.2), "C2", false, 1.0, &"leaf")
-	StylizedMesh.add_box(tree, Vector3(0.85 * scale_v, 0.7 * scale_v, 0.85 * scale_v), leaf.darkened(0.05), Vector3(-0.35 * scale_v, 2.5 * scale_v, -0.2), "C3", false, 1.0, &"leaf")
-	StylizedMesh.add_box(tree, Vector3(0.55 * scale_v, 0.5 * scale_v, 0.55 * scale_v), leaf.lightened(0.1), Vector3(0.1 * scale_v, 3.15 * scale_v, 0.05), "C4", false, 1.0, &"leaf")
-	OcclusionUtil.mark_named_in(tree, PackedStringArray(["C1", "C2", "C3", "C4"]))
+	var c1 := StylizedMesh.add_box(tree, Vector3(1.55 * scale_v, 1.2 * scale_v, 1.55 * scale_v), leaf, Vector3(0, 2.15 * scale_v, 0), "C1", false, 1.0, &"leaf")
+	var c2 := StylizedMesh.add_box(tree, Vector3(0.95 * scale_v, 0.85 * scale_v, 0.95 * scale_v), leaf.lightened(0.06), Vector3(0.25 * scale_v, 2.85 * scale_v, 0.15), "C2", false, 1.0, &"leaf")
+	_apply_tree_lod(c1)
+	_apply_tree_lod(c2)
+	OcclusionUtil.mark_named_in(tree, PackedStringArray(["C1", "C2"]))
+
+
+static func _apply_tree_lod(node: Node3D) -> void:
+	if node is MeshInstance3D:
+		var mi := node as MeshInstance3D
+		mi.visibility_range_end = 220.0
+		mi.visibility_range_end_margin = 40.0
+		mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 
 
 static func _build_grass_strips(parent: Node3D) -> void:
@@ -168,21 +178,23 @@ static func _build_grass_strips(parent: Node3D) -> void:
 		var hub: Vector3 = zone["pos"]
 		var r: float = float(zone["radius"])
 		## Outer meadow band beyond the pad.
-		_grass_patch_safe(grass_root, hub + Vector3(r * 0.85, 0, 0), 10.0, 160, int(hub.x) + 11)
-		_grass_patch_safe(grass_root, hub + Vector3(-r * 0.7, 0, r * 0.55), 9.0, 140, int(hub.z) + 19)
-		_grass_patch_safe(grass_root, hub + Vector3(r * 0.4, 0, -r * 0.75), 8.0, 120, int(hub.x + hub.z) + 3)
+		_grass_patch_safe(grass_root, hub + Vector3(r * 0.85, 0, 0), 10.0, 90, int(hub.x) + 11)
+		_grass_patch_safe(grass_root, hub + Vector3(-r * 0.7, 0, r * 0.55), 9.0, 80, int(hub.z) + 19)
+		_grass_patch_safe(grass_root, hub + Vector3(r * 0.4, 0, -r * 0.75), 8.0, 70, int(hub.x + hub.z) + 3)
 	var clear := GrasslandLayout.road_clearance() + 4.0
 	for path in RegionMapCatalog.road_polylines():
 		for i in range(1, path.size()):
+			## Skip alternate segments — MultiMesh grass still reads as meadow.
+			if i % 2 == 0:
+				continue
 			var mid: Vector3 = path[i - 1].lerp(path[i], 0.5)
 			var perp := _perp(path[i - 1], path[i])
-			_grass_patch_safe(grass_root, mid + perp * clear, 10.0, 180, i * 7)
-			_grass_patch_safe(grass_root, mid - perp * clear, 10.0, 170, i * 9 + 1)
-			if i % 2 == 0:
+			_grass_patch_safe(grass_root, mid + perp * clear, 10.0, 100, i * 7)
+			_grass_patch_safe(grass_root, mid - perp * clear, 10.0, 90, i * 9 + 1)
+			if i % 4 == 1:
 				_flower_scatter_safe(grass_root, mid + perp * (clear + 4.0), i)
-				_flower_scatter_safe(grass_root, mid - perp * (clear + 6.0), i + 17)
-			if i % 3 == 0:
-				_bush_cluster_safe(grass_root, mid + perp * (clear + 12.0), 3, i * 11)
+			if i % 6 == 1:
+				_bush_cluster_safe(grass_root, mid + perp * (clear + 12.0), 2, i * 11)
 
 
 static func _grass_patch_safe(parent: Node3D, center: Vector3, radius: float, count: int, seed_i: int) -> void:
@@ -310,11 +322,11 @@ static func _build_wilderness_fill(parent: Node3D) -> void:
 		var c: Vector3 = anchors[i]
 		if not _placement_ok(c, true):
 			continue
-		_tree_clump_safe(fill, c, 6 + (i % 4), 500 + i)
-		_tree_clump_safe(fill, c + Vector3(14, 0, -10), 4, 600 + i)
-		_bush_cluster_safe(fill, c + Vector3(-8, 0, 8), 5, 700 + i)
+		_tree_clump_safe(fill, c, 4 + (i % 3), 500 + i)
+		_tree_clump_safe(fill, c + Vector3(14, 0, -10), 3, 600 + i)
+		_bush_cluster_safe(fill, c + Vector3(-8, 0, 8), 4, 700 + i)
 		_rock_scatter_safe(fill, c + Vector3(6, 0, 12), 800 + i)
-		_grass_patch_safe(fill, c + Vector3(4, 0, 4), 12.0, 160, 900 + i)
+		_grass_patch_safe(fill, c + Vector3(4, 0, 4), 12.0, 80, 900 + i)
 		if i % 2 == 0:
 			_flower_scatter_safe(fill, c + Vector3(-4, 0, 6), 1000 + i)
 		## Trail marker / camp — sparse exploration rewards, never on roads.
@@ -323,11 +335,11 @@ static func _build_wilderness_fill(parent: Node3D) -> void:
 		if i % 5 == 0:
 			_camp_nook(fill, c + Vector3(8, 0, -14), 1200 + i)
 		## Landmark external trees (not every clump — handheld budget).
-		if ExternalPropKit.is_available() and i % 3 == 0:
+		if ExternalPropKit.is_available() and i % 4 == 0:
 			var kind: StringName = &"tree_pine" if i % 2 == 0 else &"tree_oak"
 			ExternalPropKit.spawn(fill, kind, c + Vector3(-6, 0, 10), float(i * 40), 1.0 + float(i % 3) * 0.08, "LandmarkTree_%d" % i)
 			ExternalPropKit.spawn(fill, &"rock_tall", c + Vector3(10, 0, 4), float(i * 17), 1.0, "LandmarkRock_%d" % i)
-			if i % 6 == 0:
+			if i % 8 == 0:
 				ExternalPropKit.spawn(fill, &"pillar", c + Vector3(-18, 0, -8), 12.0, 1.1, "RuinPillar_%d" % i)
 				ExternalPropKit.spawn(fill, &"ruin_rocks", c + Vector3(-16, 0, -6), -8.0, 1.0, "RuinRubble_%d" % i)
 				ExternalPropKit.spawn(fill, &"flag", c + Vector3(-18, 0, -8), 12.0, 1.0, "RuinFlag_%d" % i)
@@ -376,7 +388,7 @@ static func _build_pine_ridges(parent: Node3D) -> void:
 	]
 	for i in centers.size():
 		var c: Vector3 = centers[i]
-		for j in 10:
+		for j in 6:
 			var ang := float(j) * 0.7 + float(i)
 			var p := c + Vector3(cos(ang) * (8.0 + float(j % 4) * 3.0), 0, sin(ang) * (8.0 + float(j % 3) * 3.5))
 			_pine_tree_safe(pine, p, 1.0 + float((j + i) % 4) * 0.12, 1100 + i * 20 + j)
@@ -418,9 +430,12 @@ static func _pine_tree_safe(parent: Node3D, pos: Vector3, scale_v: float, idx: i
 	parent.add_child(tree)
 	StylizedMesh.add_box(tree, Vector3(0.28 * scale_v, 2.2 * scale_v, 0.28 * scale_v), WorldPalette.TRUNK.darkened(0.1), Vector3(0, 1.1 * scale_v, 0), "Trunk", false, 1.0, &"wood")
 	var leaf := WorldPalette.LEAF_DARK
-	StylizedMesh.add_box(tree, Vector3(1.4 * scale_v, 1.0 * scale_v, 1.4 * scale_v), leaf, Vector3(0, 2.0 * scale_v, 0), "C1", false, 1.0, &"leaf")
-	StylizedMesh.add_box(tree, Vector3(1.0 * scale_v, 0.9 * scale_v, 1.0 * scale_v), leaf.lightened(0.05), Vector3(0, 2.7 * scale_v, 0), "C2", false, 1.0, &"leaf")
-	StylizedMesh.add_box(tree, Vector3(0.55 * scale_v, 0.7 * scale_v, 0.55 * scale_v), leaf.lightened(0.1), Vector3(0, 3.3 * scale_v, 0), "C3", false, 1.0, &"leaf")
+	var c1 := StylizedMesh.add_box(tree, Vector3(1.4 * scale_v, 1.0 * scale_v, 1.4 * scale_v), leaf, Vector3(0, 2.0 * scale_v, 0), "C1", false, 1.0, &"leaf")
+	var c2 := StylizedMesh.add_box(tree, Vector3(1.0 * scale_v, 0.9 * scale_v, 1.0 * scale_v), leaf.lightened(0.05), Vector3(0, 2.7 * scale_v, 0), "C2", false, 1.0, &"leaf")
+	var c3 := StylizedMesh.add_box(tree, Vector3(0.55 * scale_v, 0.7 * scale_v, 0.55 * scale_v), leaf.lightened(0.1), Vector3(0, 3.3 * scale_v, 0), "C3", false, 1.0, &"leaf")
+	_apply_tree_lod(c1)
+	_apply_tree_lod(c2)
+	_apply_tree_lod(c3)
 	OcclusionUtil.mark_named_in(tree, PackedStringArray(["C1", "C2", "C3"]))
 
 

@@ -55,7 +55,12 @@ func change_scene(scene_path: String, fade: bool = true) -> void:
 		tween.tween_property(_transition_overlay, "modulate:a", 1.0, TRANSITION_FADE_DURATION)
 		await tween.finished
 
+	## Adventure world is heavy — yield a frame so the fade paints before instantiate.
+	await get_tree().process_frame
 	await _swap_scene(scene_path)
+	## Let first _ready() systems settle before fading in (avoids hitch-looking freezes).
+	await get_tree().process_frame
+	await get_tree().process_frame
 
 	if fade and _transition_overlay != null:
 		var tween_out := create_tween()

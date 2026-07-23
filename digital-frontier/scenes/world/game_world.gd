@@ -132,6 +132,9 @@ func _spawn_player() -> void:
 func _spawn_companion() -> void:
 	if _player == null:
 		return
+	## Direct scene runs / broken saves: ensure a partner exists so companion visuals never null-crash.
+	if not CreatureManager.has_chosen_partner():
+		CreatureManager.select_partner(CreatureManager.STARTER_CREATURE_ID, "Field Partner")
 	_companion = AdventureCompanionActor.new()
 	_companion.name = "AdventureCompanion"
 	entity_layer.add_child(_companion)
