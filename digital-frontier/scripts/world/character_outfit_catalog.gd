@@ -1,10 +1,12 @@
 class_name CharacterOutfitCatalog
 extends RefCounted
-## Item Shop character roster visuals — Digital Frontier retro look-alikes.
-## Sketchfab Fortnite rips are rejected (Epic IP). Each outfit maps to a custom
-## pixel-toon silhouette kit (`CharacterLookalikeKit`) with Kenney fallback.
+## Item Shop character roster — DF retro look-alikes with healthy unlock progression.
+## Majority buyable; some gated by story / quests / Bits / achievements.
 
-## id -> { mesh, tint, accent, prop, unlock, quest, blurb, style }
+## unlock: starter | shop | earn | gate
+## gate_flag: world flag required before shop purchase
+## gate_bits: lifetime Bits earned required
+## quest: earn unlock on quest complete
 const OUTFITS: Dictionary = {
 	&"char_jonesy": {
 		"mesh": &"hero_a",
@@ -13,18 +15,10 @@ const OUTFITS: Dictionary = {
 		"prop": &"cap",
 		"unlock": &"starter",
 		"quest": &"",
+		"gate_flag": &"",
+		"gate_bits": 0,
 		"style": &"field_agent",
-		"blurb": "Retro field agent — blue polo, DF cap, pack.",
-	},
-	&"char_ice_king": {
-		"mesh": &"hero_b",
-		"tint": Color(0.55, 0.82, 1.0),
-		"accent": Color(0.85, 0.95, 1.0),
-		"prop": &"crown",
-		"unlock": &"shop",
-		"quest": &"",
-		"style": &"frost_monarch",
-		"blurb": "Crystal crown + ice cape — winter sovereign.",
+		"blurb": "Starter — retro field agent.",
 	},
 	&"char_indiana": {
 		"mesh": &"npc_explorer",
@@ -33,8 +27,10 @@ const OUTFITS: Dictionary = {
 		"prop": &"hat",
 		"unlock": &"shop",
 		"quest": &"",
+		"gate_flag": &"",
+		"gate_bits": 0,
 		"style": &"relic_runner",
-		"blurb": "Fedora, leather, satchel — relic runner.",
+		"blurb": "Shop — fedora relic runner.",
 	},
 	&"char_8ball": {
 		"mesh": &"hero_c",
@@ -43,8 +39,10 @@ const OUTFITS: Dictionary = {
 		"prop": &"orb",
 		"unlock": &"shop",
 		"quest": &"",
+		"gate_flag": &"",
+		"gate_bits": 0,
 		"style": &"cue_ball",
-		"blurb": "Gloss black + white 8 medallion swagger.",
+		"blurb": "Shop — cue-ball swagger.",
 	},
 	&"char_prisoner": {
 		"mesh": &"hero_alt",
@@ -53,18 +51,10 @@ const OUTFITS: Dictionary = {
 		"prop": &"none",
 		"unlock": &"shop",
 		"quest": &"",
+		"gate_flag": &"",
+		"gate_bits": 0,
 		"style": &"breakout",
-		"blurb": "Orange jumpsuit stripes — breakout grit.",
-	},
-	&"char_black_knight": {
-		"mesh": &"npc_guard",
-		"tint": Color(0.14, 0.14, 0.18),
-		"accent": Color(0.55, 0.15, 0.18),
-		"prop": &"armor",
-		"unlock": &"shop",
-		"quest": &"",
-		"style": &"onyx_plate",
-		"blurb": "Onyx plate, crimson plume & cape.",
+		"blurb": "Shop — breakout orange.",
 	},
 	&"char_peely": {
 		"mesh": &"hero_b",
@@ -73,8 +63,10 @@ const OUTFITS: Dictionary = {
 		"prop": &"peel",
 		"unlock": &"shop",
 		"quest": &"",
+		"gate_flag": &"",
+		"gate_bits": 0,
 		"style": &"sunny_peel",
-		"blurb": "Banana-hero silhouette — sunny peel energy.",
+		"blurb": "Shop — sunny peel hero.",
 	},
 	&"char_marshmallow": {
 		"mesh": &"hero_alt",
@@ -83,18 +75,10 @@ const OUTFITS: Dictionary = {
 		"prop": &"soft",
 		"unlock": &"shop",
 		"quest": &"",
+		"gate_flag": &"",
+		"gate_bits": 0,
 		"style": &"soft_guard",
-		"blurb": "Stacked soft-guard snow puff + scarf.",
-	},
-	&"char_master_chief": {
-		"mesh": &"npc_guard",
-		"tint": Color(0.35, 0.55, 0.32),
-		"accent": Color(0.85, 0.75, 0.2),
-		"prop": &"helm",
-		"unlock": &"shop",
-		"quest": &"",
-		"style": &"chrome_sentinel",
-		"blurb": "Chunky olive armor + gold visor.",
+		"blurb": "Shop — soft-guard puff.",
 	},
 	&"char_dj_yonder": {
 		"mesh": &"hero_c",
@@ -103,8 +87,46 @@ const OUTFITS: Dictionary = {
 		"prop": &"headset",
 		"unlock": &"shop",
 		"quest": &"",
+		"gate_flag": &"",
+		"gate_bits": 0,
 		"style": &"neon_mixer",
-		"blurb": "Neon headset + speaker pack mixer.",
+		"blurb": "Shop — neon mixer.",
+	},
+	&"char_ice_king": {
+		"mesh": &"hero_b",
+		"tint": Color(0.55, 0.82, 1.0),
+		"accent": Color(0.85, 0.95, 1.0),
+		"prop": &"crown",
+		"unlock": &"gate",
+		"quest": &"",
+		"gate_flag": &"",
+		"gate_bits": 600,
+		"style": &"frost_monarch",
+		"blurb": "Gate — earn 600 Bits lifetime, then buy.",
+	},
+	&"char_black_knight": {
+		"mesh": &"npc_guard",
+		"tint": Color(0.14, 0.14, 0.18),
+		"accent": Color(0.55, 0.15, 0.18),
+		"prop": &"armor",
+		"unlock": &"gate",
+		"quest": &"",
+		"gate_flag": &"boss_hollow_warden_down",
+		"gate_bits": 0,
+		"style": &"onyx_plate",
+		"blurb": "Gate — clear Hollow Warden, then buy.",
+	},
+	&"char_master_chief": {
+		"mesh": &"npc_guard",
+		"tint": Color(0.35, 0.55, 0.32),
+		"accent": Color(0.85, 0.75, 0.2),
+		"prop": &"helm",
+		"unlock": &"gate",
+		"quest": &"",
+		"gate_flag": &"mini_boss_glitch_alpha_down",
+		"gate_bits": 0,
+		"style": &"chrome_sentinel",
+		"blurb": "Gate — defeat Glitch Alpha, then buy.",
 	},
 	&"char_dark_voyager": {
 		"mesh": &"hero_a",
@@ -113,8 +135,10 @@ const OUTFITS: Dictionary = {
 		"prop": &"visor",
 		"unlock": &"earn",
 		"quest": &"hollow_challenge",
+		"gate_flag": &"",
+		"gate_bits": 0,
 		"style": &"void_voyager",
-		"blurb": "Earn · void suit + purple visor.",
+		"blurb": "Earn · Hollow Challenge.",
 	},
 	&"char_omega": {
 		"mesh": &"npc_story",
@@ -123,8 +147,10 @@ const OUTFITS: Dictionary = {
 		"prop": &"armor",
 		"unlock": &"earn",
 		"quest": &"pine_threat",
+		"gate_flag": &"",
+		"gate_bits": 0,
 		"style": &"apex_protocol",
-		"blurb": "Earn · dark armor with orange veins.",
+		"blurb": "Earn · Pine Threat.",
 	},
 	&"char_raptor": {
 		"mesh": &"npc_explorer",
@@ -133,8 +159,10 @@ const OUTFITS: Dictionary = {
 		"prop": &"mask",
 		"unlock": &"earn",
 		"quest": &"wildlife_watch",
+		"gate_flag": &"",
+		"gate_bits": 0,
 		"style": &"ridge_scout",
-		"blurb": "Earn · camo hood + utility vest.",
+		"blurb": "Earn · Wildlife Watch.",
 	},
 	&"char_storm_trooper": {
 		"mesh": &"npc_researcher",
@@ -143,8 +171,10 @@ const OUTFITS: Dictionary = {
 		"prop": &"helm",
 		"unlock": &"earn",
 		"quest": &"park_explorer",
+		"gate_flag": &"",
+		"gate_bits": 0,
 		"style": &"star_patrol",
-		"blurb": "Earn · white plate star-patrol kit.",
+		"blurb": "Earn · Park Explorer.",
 	},
 }
 
@@ -181,6 +211,16 @@ static func unlock_mode(id: StringName) -> StringName:
 static func earn_quest(id: StringName) -> StringName:
 	var d := outfit_def(id)
 	return d.get("quest", &"") as StringName
+
+
+static func gate_flag(id: StringName) -> StringName:
+	var d := outfit_def(id)
+	return d.get("gate_flag", &"") as StringName
+
+
+static func gate_bits(id: StringName) -> int:
+	var d := outfit_def(id)
+	return int(d.get("gate_bits", 0))
 
 
 static func ids_for_quest(quest_id: StringName) -> Array[StringName]:

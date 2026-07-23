@@ -12,6 +12,6 @@ shop_category = 2
 max_stack = 1
 sell_value = 333
 buy_value = 1000
-shop_blurb = "Shop character"
+shop_blurb = "Gate · Glitch Alpha"
 equip_slot = &"character"
 is_unique = true

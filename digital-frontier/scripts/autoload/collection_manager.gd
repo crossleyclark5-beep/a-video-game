@@ -189,17 +189,24 @@ func record_creature_battle(species_id: StringName, won: bool) -> void:
 
 func get_creature_index_entries() -> Array[Dictionary]:
 	var entries: Array[Dictionary] = []
-	## Known catalog species (discovered or ???).
-	for def in EcosystemCatalog.grassland_species():
+	var seen: Dictionary = {}
+	## Full world index — future biomes show as ???? until discovered (not spawn-live).
+	for def in EcosystemCatalog.all_species_database():
 		var sid: StringName = def.get("id", &"")
+		if sid == &"" or seen.has(sid):
+			continue
+		seen[sid] = true
 		var row: Dictionary = _creature_index.get(sid, _creature_index.get(String(sid), {}))
 		var known := not row.is_empty()
+		var habitat := str(def.get("habitat", ""))
+		if BiomeDistributionCatalog.has_entry(sid):
+			habitat = BiomeDistributionCatalog.habitat_label_for(sid)
 		entries.append({
 			&"id": sid,
 			&"name": str(def.get("label", sid)) if known else "????",
 			&"blurb": str(def.get("blurb", "")) if known else "Undocumented wild signal…",
 			&"rarity_label": EcosystemCatalog.rarity_label(int(def.get("rarity", 0))) if known else "???",
-			&"habitat": str(def.get("habitat", "")) if known else "???",
+			&"habitat": habitat if known else "???",
 			&"temperament_label": EcosystemCatalog.temperament_label(int(def.get("temperament", 0))) if known else "???",
 			&"discovered": known,
 			&"count": int(row.get("count", 0)),
@@ -207,28 +214,34 @@ func get_creature_index_entries() -> Array[Dictionary]:
 			&"battles_lost": int(row.get("battles_lost", 0)),
 			&"first_unix": int(row.get("first_unix", 0)),
 		})
-	## Boss + extras only in index.
-	var boss := EcosystemCatalog.grassland_boss()
-	var bid: StringName = boss.get("id", &"")
-	var brow: Dictionary = _creature_index.get(bid, _creature_index.get(String(bid), {}))
-	entries.append({
-		&"id": bid,
-		&"name": str(boss.get("label", bid)) if not brow.is_empty() else "????",
-		&"blurb": str(boss.get("blurb", "")) if not brow.is_empty() else "A legendary guardian sleeps somewhere…",
-		&"rarity_label": "Legendary" if not brow.is_empty() else "???",
-		&"habitat": "Forest" if not brow.is_empty() else "???",
-		&"temperament_label": "Boss" if not brow.is_empty() else "???",
-		&"discovered": not brow.is_empty(),
-		&"count": int(brow.get("count", 0)),
-		&"battles_won": int(brow.get("battles_won", 0)),
-		&"battles_lost": int(brow.get("battles_lost", 0)),
-		&"first_unix": int(brow.get("first_unix", 0)),
-	})
+	for boss in EcosystemCatalog.all_planned_bosses():
+		var bid: StringName = boss.get("id", &"")
+		if bid == &"" or seen.has(bid):
+			continue
+		seen[bid] = true
+		var brow: Dictionary = _creature_index.get(bid, _creature_index.get(String(bid), {}))
+		var bknown := not brow.is_empty()
+		var bhabitat := "Grasslands"
+		if BiomeDistributionCatalog.has_entry(bid):
+			bhabitat = BiomeDistributionCatalog.habitat_label_for(bid)
+		entries.append({
+			&"id": bid,
+			&"name": str(boss.get("label", bid)) if bknown else "????",
+			&"blurb": str(boss.get("blurb", "")) if bknown else "A legendary guardian sleeps somewhere…",
+			&"rarity_label": "Legendary" if bknown else "???",
+			&"habitat": bhabitat if bknown else "???",
+			&"temperament_label": "Boss" if bknown else "???",
+			&"discovered": bknown,
+			&"count": int(brow.get("count", 0)),
+			&"battles_won": int(brow.get("battles_won", 0)),
+			&"battles_lost": int(brow.get("battles_lost", 0)),
+			&"first_unix": int(brow.get("first_unix", 0)),
+		})
 	return entries
 
 
 func get_creature_index_progress() -> Vector2i:
-	var total := EcosystemCatalog.grassland_species().size() + 1  ## + boss
+	var total := get_creature_index_entries().size()
 	var found := 0
 	for e in get_creature_index_entries():
 		if e.get(&"discovered", false):

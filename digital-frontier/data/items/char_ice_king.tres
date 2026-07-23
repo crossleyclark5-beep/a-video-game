@@ -12,6 +12,6 @@ shop_category = 2
 max_stack = 1
 sell_value = 266
 buy_value = 800
-shop_blurb = "Shop character"
+shop_blurb = "Gate · 600 Bits lifetime"
 equip_slot = &"character"
 is_unique = true

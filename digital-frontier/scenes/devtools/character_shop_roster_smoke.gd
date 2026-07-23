@@ -1,5 +1,5 @@
 extends Node
-## Character Item Shop roster smoke.
+## Character Item Shop roster smoke — includes story / Bits gates.
 
 
 func _ready() -> void:
@@ -7,6 +7,8 @@ func _ready() -> void:
 	var ok := true
 
 	CharacterRosterManager.reset_state()
+	WorldManager.set_world_flag(&"boss_hollow_warden_down", false)
+	WorldManager.set_world_flag(&"mini_boss_glitch_alpha_down", false)
 	if CharacterRosterManager.get_equipped() != CharacterOutfitCatalog.STARTER_ID:
 		push_error("starter not equipped")
 		ok = false
@@ -35,8 +37,19 @@ func _ready() -> void:
 		push_error("shop player chars %d < 14" % char_count)
 		ok = false
 
-	## Buy a shop character
-	InventoryManager.add_bits(2000, false, "smoke", "test")
+	## Gate closed before Bits lifetime threshold
+	InventoryManager.reset_state()
+	CharacterRosterManager.reset_state()
+	InventoryManager.add_bits(100, false, "smoke", "test")
+	if CharacterRosterManager.is_shop_gate_open(&"char_ice_king"):
+		push_error("ice king should stay gated under 600 Bits earned")
+		ok = false
+
+	## Buy Ice King after Bits gate
+	InventoryManager.add_bits(1500, false, "smoke", "test")
+	if not CharacterRosterManager.is_shop_gate_open(&"char_ice_king"):
+		push_error("ice king gate should open")
+		ok = false
 	var msg := ShopManager.buy(&"char_ice_king")
 	print("Buy ice king: ", msg)
 	if not CharacterRosterManager.is_unlocked(&"char_ice_king"):
@@ -44,6 +57,21 @@ func _ready() -> void:
 		ok = false
 	if CharacterRosterManager.get_equipped() != &"char_ice_king":
 		push_error("ice king not auto-equipped")
+		ok = false
+
+	## Story gate: Black Knight
+	if ShopManager.can_buy(&"char_black_knight"):
+		push_error("black knight buyable before Hollow Warden")
+		ok = false
+	WorldManager.set_world_flag(&"boss_hollow_warden_down", true)
+	InventoryManager.add_bits(1000, false, "smoke", "test")
+	if not ShopManager.can_buy(&"char_black_knight"):
+		push_error("black knight should be buyable after boss")
+		ok = false
+	var bk := ShopManager.buy(&"char_black_knight")
+	print("Buy black knight: ", bk)
+	if not CharacterRosterManager.is_unlocked(&"char_black_knight"):
+		push_error("black knight unlock failed")
 		ok = false
 
 	## Earn via quest hook

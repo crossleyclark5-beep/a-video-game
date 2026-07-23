@@ -12,6 +12,6 @@ shop_category = 2
 max_stack = 1
 sell_value = 300
 buy_value = 900
-shop_blurb = "Shop character"
+shop_blurb = "Gate · Hollow Warden"
 equip_slot = &"character"
 is_unique = true

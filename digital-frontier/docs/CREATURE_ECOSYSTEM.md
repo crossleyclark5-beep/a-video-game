@@ -1,17 +1,25 @@
 # Creature Ecosystem
 
-The Grassland is a living creature ecosystem — not just the player's partner.
+The world is a living multi-biome creature ecosystem. **Grassland** is the spawn-live chapter 1 teaching region — not the full roster.
 
 ## Systems
 
 | Piece | Role |
 |-------|------|
-| `EcosystemCatalog` | Species tables: rarity, temperament, day/night phases, weather tags, biome |
+| `BiomeDistributionCatalog` | Creature → biome / chapter plan for the whole world |
+| `EcosystemCatalog` | Species tables: rarity, temperament, day/night, weather; `grassland_species()` live; `all_species_database()` full index |
 | `EcosystemCreature` | Unified wild AI — graze/sleep/play/flee/guard/chase/hunt/pack warn |
 | `WorldEncounterDirector` | Vignettes: duels, parent guard, wounded, merchant ambush, rare crossing, bird flush |
-| `RegionBossActor` | **Hollow Warden** at Pine Hollow — unique silhouette, 3 phases |
-| `CollectionManager` Creature Index | First sighting unlock, counts, battle W/L, habitat, rarity |
+| `RegionBossActor` | **Hollow Warden** at Pine Hollow (chapter 1). Future lookalike bosses per biome |
+| `MiniBossActor` | **Glitch Alpha** — Grassland mini-boss |
+| `CollectionManager` Creature Index | Full-world discovery (`????` until sighted) |
 | `WorldAtmosphere` | Morning / Afternoon / Evening / **Night** + Clear / Rain / Fog / Storm |
+
+## Grassland live set
+
+7 wildlife · Glitchmite · 3 beginner lookalike foes · Glitch Alpha · Hollow Warden.
+
+See `docs/CREATURE_DISTRIBUTION.md`.
 
 ## Rarity
 
@@ -37,4 +45,5 @@ Budgeted spawn/despawn via `LivingWorldController` (nearby only). Boss never des
 
 ## Smoke
 
-`res://scenes/devtools/creature_ecosystem_smoke.tscn`
+`res://scenes/devtools/creature_ecosystem_smoke.tscn`  
+`res://scenes/devtools/biome_ecosystem_smoke.tscn`
