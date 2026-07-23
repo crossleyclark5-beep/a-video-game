@@ -39,6 +39,8 @@ static func build(root: Node3D) -> Dictionary:
 	RegionCorridorBuilder.build_all(root, result)
 	RegionTerrainBuilder.build(root, result)
 	RegionVegetationBuilder.build(root)
+	## Rule-based environmental storytelling — density with intent (off-map discovery).
+	WorldDressingBuilder.build(root, result)
 	RegionDiscoveryBuilder.build(root, result)
 	_add_expansion_points(root, result)
 	_add_satellite_hangars(root)

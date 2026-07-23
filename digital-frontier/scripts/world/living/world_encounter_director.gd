@@ -39,6 +39,7 @@ func _process(delta: float) -> void:
 
 
 func _try_spawn_encounter() -> void:
+	## Weighted ambient events — keep one active so the world feels alive, not noisy.
 	var roll := _rng.randf()
 	var offset := Vector3(_rng.randf_range(22, 45) * (1.0 if _rng.randf() > 0.5 else -1.0), 0.15, _rng.randf_range(18, 40) * (1.0 if _rng.randf() > 0.5 else -1.0))
 	var pos: Vector3 = _player.global_position + offset
@@ -46,18 +47,24 @@ func _try_spawn_encounter() -> void:
 		return
 	if _near_hub(pos, 50.0):
 		return
-	if roll < 0.28:
+	if roll < 0.20:
 		_spawn_duel(pos)
-	elif roll < 0.45:
+	elif roll < 0.32:
 		_spawn_parent_guard(pos)
-	elif roll < 0.58:
+	elif roll < 0.42:
 		_spawn_wounded(pos)
-	elif roll < 0.72:
+	elif roll < 0.52:
 		_spawn_merchant_ambush(pos)
-	elif roll < 0.88:
+	elif roll < 0.62:
+		_spawn_resting_merchant(pos)
+	elif roll < 0.72:
+		_spawn_lost_traveler(pos)
+	elif roll < 0.84:
 		_spawn_rare_crossing(pos)
-	else:
+	elif roll < 0.93:
 		_spawn_bird_flush(pos)
+	else:
+		_spawn_meteor_glint(pos)
 
 
 func _make_holder(holder_name: String, pos: Vector3) -> Node3D:
@@ -135,6 +142,39 @@ func _spawn_bird_flush(pos: Vector3) -> void:
 		if a:
 			a._activity = EcosystemCreature.Activity.FLEE
 			a._activity_timer = 3.0
+	EventBus.sfx_play_requested.emit(&"ui_blip", pos)
+	EventBus.ui_notification_requested.emit("A flock erupts from the grass!", 1.8)
+
+
+func _spawn_resting_merchant(pos: Vector3) -> void:
+	var holder := _make_holder("EncounterRestMerchant", pos)
+	var npc_def := LivingWorldCatalog.grassland_npcs()[2]
+	var npc := WorldNpcActor.new()
+	npc.name = "RestingMerchant"
+	holder.add_child(npc)
+	npc.setup(npc_def, _player, pos)
+	## Bedroll prop — environmental beat without a quest marker.
+	StylizedMesh.add_box(holder, Vector3(1.2, 0.12, 0.7), Color(0.55, 0.4, 0.28), Vector3(1.2, 0.08, 0.4), "Bedroll", false, 1.0, &"wood")
+	EventBus.ui_notification_requested.emit("A merchant rests beside the trail.", 2.0)
+
+
+func _spawn_lost_traveler(pos: Vector3) -> void:
+	var holder := _make_holder("EncounterTraveler", pos)
+	var npc_def := LivingWorldCatalog.grassland_npcs()[0]
+	var npc := WorldNpcActor.new()
+	npc.name = "LostTraveler"
+	holder.add_child(npc)
+	npc.setup(npc_def, _player, pos)
+	StylizedMesh.add_box(holder, Vector3(0.45, 0.4, 0.35), Color(0.35, 0.4, 0.3), Vector3(-1.0, 0.22, 0.3), "DroppedPack", false, 1.0, &"wood")
+	EventBus.ui_notification_requested.emit("A traveler looks lost — maybe they need a hand.", 2.2)
+
+
+func _spawn_meteor_glint(pos: Vector3) -> void:
+	## Rare flash event — seeds curiosity toward meteor-scar micro-stories.
+	var holder := _make_holder("EncounterMeteor", pos)
+	StylizedMesh.add_box(holder, Vector3(3.5, 0.05, 3.5), Color(0.12, 0.1, 0.1), Vector3(0, 0.03, 0), "Scar", false, 1.0, &"dirt")
+	StylizedMesh.add_box(holder, Vector3(0.45, 0.4, 0.4), Color(0.55, 0.35, 0.9), Vector3(0, 0.28, 0), "Shard", false, 1.0, &"flat")
+	EventBus.ui_notification_requested.emit("A streak lights the sky — something landed nearby!", 2.6)
 	EventBus.sfx_play_requested.emit(&"ui_blip", pos)
 
 

@@ -180,6 +180,13 @@ func _register_from_region(root: Node3D) -> void:
 			if c is Node3D:
 				_add_unit(StringName("Disc_%s" % c.name), WorldStreamUnit.Kind.DISCOVERY, c as Node3D, 40.0, false)
 
+	## World dressing — micro-stories / trails / meadows sleep when far.
+	var dress := root.get_node_or_null("WorldDressing")
+	if dress:
+		for c in dress.get_children():
+			if c is Node3D:
+				_add_unit(StringName("Dress_%s" % c.name), WorldStreamUnit.Kind.DISCOVERY, c as Node3D, 120.0, true)
+
 	## Corridors / expansion
 	for nm in ["RegionCorridors", "ExpansionPoints", "SatelliteHangars"]:
 		var n2 := root.get_node_or_null(nm)

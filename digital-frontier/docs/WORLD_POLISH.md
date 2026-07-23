@@ -48,6 +48,7 @@ Stacked surfaces use distinct Y bands: grass → lawn → path → road → walk
 - Towns: maintained lawns, benches, landscaped yards, mailboxes, street signs, hydrants
 - Wilderness: dense MultiMesh groves, wetland fringe at streams, trail markers, camp nooks, pine ridges
 - Ground is a **true 3D heightfield** (`GrasslandHeightField` + `GrasslandTerrainMesh`) — see `WORLD_3D_FOUNDATION.md`
+- Environmental storytelling via `WorldDressingBuilder` — meadows, understory, animal trails, micro-stories (see `WORLD_DRESSING.md`)
 
 ## Performance
 
