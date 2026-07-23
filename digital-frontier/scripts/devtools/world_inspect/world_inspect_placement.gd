@@ -227,8 +227,8 @@ func _spawn_highlight(issue: Dictionary) -> void:
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.no_depth_test = true
 	mi.material_override = mat
-	mi.global_position = pos + Vector3(0, 1.5, 0)
 	_highlight_root.add_child(mi)
+	mi.global_position = pos + Vector3(0, 1.5, 0)
 	var label := Label3D.new()
 	label.text = "%s\n%s" % [String(kind), String(issue.get("detail", ""))]
 	label.font_size = 28
