@@ -311,9 +311,17 @@ func _collect_state_from_managers() -> void:
 		&"music_volume": GameConfig.music_volume,
 		&"sfx_volume": GameConfig.sfx_volume,
 	}
+	## Core World Framework section (schema 4+).
+	_current_state.schema_version = WorldSaveSchema.CURRENT_VERSION
+	var coord := WorldCoordinator.find_in_tree(get_tree())
+	if coord:
+		_current_state.framework_data = coord.export_state()
+	elif _current_state.framework_data == null:
+		_current_state.framework_data = {}
 
 
 func _distribute_state_to_managers() -> void:
+	WorldSaveSchema.migrate(_current_state)
 	InventoryManager.import_state(_current_state.inventory_data)
 	QuestManager.import_state(_current_state.quest_data)
 	CreatureManager.import_state(_current_state.creature_data)
@@ -336,6 +344,9 @@ func _distribute_state_to_managers() -> void:
 		GameConfig.music_volume = _current_state.settings_data[&"music_volume"]
 	if _current_state.settings_data.has(&"sfx_volume"):
 		GameConfig.sfx_volume = _current_state.settings_data[&"sfx_volume"]
+	var coord := WorldCoordinator.find_in_tree(get_tree())
+	if coord and _current_state.framework_data:
+		coord.import_state(_current_state.framework_data)
 
 
 func _update_summary_from_state(profile_id: String) -> void:

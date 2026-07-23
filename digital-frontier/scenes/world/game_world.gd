@@ -24,25 +24,31 @@ var _checkpoint_timer: float = 0.0
 var _world_inspect: WorldInspectController = null
 var _world_stream: WorldStreamController = null
 var _world_perf: WorldPerfMonitor = null
+var _world_coordinator: WorldCoordinator = null
 
 
 func _ready() -> void:
 	InputManager.set_context(InputManager.Context.OVERWORLD)
 	_clear_placeholder_geometry()
+	_setup_world_coordinator()
 	_setup_atmosphere()
 	_setup_systems()
-	_region_data = GrasslandRegionBuilder.build(hex_grid_layer)
-	EventBus.region_load_requested.emit(&"grassland")
+	## Region loads through the Core World Framework plugin (Grassland reference).
+	_region_data = _world_coordinator.load_region(&"grassland", hex_grid_layer)
 	_spawn_player()
 	_spawn_companion()
 	_spawn_living_world()
+	_world_coordinator.bind_player(_player)
+	_world_coordinator.bind_living(_living_world)
 	_setup_world_stream()
+	_world_coordinator.bind_stream(_world_stream)
 	_spawn_chapter_director()
 	_spawn_story_director()
 	_spawn_battle_director()
 	_bind_prompt()
 	_spawn_ambient_fx()
 	_setup_world_inspect()
+	_world_coordinator.setup_dev_tools()
 	QuestManager.ensure_starter_quest()
 	## Same CreatureInstance continues from home — tiny outing XP seed.
 	CreatureManager.grant_adventure_experience(2)
@@ -50,6 +56,11 @@ func _ready() -> void:
 		EventBus.save_completed.connect(_on_save_completed)
 	if not EventBus.battle_encounter_requested.is_connected(_on_battle_requested):
 		EventBus.battle_encounter_requested.connect(_on_battle_requested)
+
+
+func _setup_world_coordinator() -> void:
+	_world_coordinator = WorldCoordinator.new()
+	add_child(_world_coordinator)
 
 
 func _process(delta: float) -> void:
@@ -74,6 +85,8 @@ func _setup_atmosphere() -> void:
 	add_child(_atmosphere)
 	_atmosphere.setup(sun)
 	_atmosphere.apply_phase(WorldAtmosphere.Phase.AFTERNOON)
+	if _world_coordinator:
+		_world_coordinator.bind_atmosphere(_atmosphere)
 
 
 func _setup_world_stream() -> void:
