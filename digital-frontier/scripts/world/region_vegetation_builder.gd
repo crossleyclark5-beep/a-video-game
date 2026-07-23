@@ -31,23 +31,24 @@ static func _build_corridor_forests(parent: Node3D) -> void:
 static func _forest_along(parent: Node3D, points: Array[Vector3], seed_base: int) -> void:
 	var clear := GrasslandLayout.road_clearance() + 8.0
 	for i in range(1, points.size()):
-		## Stability: skip every other segment — corridors stay green without 6k forest nodes.
-		if i % 2 == 0:
+		## Density with budget: skip every third segment (was every other after stability pass).
+		if i % 3 == 0:
 			continue
 		var a: Vector3 = points[i - 1]
 		var b: Vector3 = points[i]
 		var mid := a.lerp(b, 0.5)
 		var perp := _perp(a, b)
-		## Belts well outside the road shoulder — lighter living forest walls.
-		_tree_clump_safe(parent, mid + perp * (clear + 14.0), 4 + (i % 3), seed_base * 17 + i)
-		_tree_clump_safe(parent, mid - perp * (clear + 18.0), 3 + ((i + 1) % 3), seed_base * 31 + i)
-		_bush_cluster_safe(parent, mid + perp * (clear + 8.0), 3, seed_base * 41 + i)
-		_bush_cluster_safe(parent, mid - perp * (clear + 9.0), 2, seed_base * 43 + i)
-		if i % 4 == 0:
+		_tree_clump_safe(parent, mid + perp * (clear + 14.0), 5 + (i % 3), seed_base * 17 + i)
+		_tree_clump_safe(parent, mid - perp * (clear + 18.0), 4 + ((i + 1) % 3), seed_base * 31 + i)
+		_bush_cluster_safe(parent, mid + perp * (clear + 8.0), 4, seed_base * 41 + i)
+		_bush_cluster_safe(parent, mid - perp * (clear + 9.0), 3, seed_base * 43 + i)
+		if i % 3 == 1:
 			_tree_clump_safe(parent, mid + perp * (clear + 30.0), 3, seed_base * 13 + i * 3)
 			_rock_scatter_safe(parent, mid - perp * (clear + 22.0), seed_base + i)
-		if i % 6 == 0:
+			_flower_scatter_safe(parent, mid + perp * (clear + 11.0), seed_base + i * 5)
+		if i % 5 == 0:
 			_clearing_safe(parent, mid + perp * (-(clear + 34.0)), seed_base + i)
+			_fallen_log(parent, mid - perp * (clear + 16.0), seed_base + i * 7)
 
 
 
@@ -322,24 +323,25 @@ static func _build_wilderness_fill(parent: Node3D) -> void:
 		var c: Vector3 = anchors[i]
 		if not _placement_ok(c, true):
 			continue
-		_tree_clump_safe(fill, c, 4 + (i % 3), 500 + i)
-		_tree_clump_safe(fill, c + Vector3(14, 0, -10), 3, 600 + i)
-		_bush_cluster_safe(fill, c + Vector3(-8, 0, 8), 4, 700 + i)
+		_tree_clump_safe(fill, c, 5 + (i % 3), 500 + i)
+		_tree_clump_safe(fill, c + Vector3(14, 0, -10), 4, 600 + i)
+		_bush_cluster_safe(fill, c + Vector3(-8, 0, 8), 5, 700 + i)
 		_rock_scatter_safe(fill, c + Vector3(6, 0, 12), 800 + i)
-		_grass_patch_safe(fill, c + Vector3(4, 0, 4), 12.0, 80, 900 + i)
+		_grass_patch_safe(fill, c + Vector3(4, 0, 4), 12.0, 100, 900 + i)
+		_flower_scatter_safe(fill, c + Vector3(-4, 0, 6), 1000 + i)
 		if i % 2 == 0:
-			_flower_scatter_safe(fill, c + Vector3(-4, 0, 6), 1000 + i)
+			_fallen_log(fill, c + Vector3(9, 0, -6), 1050 + i)
 		## Trail marker / camp — sparse exploration rewards, never on roads.
 		if i % 4 == 0:
 			_trail_marker(fill, c + Vector3(-12, 0, 6), 1100 + i)
 		if i % 5 == 0:
 			_camp_nook(fill, c + Vector3(8, 0, -14), 1200 + i)
 		## Landmark external trees (not every clump — handheld budget).
-		if ExternalPropKit.is_available() and i % 4 == 0:
+		if ExternalPropKit.is_available() and i % 3 == 0:
 			var kind: StringName = &"tree_pine" if i % 2 == 0 else &"tree_oak"
 			ExternalPropKit.spawn(fill, kind, c + Vector3(-6, 0, 10), float(i * 40), 1.0 + float(i % 3) * 0.08, "LandmarkTree_%d" % i)
 			ExternalPropKit.spawn(fill, &"rock_tall", c + Vector3(10, 0, 4), float(i * 17), 1.0, "LandmarkRock_%d" % i)
-			if i % 8 == 0:
+			if i % 6 == 0:
 				ExternalPropKit.spawn(fill, &"pillar", c + Vector3(-18, 0, -8), 12.0, 1.1, "RuinPillar_%d" % i)
 				ExternalPropKit.spawn(fill, &"ruin_rocks", c + Vector3(-16, 0, -6), -8.0, 1.0, "RuinRubble_%d" % i)
 				ExternalPropKit.spawn(fill, &"flag", c + Vector3(-18, 0, -8), 12.0, 1.0, "RuinFlag_%d" % i)

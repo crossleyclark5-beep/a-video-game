@@ -228,9 +228,9 @@ func _ensure_collision() -> void:
 	var shape := CollisionShape3D.new()
 	shape.name = "BodyCollision"
 	var box := BoxShape3D.new()
-	box.size = Vector3(1.9, 1.1, 3.8)
+	box.size = Vector3(2.2, 1.25, 4.4)
 	shape.shape = box
-	shape.position = Vector3(0, 0.65, 0)
+	shape.position = Vector3(0, 0.7, 0)
 	add_child(shape)
 
 
@@ -247,7 +247,8 @@ func _ensure_visual() -> void:
 		prop_id = data.visual_prop_id
 		color = data.body_color
 	if prop_id != &"" and ExternalPropKit.is_available():
-		ExternalPropKit.spawn(_visual, prop_id, Vector3.ZERO, 0.0, 1.0, "Mesh")
+		var body_col := color
+		ExternalPropKit.spawn(_visual, prop_id, Vector3.ZERO, 0.0, 1.0, "Mesh", body_col)
 		## External props bring their own proxy collision — remove duplicate static bodies under visual.
 		_strip_proxy_collision(_visual)
 	else:

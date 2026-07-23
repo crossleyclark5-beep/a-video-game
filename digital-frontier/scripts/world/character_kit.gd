@@ -37,7 +37,7 @@ static func spawn(
 		root.queue_free()
 		return null
 	root.add_child(inst)
-	_toonify(inst)
+	AssetStandardizer.rematerialize(inst, &"character")
 	return root
 
 
@@ -150,29 +150,5 @@ static func _load_scene(path: String) -> PackedScene:
 
 
 static func _toonify(node: Node) -> void:
-	## Characters stay higher-detail than the world: keep albedo textures, force toon + nearest.
-	if node is MeshInstance3D:
-		var mi := node as MeshInstance3D
-		var src: Material = null
-		if mi.get_surface_override_material_count() > 0:
-			src = mi.get_active_material(0)
-		if src == null and mi.mesh and mi.mesh.get_surface_count() > 0:
-			src = mi.mesh.surface_get_material(0)
-		var mat := StandardMaterial3D.new()
-		mat.diffuse_mode = BaseMaterial3D.DIFFUSE_TOON
-		mat.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
-		mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-		mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
-		if src is BaseMaterial3D:
-			var b := src as BaseMaterial3D
-			mat.albedo_color = b.albedo_color
-			if b.albedo_texture:
-				mat.albedo_texture = b.albedo_texture
-		elif src is StandardMaterial3D:
-			var s := src as StandardMaterial3D
-			mat.albedo_color = s.albedo_color
-			if s.albedo_texture:
-				mat.albedo_texture = s.albedo_texture
-		mi.material_override = mat
-	for child in node.get_children():
-		_toonify(child)
+	## Legacy entry — routes through AssetStandardizer.
+	AssetStandardizer.rematerialize(node, &"character")

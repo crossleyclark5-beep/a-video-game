@@ -102,10 +102,8 @@ func _physics_process(delta: float) -> void:
 		_character_visual.set_move_amount(speed_ratio if can_move else 0.0, running)
 
 	if has_input and _visual_root != null:
-		var target_basis := Basis.looking_at(direction, Vector3.UP)
-		_visual_root.global_transform.basis = _visual_root.global_transform.basis.slerp(
-			target_basis, clampf(ROTATION_SPEED * delta, 0.0, 1.0)
-		)
+		## Meshes face +Z; Basis.looking_at aims −Z and caused moonwalking.
+		AssetStandardizer.face_velocity(_visual_root, direction, ROTATION_SPEED, delta)
 
 	move_and_slide()
 	## Soft slide-back when pushing into a steep mountain face.

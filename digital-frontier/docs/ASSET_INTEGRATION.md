@@ -55,7 +55,7 @@ Curated paths under `assets/models/external/`:
 | `adventure/` | pillar, ruins, flag, **treasure chest, crates, barrels, key, coin** | Landmarks + loot/supply |
 | `transport/` | **Field Skiff crafts, hangar, park cars, SUV** | Aircraft travel + town vehicles |
 
-Runtime: `ExternalPropCatalog` + `ExternalPropKit` (load GLB → toon rematerialize → optional collision).
+Runtime: `ExternalPropCatalog` + `ExternalPropKit` → **`AssetStandardizer`** (see `docs/ASSET_STANDARDIZATION.md`).
 
 See also `docs/ASSET_PROTOTYPE.md` for the Field Skiff system and license gate.
 
