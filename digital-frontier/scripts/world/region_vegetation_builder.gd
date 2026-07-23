@@ -75,22 +75,31 @@ static func _build_dense_wilderness_forests(parent: Node3D) -> void:
 	forests.name = "DenseForests"
 	parent.add_child(forests)
 	var patches: Array[Dictionary] = [
-		{"pos": Vector3(200, 0, 350), "r": 55.0, "n": 90, "pine": false},
-		{"pos": Vector3(-250, 0, 280), "r": 48.0, "n": 80, "pine": false},
-		{"pos": Vector3(450, 0, -250), "r": 60.0, "n": 100, "pine": false},
-		{"pos": Vector3(900, 0, 200), "r": 70.0, "n": 110, "pine": false},
-		{"pos": Vector3(300, 0, 1200), "r": 65.0, "n": 95, "pine": false},
-		{"pos": Vector3(-100, 0, -900), "r": 58.0, "n": 85, "pine": true},
-		{"pos": Vector3(1400, 0, -600), "r": 62.0, "n": 90, "pine": false},
-		{"pos": Vector3(2000, 0, 800), "r": 55.0, "n": 80, "pine": false},
-		{"pos": Vector3(-800, 0, 600), "r": 68.0, "n": 100, "pine": false},
-		{"pos": Vector3(600, 0, -1600), "r": 72.0, "n": 105, "pine": true},
-		{"pos": Vector3(2400, 0, 2400), "r": 50.0, "n": 70, "pine": false},
-		{"pos": Vector3(-1500, 0, 1200), "r": 55.0, "n": 75, "pine": false},
-		{"pos": Vector3(100, 0, -2800), "r": 48.0, "n": 65, "pine": true},
-		{"pos": Vector3(1100, 0, 1600), "r": 58.0, "n": 85, "pine": false},
-		{"pos": Vector3(-400, 0, -400), "r": 45.0, "n": 70, "pine": false},
-		{"pos": Vector3(2800, 0, 1200), "r": 52.0, "n": 70, "pine": false},
+		{"pos": Vector3(200, 0, 350), "r": 62.0, "n": 130, "pine": false},
+		{"pos": Vector3(-250, 0, 280), "r": 55.0, "n": 115, "pine": false},
+		{"pos": Vector3(450, 0, -250), "r": 68.0, "n": 140, "pine": false},
+		{"pos": Vector3(900, 0, 200), "r": 78.0, "n": 155, "pine": false},
+		{"pos": Vector3(300, 0, 1200), "r": 72.0, "n": 135, "pine": false},
+		{"pos": Vector3(-100, 0, -900), "r": 65.0, "n": 125, "pine": true},
+		{"pos": Vector3(1400, 0, -600), "r": 70.0, "n": 130, "pine": false},
+		{"pos": Vector3(2000, 0, 800), "r": 62.0, "n": 115, "pine": false},
+		{"pos": Vector3(-800, 0, 600), "r": 75.0, "n": 145, "pine": false},
+		{"pos": Vector3(600, 0, -1600), "r": 80.0, "n": 150, "pine": true},
+		{"pos": Vector3(2400, 0, 2400), "r": 58.0, "n": 100, "pine": false},
+		{"pos": Vector3(-1500, 0, 1200), "r": 62.0, "n": 110, "pine": false},
+		{"pos": Vector3(100, 0, -2800), "r": 55.0, "n": 95, "pine": true},
+		{"pos": Vector3(1100, 0, 1600), "r": 65.0, "n": 120, "pine": false},
+		{"pos": Vector3(-400, 0, -400), "r": 52.0, "n": 100, "pine": false},
+		{"pos": Vector3(2800, 0, 1200), "r": 58.0, "n": 100, "pine": false},
+		## Extra near-hub belts so leaving town never feels empty.
+		{"pos": Vector3(80, 0, 160), "r": 38.0, "n": 70, "pine": false},
+		{"pos": Vector3(-90, 0, 140), "r": 36.0, "n": 65, "pine": false},
+		{"pos": Vector3(140, 0, -120), "r": 40.0, "n": 75, "pine": false},
+		{"pos": Vector3(-130, 0, -100), "r": 38.0, "n": 70, "pine": true},
+		{"pos": Vector3(320, 0, 520), "r": 48.0, "n": 90, "pine": false},
+		{"pos": Vector3(-320, 0, -520), "r": 48.0, "n": 90, "pine": true},
+		{"pos": Vector3(1600, 0, 1600), "r": 55.0, "n": 95, "pine": false},
+		{"pos": Vector3(-900, 0, 1400), "r": 50.0, "n": 85, "pine": false},
 	]
 	for i in patches.size():
 		var spec: Dictionary = patches[i]
@@ -117,25 +126,25 @@ static func _build_dense_wilderness_forests(parent: Node3D) -> void:
 				continue
 			var scale_v := 0.7 + rng.randf() * 0.55
 			tree_xfs.append(_tree_xf(p, scale_v, rng.randf() * TAU))
-		## Undergrowth ring
-		for j in int(n * 0.45):
+		## Undergrowth ring — denser bushes / rocks / mushrooms for living forests.
+		for j in int(n * 0.7):
 			var ang := rng.randf() * TAU
 			var r := sqrt(rng.randf()) * radius * 0.9
 			var p := center + Vector3(cos(ang) * r, 0, sin(ang) * r)
 			if not _placement_ok(p, false):
 				continue
 			bush_xfs.append(_bush_xf(p, 0.5 + rng.randf() * 0.4, rng.randf() * TAU))
-		for j in 12:
+		for j in 22:
 			var ang := rng.randf() * TAU
 			var p := center + Vector3(cos(ang) * rng.randf() * radius * 0.8, 0, sin(ang) * rng.randf() * radius * 0.8)
 			if _placement_ok(p, false):
 				rock_xfs.append(_rock_xf(p, 0.3 + rng.randf() * 0.35, rng.randf() * TAU))
-		for j in 8:
+		for j in 16:
 			var ang := rng.randf() * TAU
 			var p := center + Vector3(cos(ang) * rng.randf() * radius * 0.5, 0, sin(ang) * rng.randf() * radius * 0.5)
 			if _placement_ok(p, false):
 				mush_xfs.append(_mushroom_xf(p, 0.8 + rng.randf() * 0.5, rng.randf() * TAU))
-		_grass_patch_safe(forests, center, radius * 0.7, 140, 2000 + i)
+		_grass_patch_safe(forests, center, radius * 0.75, 200, 2000 + i)
 		_emit_tree_multimesh(forests, "Forest_%d" % i, tree_xfs, use_pine)
 		_emit_bush_multimesh(forests, "ForestBush_%d" % i, bush_xfs)
 		_emit_rock_multimesh(forests, "ForestRock_%d" % i, rock_xfs)
@@ -471,16 +480,21 @@ static func _build_wilderness_fill(parent: Node3D) -> void:
 		GrasslandLayout.LANDMARK_MEADOW_CLEARING + Vector3(-25, 0, 20),
 		GrasslandLayout.LANDMARK_STREAM_CROSSING + Vector3(35, 0, 25),
 		Vector3(1800, 0, 2600), Vector3(300, 0, -3200),
+		Vector3(60, 0, 95), Vector3(-70, 0, 90), Vector3(95, 0, -70),
+		Vector3(-85, 0, -75), Vector3(180, 0, 60), Vector3(-160, 0, 50),
+		Vector3(400, 0, -400), Vector3(-450, 0, 350), Vector3(800, 0, 1100),
+		Vector3(1200, 0, -1400), Vector3(-200, 0, 1600), Vector3(2500, 0, 500),
 	]
 	for i in anchors.size():
 		var c: Vector3 = anchors[i]
 		if not _placement_ok(c, true):
 			continue
-		_tree_clump_safe(fill, c, 8 + (i % 4), 500 + i)
-		_tree_clump_safe(fill, c + Vector3(14, 0, -10), 6, 600 + i)
-		_bush_cluster_safe(fill, c + Vector3(-8, 0, 8), 6, 700 + i)
+		_tree_clump_safe(fill, c, 12 + (i % 5), 500 + i)
+		_tree_clump_safe(fill, c + Vector3(14, 0, -10), 9, 600 + i)
+		_tree_clump_safe(fill, c + Vector3(-12, 0, 14), 7, 650 + i)
+		_bush_cluster_safe(fill, c + Vector3(-8, 0, 8), 10, 700 + i)
 		_rock_scatter_safe(fill, c + Vector3(6, 0, 12), 800 + i)
-		_grass_patch_safe(fill, c + Vector3(4, 0, 4), 14.0, 130, 900 + i)
+		_grass_patch_safe(fill, c + Vector3(4, 0, 4), 18.0, 180, 900 + i)
 		_flower_scatter_safe(fill, c + Vector3(-4, 0, 6), 1000 + i)
 		if i % 2 == 0:
 			_fallen_log(fill, c + Vector3(9, 0, -6), 1050 + i)
@@ -561,6 +575,9 @@ static func _build_biome_clutter(parent: Node3D) -> void:
 		Vector3(-300, 0, 1100), Vector3(500, 0, 1800), Vector3(1900, 0, 400),
 		Vector3(100, 0, -1500), Vector3(-700, 0, 200), Vector3(2500, 0, 1800),
 		Vector3(900, 0, 2800), Vector3(-200, 0, -2500), Vector3(1600, 0, -200),
+		Vector3(55, 0, 70), Vector3(-55, 0, 75), Vector3(220, 0, -40),
+		Vector3(-210, 0, -50), Vector3(450, 0, 250), Vector3(-480, 0, -180),
+		Vector3(1000, 0, 500), Vector3(1500, 0, -900), Vector3(-1000, 0, 800),
 	]
 	for i in field_centers.size():
 		var c: Vector3 = field_centers[i]
@@ -571,24 +588,25 @@ static func _build_biome_clutter(parent: Node3D) -> void:
 		var rock_xfs: Array[Transform3D] = []
 		var rng := RandomNumberGenerator.new()
 		rng.seed = hash(i) * 4243 + 9
-		for j in 12:
+		for j in 20:
 			var ang := rng.randf() * TAU
-			var r := rng.randf_range(4.0, 28.0)
+			var r := rng.randf_range(4.0, 32.0)
 			var p := c + Vector3(cos(ang) * r, 0, sin(ang) * r)
-			if _placement_ok(p, true) and rng.randf() < 0.55:
+			if _placement_ok(p, true) and rng.randf() < 0.65:
 				tree_xfs.append(_tree_xf(p, 0.75 + rng.randf() * 0.35, ang))
-		for j in 18:
+		for j in 28:
 			var ang := rng.randf() * TAU
-			var p := c + Vector3(cos(ang) * rng.randf() * 24.0, 0, sin(ang) * rng.randf() * 24.0)
+			var p := c + Vector3(cos(ang) * rng.randf() * 28.0, 0, sin(ang) * rng.randf() * 28.0)
 			if _placement_ok(p, false):
 				bush_xfs.append(_bush_xf(p, 0.45 + rng.randf() * 0.35, ang))
-		for j in 10:
+		for j in 16:
 			var ang := rng.randf() * TAU
-			var p := c + Vector3(cos(ang) * rng.randf() * 20.0, 0, sin(ang) * rng.randf() * 20.0)
+			var p := c + Vector3(cos(ang) * rng.randf() * 22.0, 0, sin(ang) * rng.randf() * 22.0)
 			if _placement_ok(p, false):
 				rock_xfs.append(_rock_xf(p, 0.28 + rng.randf() * 0.3, ang))
-		_grass_patch_safe(clutter, c, 18.0, 160, 4000 + i)
+		_grass_patch_safe(clutter, c, 22.0, 220, 4000 + i)
 		_flower_scatter_safe(clutter, c + Vector3(3, 0, -2), 4100 + i)
+		_flower_scatter_safe(clutter, c + Vector3(-5, 0, 4), 4200 + i)
 		_emit_tree_multimesh(clutter, "FieldTree_%d" % i, tree_xfs, false)
 		_emit_bush_multimesh(clutter, "FieldBush_%d" % i, bush_xfs)
 		_emit_rock_multimesh(clutter, "FieldRock_%d" % i, rock_xfs)

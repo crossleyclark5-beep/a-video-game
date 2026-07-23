@@ -126,7 +126,7 @@ func _process(delta: float) -> void:
 	var inspects := get_tree().get_nodes_in_group(WorldInspectController.GROUP)
 	if not inspects.is_empty() and inspects[0].has_method("is_active") and inspects[0].call("is_active"):
 		inspect_air = true
-		var cam := inspects[0].get_node_or_null("InspectCamera") as Camera3D
+		var cam := inspects[0].find_child("InspectCamera", true, false) as Camera3D
 		if cam:
 			focus = cam.global_position
 	var high := focus.y > 35.0

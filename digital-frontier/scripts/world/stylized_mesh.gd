@@ -146,6 +146,41 @@ static func add_box(
 	return mi
 
 
+## Visual deck at authored Y; collision is a thin flush slab so road↔grass has no lip.
+## Prefer this for asphalt / lawn / sidewalks that sit on GrasslandTerrain heightfield.
+static func add_walkable_box(
+	parent: Node3D,
+	size: Vector3,
+	color: Color,
+	pos: Vector3,
+	node_name: String = "Walk",
+	rough: float = 1.0,
+	pattern: StringName = &"flat",
+	walk_y: float = 0.02,
+) -> StaticBody3D:
+	var body := StaticBody3D.new()
+	body.name = node_name
+	body.collision_layer = 1
+	body.collision_mask = 0
+	body.position = Vector3(pos.x, walk_y, pos.z)
+	var mi := MeshInstance3D.new()
+	mi.name = "Mesh"
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	mi.mesh = mesh
+	mi.material_override = make_material(color, rough, 0.0, 0.0, pattern)
+	## Keep the painted surface at the designer height while physics sits on the ground plane.
+	mi.position = Vector3(0.0, pos.y - walk_y, 0.0)
+	body.add_child(mi)
+	var col := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(size.x, 0.04, size.z)
+	col.shape = shape
+	body.add_child(col)
+	parent.add_child(body)
+	return body
+
+
 static func add_cylinder(
 	parent: Node3D,
 	radius: float,

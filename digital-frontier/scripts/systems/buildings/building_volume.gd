@@ -72,10 +72,21 @@ func get_roof_meshes() -> Array[MeshInstance3D]:
 	var roofs: Array[MeshInstance3D] = []
 	for path in roof_paths:
 		_collect_mesh_at(path, roofs)
-	for fallback_name in ["Roof", "RoofPeak", "PorchRoof"]:
+	for fallback_name in ["Roof", "RoofPeak", "PorchRoof", "GarageRoof", "Ridge", "EaveF", "EaveB"]:
 		var node := get_node_or_null(fallback_name)
 		_append_mesh_node(node, roofs)
 	return roofs
+
+
+## Typed Array[NodePath] for runtime set() — untyped Array silently fails on @export.
+static func make_path_array(paths: Array) -> Array[NodePath]:
+	var out: Array[NodePath] = []
+	for p in paths:
+		if p is NodePath:
+			out.append(p as NodePath)
+		else:
+			out.append(NodePath(str(p)))
+	return out
 
 
 func get_exterior_exit_position() -> Vector3:
@@ -120,6 +131,8 @@ func _cache_cutaway_nodes() -> void:
 		"ShellFloor", "Yard",
 		## Front wall cutaway so the camera can see into the occupied room.
 		"WallF1", "WallF2", "Door", "DoorFrame",
+		## Garage shell cutaways (also via cutaway_paths when typed assign works).
+		"GarageDoor", "GarageHandle", "GarageRoof", "WallFTop",
 	]
 	for n in names:
 		var node := get_node_or_null(n)

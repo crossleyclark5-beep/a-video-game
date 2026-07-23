@@ -38,7 +38,9 @@ func pop_modal() -> void:
 	if _modal_stack.is_empty():
 		return
 	var closed: StringName = _modal_stack.pop_back()
-	if _modal_stack.is_empty():
+	## Always pop one MENU context per modal — nested push_modal / push_context
+	## must stay paired or Adventure gets stuck in MENU (blocks 3D View + walk).
+	if InputManager.get_context() == InputManager.Context.MENU:
 		InputManager.pop_context()
 	EventBus.ui_modal_closed.emit(closed)
 

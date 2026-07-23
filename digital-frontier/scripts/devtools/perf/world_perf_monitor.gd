@@ -4,8 +4,12 @@ extends Node
 
 
 const GROUP := &"world_perf"
+## Throttle full-tree walks — counting 10k+ nodes every frame freezes handheld.
+const NODE_COUNT_INTERVAL_FRAMES := 45
 
 var _warn: PackedStringArray = []
+var _cached_world_nodes: int = 0
+var _cache_frame: int = -99999
 
 
 func _ready() -> void:
@@ -25,10 +29,15 @@ func snapshot(world_root: Node = null) -> Dictionary:
 	var res_count := Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT)
 
 	var world_nodes := 0
-	if world_root and is_instance_valid(world_root):
-		world_nodes = _count_nodes(world_root)
-	elif get_tree() and get_tree().current_scene:
-		world_nodes = _count_nodes(get_tree().current_scene)
+	var root := world_root if world_root and is_instance_valid(world_root) else null
+	if root == null and get_tree() and get_tree().current_scene:
+		root = get_tree().current_scene
+	if root:
+		var frame := Engine.get_process_frames()
+		if frame - _cache_frame >= NODE_COUNT_INTERVAL_FRAMES or _cached_world_nodes <= 0:
+			_cached_world_nodes = _count_nodes(root)
+			_cache_frame = frame
+		world_nodes = _cached_world_nodes
 
 	var stream_stats := {}
 	var streams := get_tree().get_nodes_in_group(WorldStreamController.GROUP)
