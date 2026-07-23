@@ -27,7 +27,8 @@ static func build(root: Node3D) -> Dictionary:
 		},
 	}
 
-	_add_region_ground(root)
+	## True 3D heightfield first — hubs / roads sit on the same elevation API.
+	GrasslandTerrainMesh.build(root)
 	_add_pleasant_park(root, result)
 	GreaseGroveBuilder.build_at(root, GrasslandLayout.GREASE_GROVE, result)
 	MirrorMereBuilder.build_at(root, GrasslandLayout.MIRROR_MERE, result)
@@ -38,6 +39,7 @@ static func build(root: Node3D) -> Dictionary:
 	RegionCorridorBuilder.build_all(root, result)
 	RegionTerrainBuilder.build(root, result)
 	RegionVegetationBuilder.build(root)
+	RegionDiscoveryBuilder.build(root, result)
 	_add_expansion_points(root, result)
 	_add_satellite_hangars(root)
 	_add_region_welcome(root)
@@ -56,37 +58,6 @@ static func _add_satellite_hangars(root: Node3D) -> void:
 		var pos: Vector3 = d["pos"]
 		AircraftPadInteractable.build_pad(pads, pos, 0.0, "Hangar_%s" % String(id))
 		RegionPropKit.add_supply_stash(pads, pos + Vector3(4, 0, 3), 15.0, "Supplies_%s" % String(id))
-
-
-static func _add_region_ground(root: Node3D) -> void:
-	## One cheap mega-plane so corridors never fall into void. Dense detail lives in POIs.
-	var terrain := Node3D.new()
-	terrain.name = "GrasslandTerrain"
-	root.add_child(terrain)
-	var center := (GrasslandLayout.REGION_MIN + GrasslandLayout.REGION_MAX) * 0.5
-	var size := GrasslandLayout.REGION_MAX - GrasslandLayout.REGION_MIN
-	StylizedMesh.add_box(
-		terrain,
-		Vector3(size.x + 200.0, 0.2, size.z + 200.0),
-		WorldPalette.GRASS,
-		Vector3(center.x, -0.18, center.z),
-		"RegionGround",
-		true,
-		1.0,
-		&"grass",
-	)
-	## Soft color variation patches far from hubs (cheap read of rolling countryside).
-	var patches := [
-		[Vector3(600, 0.01, 800), Vector3(180, 0.04, 140), WorldPalette.GRASS_LIGHT, &"grass"],
-		[Vector3(400, 0.01, 2800), Vector3(200, 0.04, 160), WorldPalette.GRASS_DARK, &"grass"],
-		[Vector3(1600, 0.01, -1400), Vector3(160, 0.04, 180), WorldPalette.LEAF_LIT, &"grass"],
-		[Vector3(200, 0.01, 3600), Vector3(220, 0.04, 150), WorldPalette.SAND.darkened(0.15), &"dirt"],
-		[Vector3(900, 0.015, 1500), Vector3(90, 0.03, 70), WorldPalette.DIRT.lightened(0.05), &"dirt"],
-		[Vector3(1400, 0.015, -800), Vector3(70, 0.03, 90), WorldPalette.PATH, &"path"],
-	]
-	for i in patches.size():
-		var p: Array = patches[i]
-		StylizedMesh.add_box(terrain, p[1], p[2], p[0], "CountryPatch_%d" % i, false, 1.0, p[3])
 
 
 static func _add_pleasant_park(root: Node3D, result: Dictionary) -> void:

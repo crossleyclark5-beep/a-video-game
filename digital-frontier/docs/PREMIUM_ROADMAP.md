@@ -31,7 +31,7 @@
 | P2.5 | Adventure→Home reverse transition parity |
 | P2.6 | Replace procedural audio with authored WAV/OGG (keep ids) |
 | P2.7 | Interior furniture: prefer GLB consistently; fewer box fallbacks |
-| P2.8 | MultiMesh forest belts for density without node explosion |
+| P2.8 | MultiMesh forest belts for density without node explosion | Done (world 3D foundation) |
 
 ---
 
@@ -45,6 +45,10 @@
 | P3.4 | Richer NPC schedules / idle props |
 | P3.5 | Retire orphaned 3D habitat path or revive as optional skin |
 | P3.6 | Soft shadow contact / AO-lite for diorama depth |
+
+## World foundation (parallel track)
+
+See `WORLD_3D_FOUNDATION.md` — heightfield terrain, MultiMesh density, off-map discoveries, flight-ready elevation.
 
 ---
 

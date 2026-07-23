@@ -46,18 +46,20 @@ Stacked surfaces use distinct Y bands: grass → lawn → path → road → walk
 - Hub pads + road polylines share **`RegionVegetationBuilder.placement_allowed`**
 - Corridor shoulder trees use the same guards (no trunks on asphalt / plazas)
 - Towns: maintained lawns, benches, landscaped yards, mailboxes, street signs, hydrants
-- Wilderness: dense groves, wetland fringe at streams, trail markers, camp nooks, pine ridges
+- Wilderness: dense MultiMesh groves, wetland fringe at streams, trail markers, camp nooks, pine ridges
+- Ground is a **true 3D heightfield** (`GrasslandHeightField` + `GrasslandTerrainMesh`) — see `WORLD_3D_FOUNDATION.md`
 
 ## Performance
 
 - Interiors instantiate on enter, free on exit
-- Grass uses MultiMesh; litter / logs are sparse boxed props
+- Grass / trees / bushes / rocks use MultiMesh; litter / logs are sparse boxed props
 - Placement culls before spawn so handheld builds skip wasted nodes
 
 ## Smoke
 
 ```bash
 godot --headless --path digital-frontier --scene scenes/devtools/world_polish_smoke.tscn
+godot --headless --path digital-frontier --scene scenes/devtools/world_3d_foundation_smoke.tscn
 godot --headless --path digital-frontier --scene scenes/devtools/vehicle_system_smoke.tscn
 godot --headless --path digital-frontier --scene scenes/devtools/asset_standardization_smoke.tscn
 ```
