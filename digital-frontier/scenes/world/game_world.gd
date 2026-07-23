@@ -22,6 +22,8 @@ var _battle: BattleDirector = null
 var _story: StoryDirector = null
 var _checkpoint_timer: float = 0.0
 var _world_inspect: WorldInspectController = null
+var _world_stream: WorldStreamController = null
+var _world_perf: WorldPerfMonitor = null
 
 
 func _ready() -> void:
@@ -34,6 +36,7 @@ func _ready() -> void:
 	_spawn_player()
 	_spawn_companion()
 	_spawn_living_world()
+	_setup_world_stream()
 	_spawn_chapter_director()
 	_spawn_story_director()
 	_spawn_battle_director()
@@ -73,6 +76,33 @@ func _setup_atmosphere() -> void:
 	_atmosphere.apply_phase(WorldAtmosphere.Phase.AFTERNOON)
 
 
+func _setup_world_stream() -> void:
+	## Build-everything → stream-activate. Density stays; cost follows the focus.
+	_world_stream = WorldStreamController.new()
+	_world_stream.name = "WorldStreamController"
+	add_child(_world_stream)
+	_world_stream.setup(hex_grid_layer, _player)
+	_world_perf = WorldPerfMonitor.new()
+	_world_perf.name = "WorldPerfMonitor"
+	add_child(_world_perf)
+	## Pin hub while inside a building so exterior shell never sleeps underfoot.
+	if not EventBus.building_interior_loaded.is_connected(_on_building_interior_loaded):
+		EventBus.building_interior_loaded.connect(_on_building_interior_loaded)
+	if not EventBus.building_exited.is_connected(_on_building_exited):
+		EventBus.building_exited.connect(_on_building_exited)
+
+
+func _on_building_interior_loaded(_building_id: StringName) -> void:
+	if _world_stream and _player:
+		_world_stream.pin_hub_at(_player.global_position, true)
+
+
+func _on_building_exited(_building_id: StringName) -> void:
+	if _world_stream and _player:
+		_world_stream.pin_hub_at(_player.global_position, false)
+		_world_stream.force_refresh()
+
+
 func _setup_world_inspect() -> void:
 	## Temporary developer free-cam — debug/cheats builds only.
 	if not GameConfig.enable_cheats:
@@ -81,6 +111,8 @@ func _setup_world_inspect() -> void:
 	_world_inspect.name = "WorldInspectController"
 	add_child(_world_inspect)
 	_world_inspect.setup(camera_rig)
+	if _world_perf and _world_inspect.has_method("bind_perf_monitor"):
+		_world_inspect.call("bind_perf_monitor", _world_perf, self)
 
 
 func _setup_systems() -> void:

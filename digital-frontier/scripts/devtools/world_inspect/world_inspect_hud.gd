@@ -6,11 +6,18 @@ extends CanvasLayer
 var _panel: PanelContainer = null
 var _label: Label = null
 var _status: String = ""
+var _perf: WorldPerfMonitor = null
+var _perf_world_root: Node = null
 
 
 func _ready() -> void:
 	layer = UIManager.Layer.DEBUG
 	_build()
+
+
+func bind_perf(perf: WorldPerfMonitor, world_root: Node) -> void:
+	_perf = perf
+	_perf_world_root = world_root
 
 
 func set_status(text: String) -> void:
@@ -38,8 +45,8 @@ func _build() -> void:
 	_panel.anchor_bottom = 0.0
 	_panel.offset_left = 12.0
 	_panel.offset_top = 12.0
-	_panel.offset_right = 420.0
-	_panel.offset_bottom = 280.0
+	_panel.offset_right = 460.0
+	_panel.offset_bottom = 360.0
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.05, 0.08, 0.12, 0.78)
 	sb.corner_radius_top_left = 6
@@ -65,7 +72,7 @@ func _compose(controller: WorldInspectController, camera: Camera3D) -> String:
 		"WORLD INSPECT (dev)",
 		"F3 exit · RMB look · WASD move · Q/E up/down",
 		"Shift fast · Alt slow · Wheel FOV · C above player",
-		"1 Grid  2 Height  3 Info  4 Collision  5 Scale  6/F4 Placement",
+		"1 Grid  2 Height  3 Info  4 Collision  5 Scale  6/F4 Place  7 Perf",
 		"Overlays: %s" % controller.overlay_summary(),
 	]
 	if camera:
@@ -73,6 +80,9 @@ func _compose(controller: WorldInspectController, camera: Camera3D) -> String:
 		var ground := GrasslandHeightField.height_at(p.x, p.z)
 		lines.append("Cam (%.1f, %.1f, %.1f)  FOV %.0f" % [p.x, p.y, p.z, camera.fov])
 		lines.append("Ground Y %.2f  altitude %.1f" % [ground, p.y - ground])
+	if controller.wants_perf() and _perf:
+		lines.append("—")
+		lines.append(_perf.format_hud_block(_perf_world_root))
 	if not _status.is_empty():
 		lines.append(_status)
 	return "\n".join(lines)

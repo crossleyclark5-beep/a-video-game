@@ -59,12 +59,17 @@ Cadence target: something interesting every ~30s of walking; interactive every f
 
 Use **World Inspection Mode** (F3 in debug builds) to fly the same heightfield from the air. See `WORLD_INSPECT_MODE.md`.
 
+## Streaming
+
+The full region is authored, then **stream-activated** by distance (`WorldStreamController`). Forests stay dense — far content sleeps. See `WORLD_STREAMING.md`.
+
 ## Smoke
 
 ```bash
 godot --headless --path digital-frontier --scene res://scenes/devtools/world_3d_foundation_smoke.tscn
 godot --headless --path digital-frontier --scene res://scenes/devtools/world_inspect_smoke.tscn
+godot --headless --path digital-frontier --scene res://scenes/devtools/world_streaming_smoke.tscn
 godot --headless --path digital-frontier --scene res://scenes/devtools/adventure_stability_probe.tscn
 ```
 
-Stability probe must stay **≤ ~11,500** scene nodes.
+Stability probe must stay **≤ `AdventureNodeBudget.AUTHORED_NODE_GATE` (~11,500)** scene nodes.

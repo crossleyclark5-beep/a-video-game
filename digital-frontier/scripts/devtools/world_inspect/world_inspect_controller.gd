@@ -21,6 +21,7 @@ enum Overlay {
 	COLLISION,
 	SCALE,
 	PLACEMENT,
+	PERF,
 }
 
 var active: bool = false
@@ -43,8 +44,11 @@ var _overlay_flags: Dictionary = {
 	Overlay.COLLISION: false,
 	Overlay.SCALE: false,
 	Overlay.PLACEMENT: false,
+	Overlay.PERF: true,
 }
 var _rig_was_processing: bool = true
+var _perf: WorldPerfMonitor = null
+var _perf_world_root: Node = null
 
 
 func _ready() -> void:
@@ -68,6 +72,13 @@ func setup(camera_rig: Node3D) -> void:
 	_rig = camera_rig
 	if _rig and _rig.has_node("Camera3D"):
 		_gameplay_camera = _rig.get_node("Camera3D") as Camera3D
+
+
+func bind_perf_monitor(perf: WorldPerfMonitor, world_root: Node) -> void:
+	_perf = perf
+	_perf_world_root = world_root
+	if _hud:
+		_hud.bind_perf(perf, world_root)
 
 
 func is_active() -> bool:
@@ -200,6 +211,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				set_overlay(Overlay.SCALE, not is_overlay_on(Overlay.SCALE))
 			KEY_6:
 				run_placement_scan()
+			KEY_7:
+				set_overlay(Overlay.PERF, not is_overlay_on(Overlay.PERF))
 			KEY_F4:
 				run_placement_scan()
 			KEY_C:
@@ -363,7 +376,13 @@ func overlay_summary() -> String:
 		parts.append("Scale")
 	if is_overlay_on(Overlay.PLACEMENT):
 		parts.append("Placement")
+	if is_overlay_on(Overlay.PERF):
+		parts.append("Perf")
 	return ", ".join(parts) if not parts.is_empty() else "none"
+
+
+func wants_perf() -> bool:
+	return is_overlay_on(Overlay.PERF)
 
 
 static func _overlay_name(overlay: Overlay) -> StringName:
@@ -374,4 +393,5 @@ static func _overlay_name(overlay: Overlay) -> StringName:
 		Overlay.COLLISION: return &"collision"
 		Overlay.SCALE: return &"scale"
 		Overlay.PLACEMENT: return &"placement"
+		Overlay.PERF: return &"perf"
 		_: return &"unknown"

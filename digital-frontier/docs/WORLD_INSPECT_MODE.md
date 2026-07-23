@@ -38,8 +38,9 @@ Starts from the current ortho gameplay camera; swaps to a perspective free-cam. 
 | **4** | Collision — transparent proxies for nearby `CollisionShape3D` (Godot 4.7 has no viewport collision debug draw) |
 | **5** | Scale — AABB dimensions of aimed object |
 | **6** / **F4** | Placement scan — floating / buried / overlap / scale / rotation |
+| **7** | Perf — FPS, nodes, stream bands, living counts, warnings |
 
-Placement highlights problem markers near the camera (radius ~180m).
+Placement highlights problem markers near the camera (radius ~180m). Streaming / budget details: `WORLD_STREAMING.md`.
 
 ## Integration
 

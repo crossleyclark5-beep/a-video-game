@@ -1,17 +1,21 @@
 class_name LivingWorldController
 extends Node3D
-## Budgeted living world — wildlife, hostiles, NPCs, aquatics around the player.
-## Spawns/despawns by distance so the handheld stays performant.
+## Budgeted living world — wildlife, hostiles, NPCs, aquatics around the focus.
+## Spawns/despawns by distance; AI pauses when far (stream-friendly). Density unchanged.
 
-const WILDLIFE_CAP := 14
-const HOSTILE_CAP := 6
-const NPC_CAP := 5
-const AQUATIC_CAP := 10
+const WILDLIFE_CAP := AdventureNodeBudget.WILDLIFE_CAP
+const HOSTILE_CAP := AdventureNodeBudget.HOSTILE_CAP
+const NPC_CAP := AdventureNodeBudget.NPC_CAP
+const AQUATIC_CAP := AdventureNodeBudget.AQUATIC_CAP
 const SPAWN_RADIUS := 90.0
 const DESPAWN_RADIUS := 125.0
+const AI_FULL_RADIUS := 55.0
+const AI_SIMPLE_RADIUS := 95.0
 const TICK := 0.65
+const GROUP := &"living_world"
 
 var _player: Node3D = null
+var _focus_override: Node3D = null
 var _root_wildlife: Node3D
 var _root_hostiles: Node3D
 var _root_npcs: Node3D
@@ -28,6 +32,7 @@ var _battle: BattleDirector = null
 
 func setup(player: Node3D) -> void:
 	_player = player
+	add_to_group(GROUP)
 	_rng.randomize()
 	_root_wildlife = Node3D.new()
 	_root_wildlife.name = "Wildlife"
@@ -62,6 +67,28 @@ func register_water_aabb(bounds: AABB) -> void:
 
 func bind_battle_director(battle: BattleDirector) -> void:
 	_battle = battle
+
+
+func set_focus_override(focus: Node3D) -> void:
+	## Aircraft / inspect cam can drive spawn bubble without moving the player body.
+	_focus_override = focus
+
+
+func get_focus_position() -> Vector3:
+	if _focus_override and is_instance_valid(_focus_override):
+		return _focus_override.global_position
+	if _player and is_instance_valid(_player):
+		return _player.global_position
+	return Vector3.ZERO
+
+
+func population_snapshot() -> Dictionary:
+	return {
+		&"wildlife": _root_wildlife.get_child_count() if _root_wildlife else 0,
+		&"hostiles": _count_non_boss_hostiles() if _root_hostiles else 0,
+		&"npcs": _root_npcs.get_child_count() if _root_npcs else 0,
+		&"aquatic": _root_aquatic.get_child_count() if _root_aquatic else 0,
+	}
 
 
 func try_combat_strike() -> bool:
@@ -102,6 +129,7 @@ func _process(delta: float) -> void:
 		return
 	_tick = 0.0
 	_maintain_population()
+	_apply_ai_lod()
 
 
 func _build_spawn_slots() -> void:
@@ -167,6 +195,7 @@ func _spawn_region_boss() -> void:
 
 
 func _maintain_population() -> void:
+	var focus := get_focus_position()
 	_despawn_far(_root_wildlife, DESPAWN_RADIUS)
 	_despawn_far(_root_hostiles, DESPAWN_RADIUS)
 	_despawn_far(_root_npcs, DESPAWN_RADIUS + 40.0)
@@ -185,7 +214,7 @@ func _maintain_population() -> void:
 	var nearby: Array[Dictionary] = []
 	for slot in _spawn_slots:
 		var pos: Vector3 = slot["pos"]
-		var d := _player.global_position.distance_to(pos)
+		var d := focus.distance_to(pos)
 		if d < SPAWN_RADIUS and d > 14.0:
 			nearby.append(slot)
 	if nearby.is_empty():
@@ -238,14 +267,43 @@ func _count_non_boss_hostiles() -> int:
 	return n
 
 
+func _apply_ai_lod() -> void:
+	## Nearby: full behavior. Mid: still processing. Far (pre-despawn): pause AI.
+	var focus := get_focus_position()
+	for root in [_root_wildlife, _root_hostiles, _root_npcs, _root_aquatic]:
+		if root == null:
+			continue
+		for child in root.get_children():
+			if child is RegionBossActor or child is MiniBossActor:
+				child.process_mode = Node.PROCESS_MODE_INHERIT
+				continue
+			if not (child is Node3D):
+				continue
+			var d := focus.distance_to((child as Node3D).global_position)
+			if d <= AI_FULL_RADIUS:
+				child.process_mode = Node.PROCESS_MODE_INHERIT
+				if child.has_method("set_ai_detail"):
+					child.call("set_ai_detail", 2)
+			elif d <= AI_SIMPLE_RADIUS:
+				child.process_mode = Node.PROCESS_MODE_INHERIT
+				if child.has_method("set_ai_detail"):
+					child.call("set_ai_detail", 1)
+			else:
+				## Paused — resumes when the player returns inside SIMPLE radius.
+				child.process_mode = Node.PROCESS_MODE_DISABLED
+				if child.has_method("set_ai_detail"):
+					child.call("set_ai_detail", 0)
+
+
 func _fill_aquatics(current: int) -> void:
 	if _water_volumes.is_empty():
 		return
+	var focus := get_focus_position()
 	var need := mini(AQUATIC_CAP - current, 3)
 	for _i in need:
 		var bounds: AABB = _water_volumes[_rng.randi_range(0, _water_volumes.size() - 1)]
 		var center := bounds.get_center()
-		if _player.global_position.distance_to(center) > SPAWN_RADIUS + 20.0:
+		if focus.distance_to(center) > SPAWN_RADIUS + 20.0:
 			continue
 		var def := LivingWorldCatalog.pick_weighted(LivingWorldCatalog.grassland_aquatics(), _rng)
 		if def.is_empty():
@@ -306,13 +364,12 @@ func _collect_water_volumes() -> void:
 
 
 func _despawn_far(root: Node3D, radius: float) -> void:
-	if _player == null:
-		return
+	var focus := get_focus_position()
 	for child in root.get_children():
 		if child is RegionBossActor or child is MiniBossActor:
 			continue
 		if child is Node3D:
-			if _player.global_position.distance_to((child as Node3D).global_position) > radius:
+			if focus.distance_to((child as Node3D).global_position) > radius:
 				child.queue_free()
 
 

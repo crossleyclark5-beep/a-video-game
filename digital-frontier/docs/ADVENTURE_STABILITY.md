@@ -22,18 +22,21 @@ These combine into hitch/freeze/OOM behavior that feels like a hard crash on wea
 3. **Living world caps** — slightly lower wildlife/hostile/NPC/aquatic caps + slower tick.
 4. **Scene transition** — await Adventure load; yield frames so fade paints before/after heavy build.
 5. **Companion safety** — auto-select starter if Adventure boots without a partner.
-6. **Probe** — `scenes/devtools/adventure_stability_probe.tscn` (node budget gate &lt; 10k, save/reload).
+6. **Probe** — `scenes/devtools/adventure_stability_probe.tscn` (`AdventureNodeBudget.AUTHORED_NODE_GATE` ≈ 11.5k, save/reload).
+7. **Streaming foundation** — `WorldStreamController` distance bands + living AI LOD + interior hub pin (see `WORLD_STREAMING.md`). Density is preserved; far content sleeps.
 
 ## Known remaining / follow-ups
 
-- Pleasant Park interiors and POI builders are still dense (~2k nodes at hub) — acceptable for chapter 1; future work: MultiMesh forests / streamed far POIs.
+- Pleasant Park interiors are dense when entered (~2k) — still unload on exit.
 - Chapter opening still pushes `DeviceDialogue` (MENU context) on first Adventure — intentional, not a crash.
 - Audio may fall back to dummy driver in CI (no ALSA card) — harmless.
+- Future: pool living actors on despawn; mesh LOD swaps for hero props; aircraft-specific focus provider.
 
 ## Smoke
 
 ```bash
 godot --headless --path digital-frontier --scene res://scenes/devtools/adventure_stability_probe.tscn
+godot --headless --path digital-frontier --scene res://scenes/devtools/world_streaming_smoke.tscn
 godot --headless --path digital-frontier --scene res://scenes/devtools/living_world_smoke.tscn
 godot --headless --path digital-frontier --scene res://scenes/devtools/creature_ecosystem_smoke.tscn
 ```

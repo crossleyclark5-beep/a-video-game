@@ -380,7 +380,7 @@ static func _grass_patch(parent: Node3D, center: Vector3, radius: float, count: 
 	for i in transforms.size():
 		mm.set_instance_transform(i, transforms[i])
 	mmi.multimesh = mm
-	mmi.visibility_range_end = 280.0
+	mmi.visibility_range_end = AdventureNodeBudget.LOD_GRASS_END
 	mmi.visibility_range_end_margin = 40.0
 	parent.add_child(mmi)
 
@@ -657,7 +657,7 @@ static func _emit_tree_multimesh(parent: Node3D, node_name: String, xfs: Array[T
 		mm.set_instance_transform(i, xfs[i])
 	mmi.multimesh = mm
 	mmi.material_override = StylizedMesh.make_material(WorldPalette.LEAF_DARK if pine else WorldPalette.LEAF, 1.0, 0.0, 0.0, &"leaf")
-	mmi.visibility_range_end = 420.0
+	mmi.visibility_range_end = AdventureNodeBudget.LOD_TREE_END
 	mmi.visibility_range_end_margin = 60.0
 	parent.add_child(mmi)
 
@@ -675,7 +675,7 @@ static func _emit_bush_multimesh(parent: Node3D, node_name: String, xfs: Array[T
 		mm.set_instance_transform(i, xfs[i])
 	mmi.multimesh = mm
 	mmi.material_override = StylizedMesh.make_material(WorldPalette.BUSH, 1.0, 0.0, 0.0, &"leaf")
-	mmi.visibility_range_end = 260.0
+	mmi.visibility_range_end = AdventureNodeBudget.LOD_BUSH_END
 	parent.add_child(mmi)
 
 
@@ -692,7 +692,7 @@ static func _emit_rock_multimesh(parent: Node3D, node_name: String, xfs: Array[T
 		mm.set_instance_transform(i, xfs[i])
 	mmi.multimesh = mm
 	mmi.material_override = StylizedMesh.make_material(WorldPalette.ROCK, 1.0, 0.0, 0.0, &"dirt")
-	mmi.visibility_range_end = 300.0
+	mmi.visibility_range_end = AdventureNodeBudget.LOD_ROCK_END
 	parent.add_child(mmi)
 
 
@@ -709,7 +709,7 @@ static func _emit_mushroom_multimesh(parent: Node3D, node_name: String, xfs: Arr
 		mm.set_instance_transform(i, xfs[i])
 	mmi.multimesh = mm
 	mmi.material_override = StylizedMesh.make_material(Color(0.75, 0.35, 0.35), 1.0, 0.0, 0.0, &"flat")
-	mmi.visibility_range_end = 180.0
+	mmi.visibility_range_end = AdventureNodeBudget.LOD_MUSHROOM_END
 	parent.add_child(mmi)
 
 
