@@ -23,14 +23,18 @@ static func build(root: Node3D) -> void:
 	var chunk_i := 0
 	var x := min_x
 	while x < max_x:
+		var end_x := minf(x + float(CHUNK_CELLS) * CELL, max_x)
+		if end_x <= x:
+			end_x = x + CELL
 		var z := min_z
 		while z < max_z:
-			var end_x := mini(x + float(CHUNK_CELLS) * CELL, max_x)
-			var end_z := mini(z + float(CHUNK_CELLS) * CELL, max_z)
+			var end_z := minf(z + float(CHUNK_CELLS) * CELL, max_z)
+			if end_z <= z:
+				end_z = z + CELL
 			_build_chunk(terrain, chunk_i, x, z, end_x, end_z)
 			chunk_i += 1
 			z = end_z
-		x = end_x if end_x > x else x + float(CHUNK_CELLS) * CELL
+		x = end_x
 	_build_color_overlays(terrain)
 	_build_river_water(terrain)
 	_build_scenic_lakes(terrain)

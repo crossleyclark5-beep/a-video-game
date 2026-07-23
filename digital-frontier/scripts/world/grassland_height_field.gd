@@ -130,7 +130,7 @@ static func _river_dip(x: float, z: float) -> float:
 	]
 	var best := 1.0e9
 	for i in range(1, path.size()):
-		best = mini(best, _dist_xz_segment(x, z, path[i - 1], path[i]))
+		best = minf(best, _dist_xz_segment(x, z, path[i - 1], path[i]))
 	if best > 55.0:
 		return 0.0
 	var t := 1.0 - (best / 55.0)
