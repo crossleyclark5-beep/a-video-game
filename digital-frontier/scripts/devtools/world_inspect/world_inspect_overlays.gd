@@ -5,17 +5,20 @@ extends Node3D
 
 var _grid_root: Node3D = null
 var _height_root: Node3D = null
+var _collision_root: Node3D = null
 var _pick_label: Label3D = null
 var _pick_box: MeshInstance3D = null
 var _scale_label: Label3D = null
 var _grid_cell: float = 50.0
 var _grid_extent: int = 8
 var _height_last_origin := Vector3(1e9, 0, 1e9)
+var _collision_last_origin := Vector3(1e9, 0, 1e9)
 
 
 func clear_all() -> void:
 	enable_grid(false)
 	enable_height(false)
+	enable_collision(false)
 	clear_pick()
 
 
@@ -41,6 +44,91 @@ func enable_height(on: bool) -> void:
 	elif _height_root:
 		_height_root.queue_free()
 		_height_root = null
+
+
+func enable_collision(on: bool) -> void:
+	## Godot 4.7 removed Viewport.DEBUG_DRAW_COLLISION_SHAPES — draw our own proxies.
+	if on:
+		if _collision_root == null:
+			_collision_root = Node3D.new()
+			_collision_root.name = "InspectCollision"
+			add_child(_collision_root)
+		_collision_last_origin = Vector3(1e9, 0, 1e9)
+	elif _collision_root:
+		_collision_root.queue_free()
+		_collision_root = null
+
+
+func update_collision(cam_pos: Vector3) -> void:
+	if _collision_root == null:
+		return
+	var origin := Vector3(snappedf(cam_pos.x, 30.0), 0.0, snappedf(cam_pos.z, 30.0))
+	if origin.distance_to(_collision_last_origin) < 15.0:
+		return
+	_collision_last_origin = origin
+	for c in _collision_root.get_children():
+		c.queue_free()
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = Color(0.15, 1.0, 0.45, 0.35)
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mat.no_depth_test = true
+	var count := 0
+	for node in scene.find_children("*", "CollisionShape3D", true, false):
+		var cs := node as CollisionShape3D
+		if cs == null or cs.shape == null:
+			continue
+		if cs.global_position.distance_to(cam_pos) > 160.0:
+			continue
+		var proxy := _make_collision_mesh(cs.shape)
+		if proxy == null:
+			continue
+		proxy.material_override = mat
+		_collision_root.add_child(proxy)
+		proxy.global_transform = cs.global_transform
+		count += 1
+		if count >= 120:
+			break
+
+
+func _make_collision_mesh(shape: Shape3D) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.name = "ColProxy"
+	if shape is BoxShape3D:
+		var box := BoxMesh.new()
+		box.size = (shape as BoxShape3D).size
+		mi.mesh = box
+	elif shape is SphereShape3D:
+		var sph := SphereMesh.new()
+		sph.radius = (shape as SphereShape3D).radius
+		sph.height = sph.radius * 2.0
+		mi.mesh = sph
+	elif shape is CapsuleShape3D:
+		var cap := CapsuleMesh.new()
+		cap.radius = (shape as CapsuleShape3D).radius
+		cap.height = (shape as CapsuleShape3D).height
+		mi.mesh = cap
+	elif shape is CylinderShape3D:
+		var cyl := CylinderMesh.new()
+		cyl.top_radius = (shape as CylinderShape3D).radius
+		cyl.bottom_radius = cyl.top_radius
+		cyl.height = (shape as CylinderShape3D).height
+		mi.mesh = cyl
+	elif shape is HeightMapShape3D:
+		## Chunk marker — full heightmap wire is too heavy.
+		var hm := shape as HeightMapShape3D
+		var flat := BoxMesh.new()
+		flat.size = Vector3(float(maxi(hm.map_width - 1, 1)), 0.4, float(maxi(hm.map_depth - 1, 1)))
+		mi.mesh = flat
+	else:
+		var fallback := BoxMesh.new()
+		fallback.size = Vector3(1.2, 1.2, 1.2)
+		mi.mesh = fallback
+	return mi
 
 
 func update_grid(cam_pos: Vector3) -> void:

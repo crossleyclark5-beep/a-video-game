@@ -84,12 +84,26 @@ func _process(_delta: float) -> void:
 		push_error("grid overlay failed")
 		ok = false
 	inspect.set_overlay(WorldInspectController.Overlay.HEIGHT, true)
-	inspect.set_overlay(WorldInspectController.Overlay.COLLISION, true)
-	if get_viewport().debug_draw != Viewport.DEBUG_DRAW_COLLISION_SHAPES:
-		push_error("collision debug_draw not enabled")
-		ok = false
 	inspect.set_overlay(WorldInspectController.Overlay.SCALE, true)
 	inspect.set_overlay(WorldInspectController.Overlay.OBJECT_INFO, true)
+	## Collision overlay builds proxies (Viewport collision debug_draw removed in 4.7).
+	var body := StaticBody3D.new()
+	body.name = "SmokeCollider"
+	body.position = Vector3(5, 0.5, 5)
+	var col := CollisionShape3D.new()
+	var col_shape := BoxShape3D.new()
+	col_shape.size = Vector3(2, 1, 2)
+	col.shape = col_shape
+	body.add_child(col)
+	world.add_child(body)
+	await get_tree().process_frame
+	inspect.set_overlay(WorldInspectController.Overlay.COLLISION, false)
+	inspect.set_overlay(WorldInspectController.Overlay.COLLISION, true)
+	await get_tree().process_frame
+	var col_root := inspect.get_node_or_null("Overlays/InspectCollision")
+	if col_root == null or col_root.get_child_count() < 1:
+		push_error("collision overlay proxies missing")
+		ok = false
 
 	## Dummy mesh for placement / pick
 	var prop := MeshInstance3D.new()
@@ -114,9 +128,6 @@ func _process(_delta: float) -> void:
 		ok = false
 	if InputManager.get_context() != InputManager.Context.OVERWORLD:
 		push_error("context not restored to OVERWORLD")
-		ok = false
-	if get_viewport().debug_draw != Viewport.DEBUG_DRAW_DISABLED:
-		push_error("debug_draw not cleared on exit")
 		ok = false
 	if not cam.current:
 		push_error("gameplay camera should be current after exit")

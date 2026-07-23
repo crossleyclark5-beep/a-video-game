@@ -35,7 +35,7 @@ Starts from the current ortho gameplay camera; swaps to a perspective free-cam. 
 | **1** | Grid — world spacing |
 | **2** | Height — elevation pillars from `GrasslandHeightField` |
 | **3** | Object info — name, type, coords, Δ vs ground (default on) |
-| **4** | Collision — `Viewport.DEBUG_DRAW_COLLISION_SHAPES` |
+| **4** | Collision — transparent proxies for nearby `CollisionShape3D` (Godot 4.7 has no viewport collision debug draw) |
 | **5** | Scale — AABB dimensions of aimed object |
 | **6** / **F4** | Placement scan — floating / buried / overlap / scale / rotation |
 

@@ -132,8 +132,6 @@ func exit_mode() -> void:
 		_overlays.clear_all()
 	if _placement:
 		_placement.clear_highlights()
-	if get_viewport():
-		get_viewport().debug_draw = Viewport.DEBUG_DRAW_DISABLED
 	if _camera:
 		_camera.current = false
 	if _gameplay_camera:
@@ -284,6 +282,8 @@ func _process(delta: float) -> void:
 		_overlays.update_height_field(_camera.global_position)
 	if is_overlay_on(Overlay.GRID):
 		_overlays.update_grid(_camera.global_position)
+	if is_overlay_on(Overlay.COLLISION):
+		_overlays.update_collision(_camera.global_position)
 
 	_hud.update_readout(self, _camera)
 
@@ -331,12 +331,6 @@ func _snap_above_player() -> void:
 
 
 func _apply_overlay_state() -> void:
-	if get_viewport():
-		get_viewport().debug_draw = (
-			Viewport.DEBUG_DRAW_COLLISION_SHAPES
-			if is_overlay_on(Overlay.COLLISION)
-			else Viewport.DEBUG_DRAW_DISABLED
-		)
 	if is_overlay_on(Overlay.GRID):
 		_overlays.enable_grid(true)
 	else:
@@ -345,6 +339,10 @@ func _apply_overlay_state() -> void:
 		_overlays.enable_height(true)
 	else:
 		_overlays.enable_height(false)
+	if is_overlay_on(Overlay.COLLISION):
+		_overlays.enable_collision(true)
+	else:
+		_overlays.enable_collision(false)
 	if not is_overlay_on(Overlay.OBJECT_INFO) and not is_overlay_on(Overlay.SCALE):
 		_overlays.clear_pick()
 	if not is_overlay_on(Overlay.PLACEMENT):
