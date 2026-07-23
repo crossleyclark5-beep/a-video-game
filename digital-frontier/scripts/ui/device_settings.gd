@@ -139,11 +139,11 @@ func _activate() -> void:
 	match e["id"]:
 		&"volume_up":
 			GameConfig.master_volume = clampf(GameConfig.master_volume + 0.1, 0.0, 1.0)
-			AudioServer.set_bus_volume_db(AudioServer.get_bus_index(&"Master"), linear_to_db(GameConfig.master_volume))
+			AudioManager.refresh_volumes()
 			EventBus.sfx_play_requested.emit(&"ui_confirm", Vector3.ZERO)
 		&"volume_down":
 			GameConfig.master_volume = clampf(GameConfig.master_volume - 0.1, 0.0, 1.0)
-			AudioServer.set_bus_volume_db(AudioServer.get_bus_index(&"Master"), linear_to_db(GameConfig.master_volume))
+			AudioManager.refresh_volumes()
 			EventBus.sfx_play_requested.emit(&"ui_confirm", Vector3.ZERO)
 		&"haptics":
 			DeviceService.notify_event(&"ui")

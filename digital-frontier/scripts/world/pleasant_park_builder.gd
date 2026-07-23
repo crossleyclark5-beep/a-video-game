@@ -866,24 +866,33 @@ static func _tree(parent: Node3D, pos: Vector3, kind: StringName, scale_v: float
 	match kind:
 		&"pine":
 			var leaf := WorldPalette.LEAF_DARK
-			StylizedMesh.add_box(tree, Vector3(1.85 * scale_v, 0.95 * scale_v, 1.85 * scale_v), leaf, Vector3(0, 1.95 * scale_v, 0), "Canopy1", false, 1.0, &"leaf")
-			StylizedMesh.add_box(tree, Vector3(1.35 * scale_v, 0.85 * scale_v, 1.35 * scale_v), leaf.lightened(0.05), Vector3(0, 2.7 * scale_v, 0), "Canopy2", false, 1.0, &"leaf")
-			StylizedMesh.add_box(tree, Vector3(0.85 * scale_v, 0.7 * scale_v, 0.85 * scale_v), leaf.lightened(0.1), Vector3(0, 3.35 * scale_v, 0), "Canopy3", false, 1.0, &"leaf")
+			var c1 := StylizedMesh.add_box(tree, Vector3(1.85 * scale_v, 0.95 * scale_v, 1.85 * scale_v), leaf, Vector3(0, 1.95 * scale_v, 0), "Canopy1", false, 1.0, &"leaf")
+			var c2 := StylizedMesh.add_box(tree, Vector3(1.35 * scale_v, 0.85 * scale_v, 1.35 * scale_v), leaf.lightened(0.05), Vector3(0, 2.7 * scale_v, 0), "Canopy2", false, 1.0, &"leaf")
+			var c3 := StylizedMesh.add_box(tree, Vector3(0.85 * scale_v, 0.7 * scale_v, 0.85 * scale_v), leaf.lightened(0.1), Vector3(0, 3.35 * scale_v, 0), "Canopy3", false, 1.0, &"leaf")
 			StylizedMesh.add_box(tree, Vector3(0.45 * scale_v, 0.5 * scale_v, 0.45 * scale_v), leaf.lightened(0.14), Vector3(0, 3.85 * scale_v, 0), "Tip", false, 1.0, &"leaf")
 			StylizedMesh.add_box(tree, Vector3(0.55 * scale_v, 0.4 * scale_v, 0.55 * scale_v), leaf.darkened(0.06), Vector3(0.45 * scale_v, 2.2 * scale_v, 0.2), "Needle", false, 1.0, &"leaf")
+			OcclusionUtil.mark(c1)
+			OcclusionUtil.mark(c2)
+			OcclusionUtil.mark(c3)
 		&"oak":
 			var leaf := WorldPalette.LEAF if idx % 2 == 0 else WorldPalette.LEAF_LIT
-			StylizedMesh.add_box(tree, Vector3(2.0 * scale_v, 1.35 * scale_v, 2.0 * scale_v), leaf, Vector3(0, 2.3 * scale_v, 0), "Canopy", false, 1.0, &"leaf")
-			StylizedMesh.add_box(tree, Vector3(1.15 * scale_v, 0.9 * scale_v, 1.15 * scale_v), leaf.lightened(0.06), Vector3(0.6 * scale_v, 2.9 * scale_v, 0.25), "Canopy2", false, 1.0, &"leaf")
-			StylizedMesh.add_box(tree, Vector3(1.0 * scale_v, 0.85 * scale_v, 1.0 * scale_v), leaf.darkened(0.05), Vector3(-0.55 * scale_v, 2.6 * scale_v, -0.3), "Canopy3", false, 1.0, &"leaf")
+			var c1 := StylizedMesh.add_box(tree, Vector3(2.0 * scale_v, 1.35 * scale_v, 2.0 * scale_v), leaf, Vector3(0, 2.3 * scale_v, 0), "Canopy", false, 1.0, &"leaf")
+			var c2 := StylizedMesh.add_box(tree, Vector3(1.15 * scale_v, 0.9 * scale_v, 1.15 * scale_v), leaf.lightened(0.06), Vector3(0.6 * scale_v, 2.9 * scale_v, 0.25), "Canopy2", false, 1.0, &"leaf")
+			var c3 := StylizedMesh.add_box(tree, Vector3(1.0 * scale_v, 0.85 * scale_v, 1.0 * scale_v), leaf.darkened(0.05), Vector3(-0.55 * scale_v, 2.6 * scale_v, -0.3), "Canopy3", false, 1.0, &"leaf")
 			StylizedMesh.add_box(tree, Vector3(0.7 * scale_v, 0.55 * scale_v, 0.7 * scale_v), leaf.lightened(0.1), Vector3(0.15 * scale_v, 3.35 * scale_v, -0.35), "Canopy4", false, 1.0, &"leaf")
 			StylizedMesh.add_box(tree, Vector3(0.55 * scale_v, 0.45 * scale_v, 0.55 * scale_v), leaf.darkened(0.08), Vector3(-0.7 * scale_v, 2.15 * scale_v, 0.45), "Canopy5", false, 1.0, &"leaf")
+			OcclusionUtil.mark(c1)
+			OcclusionUtil.mark(c2)
+			OcclusionUtil.mark(c3)
 		_:
 			var leaf := WorldPalette.LEAF_LIT
-			StylizedMesh.add_box(tree, Vector3(1.7 * scale_v, 1.2 * scale_v, 1.7 * scale_v), leaf, Vector3(0, 2.15 * scale_v, 0), "Canopy", false, 1.0, &"leaf")
-			StylizedMesh.add_box(tree, Vector3(0.95 * scale_v, 0.8 * scale_v, 0.95 * scale_v), leaf.lightened(0.08), Vector3(0.45 * scale_v, 2.6 * scale_v, 0.2), "Canopy2", false, 1.0, &"leaf")
-			StylizedMesh.add_box(tree, Vector3(0.8 * scale_v, 0.7 * scale_v, 0.8 * scale_v), leaf.darkened(0.05), Vector3(-0.4 * scale_v, 2.45 * scale_v, -0.25), "Canopy3", false, 1.0, &"leaf")
+			var c1 := StylizedMesh.add_box(tree, Vector3(1.7 * scale_v, 1.2 * scale_v, 1.7 * scale_v), leaf, Vector3(0, 2.15 * scale_v, 0), "Canopy", false, 1.0, &"leaf")
+			var c2 := StylizedMesh.add_box(tree, Vector3(0.95 * scale_v, 0.8 * scale_v, 0.95 * scale_v), leaf.lightened(0.08), Vector3(0.45 * scale_v, 2.6 * scale_v, 0.2), "Canopy2", false, 1.0, &"leaf")
+			var c3 := StylizedMesh.add_box(tree, Vector3(0.8 * scale_v, 0.7 * scale_v, 0.8 * scale_v), leaf.darkened(0.05), Vector3(-0.4 * scale_v, 2.45 * scale_v, -0.25), "Canopy3", false, 1.0, &"leaf")
 			StylizedMesh.add_box(tree, Vector3(0.5 * scale_v, 0.45 * scale_v, 0.5 * scale_v), leaf.lightened(0.12), Vector3(0.1 * scale_v, 3.05 * scale_v, 0.1), "Canopy4", false, 1.0, &"leaf")
+			OcclusionUtil.mark(c1)
+			OcclusionUtil.mark(c2)
+			OcclusionUtil.mark(c3)
 
 
 static func _bush(parent: Node3D, pos: Vector3, idx: int) -> void:

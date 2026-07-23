@@ -39,13 +39,20 @@ func refresh(ally: CombatantState, enemy: CombatantState) -> void:
 	if ally:
 		_ally_name.text = "%s · %s" % [ally.display_name, CombatTypes.element_label(ally.element)]
 		_ally_bar.max_value = ally.max_hp
-		_ally_bar.value = ally.hp
+		_tween_bar(_ally_bar, ally.hp)
 		_ally_hp.text = "%d / %d" % [int(ally.hp), int(ally.max_hp)]
 	if enemy:
 		_enemy_name.text = "%s · %s" % [enemy.display_name, CombatTypes.element_label(enemy.element)]
 		_enemy_bar.max_value = enemy.max_hp
-		_enemy_bar.value = enemy.hp
+		_tween_bar(_enemy_bar, enemy.hp)
 		_enemy_hp.text = "%d / %d" % [int(enemy.hp), int(enemy.max_hp)]
+
+
+func _tween_bar(bar: ProgressBar, target: float) -> void:
+	if bar == null:
+		return
+	var tw := create_tween()
+	tw.tween_property(bar, "value", target, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 
 func set_phase_choose(index: int) -> void:
@@ -74,7 +81,7 @@ func set_prompt(text: String) -> void:
 func set_result(won: bool, summary: String) -> void:
 	_title.text = "◆ VICTORY" if won else "◆ RESULT"
 	_log.text = summary
-	_hint.text = "…"
+	_hint.text = "%s continue" % InputManager.get_action_glyph(&"ui_confirm")
 
 
 func _build() -> void:

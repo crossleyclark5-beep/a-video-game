@@ -107,7 +107,7 @@ func enter_battle_mode(anchor: Vector3, player: Node3D = null, companion: Node3D
 		_battle_anchor = player.global_position.lerp(anchor, 0.55)
 	_active_follow_distance = Vector3(0.0, 16.0, 12.0)
 	set_zoom_size(11.0, false)
-	EventBus.sfx_play_requested.emit(&"menu_beep", _battle_anchor)
+	EventBus.sfx_play_requested.emit(&"battle_start", _battle_anchor)
 
 
 func exit_battle_mode() -> void:

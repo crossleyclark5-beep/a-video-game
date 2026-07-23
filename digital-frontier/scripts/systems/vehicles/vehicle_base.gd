@@ -252,6 +252,8 @@ func _ensure_visual() -> void:
 		## External props bring their own proxy collision — remove duplicate static bodies under visual.
 		_strip_proxy_collision(_visual)
 		_decorate_vehicle_accents(color)
+	elif vehicle_id == &"utility_truck" or (data and data.id == &"utility_truck"):
+		_build_procedural_truck(color)
 	else:
 		_build_procedural_car(color)
 
@@ -307,6 +309,30 @@ func _build_procedural_car(color: Color) -> void:
 	StylizedMesh.add_box(_visual, Vector3(0.18, 0.1, 0.22), trim, Vector3(-1.0, 0.85, 0.55), "MirrorL")
 	StylizedMesh.add_box(_visual, Vector3(0.18, 0.1, 0.22), trim, Vector3(1.0, 0.85, 0.55), "MirrorR")
 	StylizedMesh.add_box(_visual, Vector3(0.45, 0.14, 0.04), Color(0.9, 0.9, 0.88), Vector3(0, 0.38, -1.98), "Plate")
+
+
+func _build_procedural_truck(color: Color) -> void:
+	## Chunky work truck — taller cab + bed (not a recolored sedan).
+	var trim := Color(0.18, 0.18, 0.2)
+	var bed := color.darkened(0.18)
+	StylizedMesh.add_box(_visual, Vector3(2.05, 0.55, 4.4), color, Vector3(0, 0.55, 0), "Body", false)
+	StylizedMesh.add_box(_visual, Vector3(1.85, 0.85, 1.6), color.lightened(0.05), Vector3(0, 1.25, 0.85), "Cabin")
+	StylizedMesh.add_box(_visual, Vector3(1.95, 0.55, 2.2), bed, Vector3(0, 0.95, -1.0), "Bed")
+	StylizedMesh.add_box(_visual, Vector3(1.95, 0.35, 0.12), bed.darkened(0.1), Vector3(0, 1.2, -2.05), "Tailgate")
+	StylizedMesh.add_box(_visual, Vector3(0.12, 0.45, 2.0), bed.darkened(0.08), Vector3(-0.95, 1.15, -1.0), "RailL")
+	StylizedMesh.add_box(_visual, Vector3(0.12, 0.45, 2.0), bed.darkened(0.08), Vector3(0.95, 1.15, -1.0), "RailR")
+	_add_car_glass(Vector3(1.55, 0.5, 0.06), Vector3(0, 1.35, 1.55), "Windshield")
+	_add_car_glass(Vector3(0.06, 0.4, 0.9), Vector3(-0.95, 1.3, 0.85), "SideGlassL")
+	_add_car_glass(Vector3(0.06, 0.4, 0.9), Vector3(0.95, 1.3, 0.85), "SideGlassR")
+	StylizedMesh.add_box(_visual, Vector3(1.3, 0.3, 0.1), trim, Vector3(0, 0.55, 2.2), "Grille")
+	for wp in [Vector3(-1.0, 0.35, 1.35), Vector3(1.0, 0.35, 1.35), Vector3(-1.0, 0.35, -1.35), Vector3(1.0, 0.35, -1.35)]:
+		StylizedMesh.add_box(_visual, Vector3(0.32, 0.55, 0.55), Color(0.08, 0.08, 0.08), wp, "Tire")
+		StylizedMesh.add_box(_visual, Vector3(0.14, 0.24, 0.24), Color(0.55, 0.55, 0.58), wp + Vector3(0.12 if wp.x > 0.0 else -0.12, 0, 0), "Hub")
+	StylizedMesh.add_box(_visual, Vector3(0.3, 0.16, 0.12), WorldPalette.LAMP_GLOW, Vector3(-0.7, 0.6, 2.2), "HeadL")
+	StylizedMesh.add_box(_visual, Vector3(0.3, 0.16, 0.12), WorldPalette.LAMP_GLOW, Vector3(0.7, 0.6, 2.2), "HeadR")
+	StylizedMesh.add_box(_visual, Vector3(0.35, 0.14, 0.1), Color(0.85, 0.15, 0.12), Vector3(-0.7, 0.7, -2.2), "TailL")
+	StylizedMesh.add_box(_visual, Vector3(0.35, 0.14, 0.1), Color(0.85, 0.15, 0.12), Vector3(0.7, 0.7, -2.2), "TailR")
+	StylizedMesh.add_box(_visual, Vector3(0.5, 0.14, 0.04), Color(0.9, 0.9, 0.88), Vector3(0, 0.45, -2.25), "Plate")
 
 
 func _add_car_glass(size: Vector3, pos: Vector3, node_name: String) -> void:
