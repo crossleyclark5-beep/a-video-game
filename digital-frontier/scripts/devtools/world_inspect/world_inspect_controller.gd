@@ -123,7 +123,7 @@ func toggle_from_ui() -> void:
 		return
 	_prepare_gameplay_context_for_inspect()
 	if not can_enter():
-		var ctx_name := InputManager.Context.keys()[InputManager.get_context()]
+		var ctx_name: String = str(InputManager.Context.keys()[InputManager.get_context()])
 		EventBus.ui_notification_requested.emit("3D View blocked (%s)" % ctx_name, 2.2)
 		return
 	enter_mode()
