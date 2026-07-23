@@ -66,7 +66,8 @@ static func _add_terrain(root: Node3D) -> void:
 	terrain.name = "Terrain"
 	root.add_child(terrain)
 	## Base pad sits clearly below RegionGround top to avoid mega-plane flicker.
-	StylizedMesh.add_box(terrain, Vector3(110, 0.25, 110), GROUND, Vector3(0, -0.2, 0), "BaseGround", true, 1.0, &"grass")
+	## Visual pad only — walkable collision comes from GrasslandTerrain heightfield (no lip).
+	StylizedMesh.add_box(terrain, Vector3(110, 0.25, 110), GROUND, Vector3(0, -0.2, 0), "BaseGround", false, 1.0, &"grass")
 
 	## Pixel grass fields — central park lawn + house yards + soccer north + fuel east.
 	var patches := [
@@ -168,27 +169,27 @@ static func _add_road_network(root: Node3D) -> void:
 		for jz: float in [-FRONTAGE, 0.0, FRONTAGE]:
 			if is_zero_approx(jx) and is_zero_approx(jz):
 				continue
-			StylizedMesh.add_box(
+			StylizedMesh.add_walkable_box(
 				roads,
 				Vector3(5.2, 0.05, 5.2),
 				ROAD,
 				Vector3(jx, Y_ROAD + 0.004, jz),
 				"JctF_%d_%d" % [int(jx), int(jz)],
-				true,
 				1.0,
-				&"asphalt"
+				&"asphalt",
+				Y_GRASS
 			)
 	for jx: float in [-PARK_ROAD, PARK_ROAD]:
 		for jz: float in [-PARK_ROAD, PARK_ROAD]:
-			StylizedMesh.add_box(
+			StylizedMesh.add_walkable_box(
 				roads,
 				Vector3(5.5, 0.05, 5.5),
 				ROAD,
 				Vector3(jx, Y_ROAD + 0.004, jz),
 				"JctP_%d_%d" % [int(jx), int(jz)],
-				true,
 				1.0,
-				&"asphalt"
+				&"asphalt",
+				Y_GRASS
 			)
 	## Driveway aprons — world-space pads aligned to each house garage mouth
 	## (local x≈5, extruded along local +Z) so local Driveway meets frontage asphalt.
@@ -205,15 +206,15 @@ static func _add_road_network(root: Node3D) -> void:
 	]
 	for i in house_drives.size():
 		var apron: Dictionary = _driveway_apron_world(house_drives[i]["pos"] as Vector3, float(house_drives[i]["yaw"]))
-		StylizedMesh.add_box(
+		StylizedMesh.add_walkable_box(
 			roads,
 			apron["size"] as Vector3,
 			ROAD.lightened(0.06),
 			apron["pos"] as Vector3,
 			"Drive_%d" % i,
-			true,
 			1.0,
-			&"asphalt"
+			&"asphalt",
+			Y_GRASS
 		)
 
 
@@ -236,7 +237,8 @@ static func _driveway_apron_world(house_pos: Vector3, yaw_deg: float) -> Diction
 
 
 static func _road_segment(parent: Node3D, pos: Vector3, size: Vector3, node_name: String, along_x: bool) -> void:
-	StylizedMesh.add_box(parent, size, ROAD, pos, node_name, true, 1.0, &"asphalt")
+	## Flush walkable collision — visual deck can sit above grass without blocking steps.
+	StylizedMesh.add_walkable_box(parent, size, ROAD, pos, node_name, 1.0, &"asphalt", Y_GRASS)
 	## Darker edge strips (wear / curb shadow) — raised above road deck.
 	var edge_y := pos.y + size.y * 0.5 + 0.012
 	if along_x:
@@ -277,14 +279,14 @@ static func _sidewalk_ring(parent: Node3D) -> void:
 	## Park-side walk (inside park road) + house-side walk along frontage.
 	var inner := PARK_HALF + 0.25
 	var outer := FRONTAGE - 2.6
-	StylizedMesh.add_box(parent, Vector3(26, 0.06, 1.5), SIDEWALK, Vector3(0, Y_WALK, -inner), "WalkN", true, 1.0, &"asphalt")
-	StylizedMesh.add_box(parent, Vector3(26, 0.06, 1.5), SIDEWALK, Vector3(0, Y_WALK, inner), "WalkS", true, 1.0, &"asphalt")
-	StylizedMesh.add_box(parent, Vector3(1.5, 0.06, 22), SIDEWALK, Vector3(-inner, Y_WALK, 0), "WalkW", true, 1.0, &"asphalt")
-	StylizedMesh.add_box(parent, Vector3(1.5, 0.06, 22), SIDEWALK, Vector3(inner, Y_WALK, 0), "WalkE", true, 1.0, &"asphalt")
-	StylizedMesh.add_box(parent, Vector3(46, 0.06, 1.35), SIDEWALK, Vector3(0, Y_WALK, -outer), "WalkOuterN", true, 1.0, &"asphalt")
-	StylizedMesh.add_box(parent, Vector3(46, 0.06, 1.35), SIDEWALK, Vector3(0, Y_WALK, outer), "WalkOuterS", true, 1.0, &"asphalt")
-	StylizedMesh.add_box(parent, Vector3(1.35, 0.06, 42), SIDEWALK, Vector3(-outer, Y_WALK, 0), "WalkOuterW", true, 1.0, &"asphalt")
-	StylizedMesh.add_box(parent, Vector3(1.35, 0.06, 42), SIDEWALK, Vector3(outer, Y_WALK, 0), "WalkOuterE", true, 1.0, &"asphalt")
+	StylizedMesh.add_walkable_box(parent, Vector3(26, 0.06, 1.5), SIDEWALK, Vector3(0, Y_WALK, -inner), "WalkN", 1.0, &"asphalt", Y_GRASS)
+	StylizedMesh.add_walkable_box(parent, Vector3(26, 0.06, 1.5), SIDEWALK, Vector3(0, Y_WALK, inner), "WalkS", 1.0, &"asphalt", Y_GRASS)
+	StylizedMesh.add_walkable_box(parent, Vector3(1.5, 0.06, 22), SIDEWALK, Vector3(-inner, Y_WALK, 0), "WalkW", 1.0, &"asphalt", Y_GRASS)
+	StylizedMesh.add_walkable_box(parent, Vector3(1.5, 0.06, 22), SIDEWALK, Vector3(inner, Y_WALK, 0), "WalkE", 1.0, &"asphalt", Y_GRASS)
+	StylizedMesh.add_walkable_box(parent, Vector3(46, 0.06, 1.35), SIDEWALK, Vector3(0, Y_WALK, -outer), "WalkOuterN", 1.0, &"asphalt", Y_GRASS)
+	StylizedMesh.add_walkable_box(parent, Vector3(46, 0.06, 1.35), SIDEWALK, Vector3(0, Y_WALK, outer), "WalkOuterS", 1.0, &"asphalt", Y_GRASS)
+	StylizedMesh.add_walkable_box(parent, Vector3(1.35, 0.06, 42), SIDEWALK, Vector3(-outer, Y_WALK, 0), "WalkOuterW", 1.0, &"asphalt", Y_GRASS)
+	StylizedMesh.add_walkable_box(parent, Vector3(1.35, 0.06, 42), SIDEWALK, Vector3(outer, Y_WALK, 0), "WalkOuterE", 1.0, &"asphalt", Y_GRASS)
 	## Curb lips on park edge — distinct height from lawn / walk.
 	for c in [
 		[Vector3(0, Y_LAWN + 0.02, -(PARK_HALF - 0.7)), Vector3(24, 0.1, 0.22)],
@@ -301,7 +303,7 @@ static func _add_central_park(root: Node3D) -> void:
 	var park := Node3D.new()
 	park.name = "CentralPark"
 	root.add_child(park)
-	StylizedMesh.add_box(park, Vector3(PARK_HALF * 2.0, 0.06, PARK_HALF * 2.0), PARK_GREEN, Vector3(0, Y_LAWN, 0), "Lawn", true, 1.0, &"grass")
+	StylizedMesh.add_walkable_box(park, Vector3(PARK_HALF * 2.0, 0.06, PARK_HALF * 2.0), PARK_GREEN, Vector3(0, Y_LAWN, 0), "Lawn", 1.0, &"grass", Y_GRASS)
 	## Cross paths through the square (gazebo sits on the intersection) — above lawn, below fountain rim.
 	StylizedMesh.add_box(park, Vector3(2.4, 0.035, PARK_HALF * 2.0 - 1.2), PATH, Vector3(0, Y_PATH, 0), "PathNS", false, 1.0, &"dirt")
 	StylizedMesh.add_box(park, Vector3(PARK_HALF * 2.0 - 1.2, 0.035, 2.4), PATH, Vector3(0, Y_PATH, 0), "PathEW", false, 1.0, &"dirt")
@@ -415,7 +417,7 @@ static func _add_sports_field(root: Node3D) -> void:
 	field.name = "SportsField"
 	field.position = Vector3(0, 0, -40)
 	root.add_child(field)
-	StylizedMesh.add_box(field, Vector3(20, 0.06, 14), WorldPalette.GRASS_DARK, Vector3(0, 0.06, 0), "Pitch", true, 1.0, &"grass")
+	StylizedMesh.add_walkable_box(field, Vector3(20, 0.06, 14), WorldPalette.GRASS_DARK, Vector3(0, 0.06, 0), "Pitch", 1.0, &"grass", Y_GRASS)
 	StylizedMesh.add_box(field, Vector3(0.12, 0.02, 14), Color(0.95, 0.95, 0.9), Vector3(0, 0.1, 0), "MidLine")
 	StylizedMesh.add_box(field, Vector3(2.6, 0.03, 2.6), Color(0.95, 0.95, 0.9), Vector3(0, 0.1, 0), "CenterBox")
 	StylizedMesh.add_box(field, Vector3(20.2, 0.02, 0.12), Color(0.95, 0.95, 0.9), Vector3(0, 0.1, -7), "EndLineS")
@@ -441,7 +443,7 @@ static func _add_fuel_stop(root: Node3D, result: Dictionary) -> void:
 	fuel.name = "FuelStop"
 	fuel.position = Vector3(42, 0, 0)
 	root.add_child(fuel)
-	StylizedMesh.add_box(fuel, Vector3(14, 0.12, 12), WorldPalette.ROAD, Vector3(0, 0.08, 0), "Lot", true, 1.0, &"asphalt")
+	StylizedMesh.add_walkable_box(fuel, Vector3(14, 0.12, 12), WorldPalette.ROAD, Vector3(0, 0.08, 0), "Lot", 1.0, &"asphalt", Y_GRASS)
 	for i in 4:
 		StylizedMesh.add_box(fuel, Vector3(0.08, 0.02, 2.4), Color(0.9, 0.9, 0.85), Vector3(-5 + float(i) * 2.4, 0.14, -3.5), "Stall")
 	RegionPropKit.make_enterable_building(
@@ -464,24 +466,24 @@ static func _add_fuel_stop(root: Node3D, result: Dictionary) -> void:
 	fuel.add_child(brand)
 	StylizedMesh.add_box(fuel, Vector3(0.55, 0.75, 0.55), WorldPalette.BUSH, Vector3(5.5, 0.4, 4.0), "Bin", true)
 	StylizedMesh.add_box(fuel, Vector3(0.28, 1.1, 0.28), WorldPalette.FLOWER_Y, Vector3(-6, 0.55, 2.5), "AirPump", true)
-	## Outdoor shop counter — closes the Pleasant Park buy loop without leaving town.
+	## Outdoor shop counter — offset from the enterable shop door so Interact doesn't steal focus.
 	var shop := ShopInteractable.new()
 	shop.name = "FuelShopCounter"
 	shop.shop_id = ShopManager.SHOP_ID_HOME
 	shop.shopkeeper_name = "Fuel Clerk"
-	shop.position = Vector3(0.5, 0.5, 3.2)
+	shop.position = Vector3(-3.5, 0.5, 3.8)
 	var sshape := CollisionShape3D.new()
 	var sbox := BoxShape3D.new()
-	sbox.size = Vector3(2.2, 2.0, 2.0)
+	sbox.size = Vector3(1.6, 1.8, 1.4)
 	sshape.shape = sbox
 	shop.add_child(sshape)
-	StylizedMesh.add_box(shop, Vector3(1.6, 1.0, 0.8), WorldPalette.WOOD, Vector3(0, 0.2, 0), "Counter", false, 1.0, &"wood")
+	StylizedMesh.add_box(shop, Vector3(1.4, 1.0, 0.7), WorldPalette.WOOD, Vector3(0, 0.2, 0), "Counter", false, 1.0, &"wood")
 	fuel.add_child(shop)
 	var clerk := NpcTalkInteractable.new()
 	clerk.name = "FuelClerk"
 	clerk.npc_id = &"fuel_clerk"
 	clerk.npc_display_name = "Fuel Clerk"
-	clerk.position = Vector3(0.5, 0, 4.4)
+	clerk.position = Vector3(-3.5, 0, 4.6)
 	clerk.dialogue_lines = ChapterCast.lines_for(&"fuel_clerk")
 	var cshape := CollisionShape3D.new()
 	var cbox := BoxShape3D.new()
@@ -544,8 +546,8 @@ static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 	StylizedMesh.add_box(house, Vector3(11, 0.035, 10), yard_tint, Vector3(0, Y_GRASS, 0), "Lawn", false, 1.0, &"grass")
 	StylizedMesh.add_box(house, Vector3(8.2, 0.04, 7.0), WorldPalette.DIRT.lightened(0.06), Vector3(0, Y_GRASS + 0.01, 0), "Yard", false, 1.0, &"dirt")
 
-	## Driveway — centered on garage (local x=5), runs past porch to meet street apron.
-	StylizedMesh.add_box(house, Vector3(3.0, 0.045, 6.4), ROAD.lightened(0.08), Vector3(5.0, Y_ROAD - 0.01, 3.3), "Driveway", true, 1.0, &"asphalt")
+	## Driveway — centered on garage (local x=5), flush collision so curb steps freely.
+	StylizedMesh.add_walkable_box(house, Vector3(3.0, 0.045, 6.4), ROAD.lightened(0.08), Vector3(5.0, Y_ROAD - 0.01, 3.3), "Driveway", 1.0, &"asphalt", Y_GRASS)
 
 	## Main body + foundation
 	var wall_pattern: StringName = &"brick" if style == &"brick" else &"wood"
@@ -635,18 +637,18 @@ static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 		house.set("display_name", house_name)
 		house.set("exterior_zoom", 14.5)
 		house.set("interior_zoom", 9.5)
-		house.set("roof_paths", [
+		house.set("roof_paths", BuildingVolume.make_path_array([
 			NodePath("Roof"),
 			NodePath("RoofPeak"),
 			NodePath("PorchRoof"),
 			NodePath("Ridge"),
 			NodePath("EaveF"),
 			NodePath("EaveB"),
-		])
-		house.set("cutaway_paths", [
+		]))
+		house.set("cutaway_paths", BuildingVolume.make_path_array([
 			NodePath("Chimney"),
 			NodePath("ChimneyCap"),
-		])
+		]))
 		## Residential shells stay HOUSE — personality tells the lived-in story.
 		var kind: StringName = spec.get("kind", InteriorKinds.HOUSE)
 		house.set("interior_kind", kind)
@@ -686,7 +688,7 @@ static func _add_enterable_garage(house: Node3D, house_name: String, wall: Color
 	StylizedMesh.add_box(garage, Vector3(0.45, 2.35, 0.18), gwall, Vector3(-1.25, 1.2, 2.15), "WallF1", true, 1.0, wall_pattern)
 	StylizedMesh.add_box(garage, Vector3(0.45, 2.35, 0.18), gwall, Vector3(1.25, 1.2, 2.15), "WallF2", true, 1.0, wall_pattern)
 	StylizedMesh.add_box(garage, Vector3(2.5, 0.4, 0.18), gwall, Vector3(0, 2.2, 2.15), "WallFTop", true, 1.0, wall_pattern)
-	StylizedMesh.add_box(garage, Vector3(2.9, 0.06, 4.2), ROAD.lightened(0.1), Vector3(0, 0.08, 0), "GarageFloor", true, 1.0, &"asphalt")
+	StylizedMesh.add_walkable_box(garage, Vector3(2.9, 0.06, 4.2), ROAD.lightened(0.1), Vector3(0, 0.08, 0), "GarageFloor", 1.0, &"asphalt", Y_GRASS)
 	var roof_mi := StylizedMesh.add_box(garage, Vector3(3.3, 0.18, 4.6), wall.darkened(0.12), Vector3(0, 2.45, 0), "GarageRoof", false, 1.0, &"wood")
 	OcclusionUtil.mark(roof_mi)
 	## Visual door panel (hides on enter).
@@ -717,8 +719,10 @@ static func _add_enterable_garage(house: Node3D, house_name: String, wall: Color
 	garage.set("display_name", "%s Garage" % house_name)
 	garage.set("exterior_zoom", 12.0)
 	garage.set("interior_zoom", 8.5)
-	garage.set("roof_paths", [NodePath("GarageRoof")])
-	garage.set("cutaway_paths", [NodePath("GarageDoor"), NodePath("GarageHandle"), NodePath("WallFTop")])
+	garage.set("roof_paths", BuildingVolume.make_path_array([NodePath("GarageRoof")]))
+	garage.set("cutaway_paths", BuildingVolume.make_path_array([
+		NodePath("GarageDoor"), NodePath("GarageHandle"), NodePath("WallFTop"),
+	]))
 	garage.set("interior_kind", InteriorKinds.GARAGE)
 	garage.set("interior_personality", InteriorPersonality.Style.RUSTIC)
 	garage.set("interior_scene", null)
@@ -851,6 +855,18 @@ static func _add_vegetation(root: Node3D) -> void:
 		{"pos": Vector3(36, 0, 8), "kind": &"oak", "scale": 0.9},
 		{"pos": Vector3(-34, 0, 0), "kind": &"round", "scale": 1.1},
 		{"pos": Vector3(0, 0, 36), "kind": &"pine", "scale": 0.95},
+		## Extra yard / street landscaping — town should feel planted, not bare.
+		{"pos": Vector3(-15, 0, -32), "kind": &"oak", "scale": 0.9},
+		{"pos": Vector3(15, 0, -32), "kind": &"pine", "scale": 0.95},
+		{"pos": Vector3(-15, 0, 32), "kind": &"round", "scale": 0.88},
+		{"pos": Vector3(15, 0, 32), "kind": &"oak", "scale": 0.92},
+		{"pos": Vector3(32, 0, -15), "kind": &"pine", "scale": 0.9},
+		{"pos": Vector3(32, 0, 15), "kind": &"round", "scale": 0.95},
+		{"pos": Vector3(-32, 0, -15), "kind": &"oak", "scale": 1.0},
+		{"pos": Vector3(-32, 0, 15), "kind": &"pine", "scale": 0.88},
+		{"pos": Vector3(0, 0, -42), "kind": &"oak", "scale": 1.05},
+		{"pos": Vector3(42, 0, -12), "kind": &"round", "scale": 0.9},
+		{"pos": Vector3(42, 0, 12), "kind": &"pine", "scale": 0.95},
 	]
 	for i in tree_specs.size():
 		var s: Dictionary = tree_specs[i]

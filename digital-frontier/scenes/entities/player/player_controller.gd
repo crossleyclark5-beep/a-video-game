@@ -9,6 +9,9 @@ const ROTATION_SPEED := 14.0
 const GRAVITY := 32.0
 const FOOTSTEP_WALK_INTERVAL := 0.38
 const FOOTSTEP_RUN_INTERVAL := 0.26
+## Climb porch / curb lips that flush walkable slabs don't cover (foundation, garage).
+const STEP_HEIGHT := 0.28
+const STEP_FORWARD := 0.22
 
 @onready var _visual_root: Node3D = $VisualRoot
 @onready var _character_visual: CharacterVisual = $VisualRoot/CharacterVisual
@@ -106,6 +109,8 @@ func _physics_process(delta: float) -> void:
 		AssetStandardizer.face_velocity(_visual_root, direction, ROTATION_SPEED, delta)
 
 	move_and_slide()
+	if can_move and has_input:
+		_try_step_up(direction)
 	## Soft slide-back when pushing into a steep mountain face.
 	if not is_on_floor() and get_slide_collision_count() > 0 and has_input:
 		var col := get_slide_collision(0)
@@ -123,6 +128,38 @@ func _physics_process(delta: float) -> void:
 			_go_home()
 		elif InputManager.is_action_just_pressed(&"creature_action"):
 			_creature_action()
+
+
+func _try_step_up(direction: Vector3) -> void:
+	## If blocked by a short vertical face while grounded, hop onto it.
+	if not is_on_floor() or get_slide_collision_count() <= 0:
+		return
+	var col := get_slide_collision(0)
+	if col == null:
+		return
+	var n := col.get_normal()
+	if n.y > 0.55:
+		return
+	if direction.dot(-n) < 0.15:
+		return
+	var from := global_position + Vector3(0, STEP_HEIGHT + 0.05, 0)
+	var to := from + direction * STEP_FORWARD
+	var space := get_world_3d().direct_space_state
+	if space == null:
+		return
+	var probe := PhysicsRayQueryParameters3D.create(from, to)
+	probe.exclude = [get_rid()]
+	probe.collision_mask = collision_mask
+	if space.intersect_ray(probe):
+		return
+	var down := PhysicsRayQueryParameters3D.create(to, to + Vector3(0, -(STEP_HEIGHT + 0.35), 0))
+	down.exclude = [get_rid()]
+	down.collision_mask = collision_mask
+	var hit := space.intersect_ray(down)
+	if hit.is_empty():
+		return
+	global_position = hit["position"] as Vector3 + Vector3(0, 0.02, 0)
+	velocity.y = 0.0
 
 
 func _creature_action() -> void:

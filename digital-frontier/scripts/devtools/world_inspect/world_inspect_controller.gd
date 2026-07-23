@@ -44,11 +44,14 @@ var _overlay_flags: Dictionary = {
 	Overlay.COLLISION: false,
 	Overlay.SCALE: false,
 	Overlay.PLACEMENT: false,
-	Overlay.PERF: true,
+	## PERF walks the world tree — off by default so enter never hitch-kicks.
+	Overlay.PERF: false,
 }
 var _rig_was_processing: bool = true
 var _perf: WorldPerfMonitor = null
 var _perf_world_root: Node = null
+var _space_root: Node3D = null
+var _cancel_grace_frames: int = 0
 
 
 func _ready() -> void:
@@ -56,12 +59,16 @@ func _ready() -> void:
 	name = "WorldInspectController"
 	set_process(false)
 	set_process_unhandled_input(true)
+	## 3D children live under a Node3D so World3D / transforms stay valid.
+	_space_root = Node3D.new()
+	_space_root.name = "InspectSpace"
+	add_child(_space_root)
 	_overlays = WorldInspectOverlays.new()
 	_overlays.name = "Overlays"
-	add_child(_overlays)
+	_space_root.add_child(_overlays)
 	_placement = WorldInspectPlacement.new()
 	_placement.name = "PlacementReview"
-	add_child(_placement)
+	_space_root.add_child(_placement)
 	_hud = WorldInspectHud.new()
 	_hud.name = "InspectHud"
 	add_child(_hud)
@@ -110,12 +117,35 @@ func toggle_from_ui() -> void:
 	if not GameConfig.enable_cheats:
 		EventBus.ui_notification_requested.emit("3D View is a developer tool (debug builds).", 2.2)
 		return
-	## Pop MENU context if settings/pause is open so can_enter succeeds.
-	while InputManager.get_context() == InputManager.Context.MENU:
+	if active:
+		exit_mode()
+		EventBus.ui_notification_requested.emit("3D View · OFF", 1.8)
+		return
+	_prepare_gameplay_context_for_inspect()
+	if not can_enter():
+		var ctx_name := InputManager.Context.keys()[InputManager.get_context()]
+		EventBus.ui_notification_requested.emit("3D View blocked (%s)" % ctx_name, 2.2)
+		return
+	enter_mode()
+	EventBus.ui_notification_requested.emit("3D View · %s" % ("ON" if active else "OFF"), 1.8)
+
+
+func _prepare_gameplay_context_for_inspect() -> void:
+	## Clear nested device/settings modals and repair MENU context desync.
+	if UIManager.has_open_modal():
+		UIManager.clear_modals()
+	var pops := 0
+	while InputManager.get_context() == InputManager.Context.MENU and pops < 8:
+		var before := InputManager.get_context()
 		InputManager.pop_context()
-	toggle()
-	var state := "ON" if active else "OFF"
-	EventBus.ui_notification_requested.emit("3D View · %s" % state, 1.8)
+		pops += 1
+		if InputManager.get_context() == before:
+			break
+	var ctx := InputManager.get_context()
+	if ctx == InputManager.Context.MENU \
+		or ctx == InputManager.Context.DIALOGUE \
+		or ctx == InputManager.Context.HOME:
+		InputManager.set_context(InputManager.Context.OVERWORLD)
 
 
 func enter_mode() -> void:
@@ -129,6 +159,7 @@ func enter_mode() -> void:
 		push_warning("WorldInspect: no CameraRig bound")
 		return
 	active = true
+	_cancel_grace_frames = 12
 	InputManager.push_context(InputManager.Context.WORLD_INSPECT)
 	_ensure_camera()
 	_seed_from_gameplay()
@@ -138,6 +169,7 @@ func enter_mode() -> void:
 		_rig.call("set_inspect_paused", true)
 	_camera.make_current()
 	_hud.visible = true
+	## Light refresh first — PERF overlay is opt-in (key 7) to avoid enter hitch.
 	_hud.refresh(self)
 	_apply_overlay_state()
 	set_process(true)
@@ -200,12 +232,20 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not GameConfig.enable_cheats:
 		return
 	if event.is_action_pressed(&"inspect_toggle"):
-		toggle()
+		if active:
+			exit_mode()
+		else:
+			_prepare_gameplay_context_for_inspect()
+			enter_mode()
 		get_viewport().set_input_as_handled()
 		return
 	if not active:
 		return
+	## Ignore cancel for a few frames after enter so Settings B/Esc doesn't instant-exit.
 	if event.is_action_pressed(&"ui_cancel"):
+		if _cancel_grace_frames > 0:
+			get_viewport().set_input_as_handled()
+			return
 		exit_mode()
 		get_viewport().set_input_as_handled()
 		return
@@ -262,6 +302,8 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	if not active or _camera == null:
 		return
+	if _cancel_grace_frames > 0:
+		_cancel_grace_frames -= 1
 	## Look with arrow keys when mouse not captured (handheld / no-mouse).
 	var look := Vector2.ZERO
 	if Input.is_key_pressed(KEY_LEFT):
@@ -323,7 +365,11 @@ func _ensure_camera() -> void:
 	_camera.fov = _fov
 	_camera.near = 0.15
 	_camera.far = 20000.0
-	add_child(_camera)
+	if _space_root == null:
+		_space_root = Node3D.new()
+		_space_root.name = "InspectSpace"
+		add_child(_space_root)
+	_space_root.add_child(_camera)
 
 
 func _seed_from_gameplay() -> void:

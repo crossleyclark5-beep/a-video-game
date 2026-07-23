@@ -24,9 +24,10 @@ static func stories_for(kind: StringName) -> int:
 			return 4
 		APARTMENT:
 			return 3
-		WAREHOUSE, BARN, GARAGE, BOOTH:
+		## Shops / fuel stops are single-story — matches shell footprints (Pass N Fuel).
+		WAREHOUSE, BARN, GARAGE, BOOTH, SHOP:
 			return 1
-		OFFICE, LANDMARK:
+		OFFICE, LANDMARK, RESTAURANT:
 			return 2
 		_:
 			return 2

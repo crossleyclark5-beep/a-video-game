@@ -69,8 +69,8 @@ func _process(_delta: float) -> void:
 		## No keys held — should be zero; also blocked in inspect
 		pass
 
-	## Free camera should be current + perspective
-	var free_cam := inspect.get_node_or_null("InspectCamera") as Camera3D
+	## Free camera should be current + perspective (lives under InspectSpace).
+	var free_cam := inspect.find_child("InspectCamera", true, false) as Camera3D
 	if free_cam == null or not free_cam.current:
 		push_error("InspectCamera missing or not current")
 		ok = false

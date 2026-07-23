@@ -48,6 +48,16 @@ func enter_building(building: BuildingVolume, actor: Node) -> void:
 	InputManager.set_context(InputManager.Context.BUILDING_INTERIOR)
 	_fade_roofs(building, 0.0)
 	_load_interior(building)
+	if _loaded_interior == null:
+		## Abort cleanly — never leave _transitioning stuck true.
+		push_warning("BuildingInterior: failed to load interior for %s" % building.building_id)
+		building.set_occupied(false)
+		_active = null
+		InputManager.set_context(InputManager.Context.OVERWORLD)
+		_fade_roofs(building, 1.0)
+		_transitioning = false
+		EventBus.ui_notification_requested.emit("Can't enter right now", 1.8)
+		return
 	_set_interior_camera(true, building.interior_zoom)
 	if actor is Node3D:
 		await _soft_move_actor(actor as Node3D, building.get_interior_entry_position())

@@ -222,8 +222,10 @@ static func make_enterable_building(
 	house.set("interior_scene", null)
 	house.set("exterior_zoom", 14.5)
 	house.set("interior_zoom", 9.2 if kind != InteriorKinds.TOWER else 8.5)
-	house.set("roof_paths", [NodePath("Roof"), NodePath("RoofPeak"), NodePath("Ridge")])
-	house.set("cutaway_paths", [])
+	house.set("roof_paths", BuildingVolume.make_path_array([
+		NodePath("Roof"), NodePath("RoofPeak"), NodePath("Ridge"),
+	]))
+	house.set("cutaway_paths", BuildingVolume.make_path_array([]))
 	if house.has_method("bind_door_now"):
 		house.call("bind_door_now")
 	if result.has(&"enterable_houses"):
