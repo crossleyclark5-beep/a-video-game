@@ -15,6 +15,7 @@ const BARN := &"barn"
 const BOOTH := &"booth"
 const CABIN := &"cabin"
 const FARMHOUSE := &"farmhouse"
+const GARAGE := &"garage"
 
 
 static func stories_for(kind: StringName) -> int:
@@ -23,9 +24,7 @@ static func stories_for(kind: StringName) -> int:
 			return 4
 		APARTMENT:
 			return 3
-		WAREHOUSE, BARN:
-			return 1
-		BOOTH:
+		WAREHOUSE, BARN, GARAGE, BOOTH:
 			return 1
 		OFFICE, LANDMARK:
 			return 2
@@ -40,6 +39,8 @@ static func floor_name(kind: StringName, index: int) -> String:
 				return "Shop Floor"
 			WAREHOUSE, BARN:
 				return "Ground Floor"
+			GARAGE:
+				return "Garage"
 			_:
 				return "Ground Floor"
 	if kind == TOWER or kind == APARTMENT:
@@ -61,6 +62,8 @@ static func display_verb(kind: StringName) -> String:
 			return "warehouse"
 		BARN:
 			return "barn"
+		GARAGE:
+			return "garage"
 		BOOTH:
 			return "booth"
 		TOWER:

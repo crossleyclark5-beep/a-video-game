@@ -12,7 +12,7 @@ extends RefCounted
 
 static func build(root: Node3D) -> Dictionary:
 	var result := {
-		&"player_spawn": Vector3(0.0, 0.15, 18.0),
+		&"player_spawn": Vector3(0.0, 0.15, 26.0),
 		&"chests": [],
 		&"enterable_houses": [],
 		&"expansion_points": [],

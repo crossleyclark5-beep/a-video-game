@@ -56,10 +56,11 @@ func _build_visual(def: Dictionary) -> void:
 		lib.name = "Visual"
 		var cid: StringName = def.get("character_id", CharacterCatalog.id_for_npc_role(role))
 		var scale_mul := 1.0
-		if role == NpcCatalog.Role.STORY:
-			scale_mul = 1.08
-		elif role == NpcCatalog.Role.RESEARCHER:
+		if role == NpcCatalog.Role.RESEARCHER:
 			scale_mul = 0.96
+		elif role == NpcCatalog.Role.STORY:
+			## Story cast matches adult band — no oversized hero mul.
+			scale_mul = 1.0
 		lib.build(cid, scale_mul)
 		add_child(lib)
 		_visual = lib
@@ -88,10 +89,8 @@ func _build_visual(def: Dictionary) -> void:
 	var human := HumanoidVisual.new()
 	human.name = "Visual"
 	human.build(col, accent, hat, hair)
-	## Story anchors slightly taller; researchers a touch leaner.
-	if role == NpcCatalog.Role.STORY:
-		human.scale = Vector3(1.05, 1.08, 1.05)
-	elif role == NpcCatalog.Role.RESEARCHER:
+	## Researchers a touch leaner; story cast stays adult-height.
+	if role == NpcCatalog.Role.RESEARCHER:
 		human.scale = Vector3(0.95, 1.0, 0.95)
 	add_child(human)
 	_visual = human

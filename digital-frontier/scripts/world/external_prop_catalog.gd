@@ -31,7 +31,7 @@ const PROPS: Dictionary = {
 	&"bench": {"path": "town/bench.glb", "scale": 2.1, "y": 0.0, "collision": true, "category": &"town"},
 	&"market_stall": {"path": "town/market_stall.glb", "scale": 1.55, "y": 0.0, "collision": true, "category": &"town"},
 	&"cart": {"path": "town/cart.glb", "scale": 1.7, "y": 0.0, "collision": true, "category": &"town"},
-	&"fountain": {"path": "town/fountain.glb", "scale": 6.2, "y": 0.0, "collision": true, "category": &"town"},
+	&"fountain": {"path": "town/fountain.glb", "scale": 2.4, "y": 0.0, "collision": true, "category": &"town", "target_height": 1.35},
 	&"banner": {"path": "town/banner.glb", "scale": 1.8, "y": 0.0, "collision": false, "category": &"town"},
 	## Interior — furniture sized for 1.7m humans
 	&"bed": {"path": "interior/bed.glb", "scale": 1.55, "y": 0.0, "collision": true, "category": &"interior"},
@@ -63,8 +63,8 @@ const PROPS: Dictionary = {
 	&"craft_racer": {"path": "transport/craft_racer.glb", "scale": 2.3, "y": 0.2, "collision": true, "category": &"transport", "mesh_yaw": 180.0, "tint": Color(0.9, 0.3, 0.35)},
 	&"craft_cargo": {"path": "transport/craft_cargo.glb", "scale": 2.5, "y": 0.25, "collision": true, "category": &"transport", "mesh_yaw": 180.0, "tint": Color(0.55, 0.6, 0.45)},
 	&"hangar_small": {"path": "transport/hangar_small.glb", "scale": 2.0, "y": 0.0, "collision": true, "category": &"transport"},
-	&"park_car": {"path": "transport/park_car.glb", "scale": 3.8, "y": 0.0, "collision": true, "category": &"transport", "mesh_yaw": 180.0, "tint": Color(0.78, 0.22, 0.18)},
-	&"adventure_suv": {"path": "transport/adventure_suv.glb", "scale": 1.55, "y": 0.0, "collision": true, "category": &"transport", "mesh_yaw": 180.0, "tint": Color(0.25, 0.45, 0.35)},
+	&"park_car": {"path": "transport/park_car.glb", "scale": 3.8, "y": 0.0, "collision": true, "category": &"transport", "mesh_yaw": 180.0, "tint": Color(0.78, 0.22, 0.18), "target_height": 1.45},
+	&"adventure_suv": {"path": "transport/adventure_suv.glb", "scale": 1.55, "y": 0.0, "collision": true, "category": &"transport", "mesh_yaw": 180.0, "tint": Color(0.25, 0.45, 0.35), "target_height": 1.70},
 }
 
 

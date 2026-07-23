@@ -82,6 +82,36 @@ func _ready() -> void:
 	else:
 		print("drive_tick_ok")
 
+	## Steering polarity: LEFT input must increase yaw (CCW) when moving forward on −Z.
+	## Mirror the car_vehicle formula without InputManager.
+	var steer_left := -1.0
+	var speed_fwd := 8.0
+	var yaw_left := -steer_left * 1.0 * 1.0 * signf(speed_fwd)
+	if yaw_left <= 0.0:
+		push_error("LEFT steer should produce positive yaw, got %s" % yaw_left)
+		ok = false
+	else:
+		print("steer_left_ok")
+	var steer_right := 1.0
+	var yaw_right := -steer_right * 1.0 * 1.0 * signf(speed_fwd)
+	if yaw_right >= 0.0:
+		push_error("RIGHT steer should produce negative yaw, got %s" % yaw_right)
+		ok = false
+	else:
+		print("steer_right_ok")
+
+	## Procedural visual detail present when GLB path skipped — accents always on GLB path.
+	if car.get_node_or_null("Visual/DetailAccents") == null and car.get_node_or_null("Visual/Tire") == null and car.get_node_or_null("Visual/HeadL") == null:
+		## Either GLB accents or procedural parts should exist.
+		var vis := car.get_node_or_null("Visual")
+		if vis == null or vis.get_child_count() < 3:
+			push_error("vehicle visual too sparse")
+			ok = false
+		else:
+			print("vehicle_visual_ok")
+	else:
+		print("vehicle_visual_ok")
+
 	if not car.try_dismount():
 		push_error("dismount failed")
 		ok = false

@@ -10,18 +10,21 @@ extends RefCounted
 ##   - Target-height scale helpers for catalog normalization
 
 
-## World height targets (meters) — human adult ≈ 1.7.
+## World height targets (meters) — consistent scale bible for Grassland / hubs.
+## Humans ≈ 1.6–1.7; sedan ≈ 1.45; SUV ≈ 1.70; fountain basin ≈ 1.35 (not a pond).
 const HEIGHT_PLAYER := 1.70
-const HEIGHT_NPC_ADULT := 1.65
-const HEIGHT_NPC_CHILD := 1.30
-const HEIGHT_CAR := 1.55
-const HEIGHT_TRUCK := 2.10
+const HEIGHT_NPC_ADULT := 1.60
+const HEIGHT_NPC_CHILD := 1.25
+const HEIGHT_CAR := 1.45
+const HEIGHT_SUV := 1.70
+const HEIGHT_TRUCK := 2.05
 const HEIGHT_TREE_SMALL := 4.5
 const HEIGHT_TREE_MED := 6.0
 const HEIGHT_TREE_TALL := 7.5
 const HEIGHT_BUSH := 0.85
 const HEIGHT_BENCH := 0.55
-const HEIGHT_FOUNTAIN := 1.90
+const HEIGHT_FOUNTAIN := 1.35
+const HEIGHT_POND_DEPTH := 0.18
 const HEIGHT_FURNITURE := 0.90
 
 ## Kenney / DF meshes face +Z. Godot looking_at points −Z — use this instead.
@@ -181,14 +184,31 @@ static func _guess_pattern(mesh_name: String, color: Color) -> StringName:
 	return &"flat"
 
 
+## Fit an instantiated mesh tree to a world height target (meters).
+static func fit_to_height(node: Node3D, target_height: float, scale_mul: float = 1.0) -> float:
+	if node == null or target_height < 0.05:
+		return 1.0
+	var aabb := combined_aabb(node)
+	var fit := scale_for_height(aabb.size.y, target_height) * scale_mul
+	node.scale = Vector3(fit, fit, fit)
+	## Ground after scale — AABB is local; world bottom = y + aabb.position.y * scale.
+	node.position.y -= aabb.position.y * fit
+	return fit
+
+
 ## Ground an instance so its AABB bottom sits on y=0 in local space.
 static func ground_to_origin(node: Node3D) -> void:
 	if node == null:
 		return
-	var aabb := _combined_aabb(node)
+	var aabb := combined_aabb(node)
 	if aabb.size.y < 0.001:
 		return
-	node.position.y -= aabb.position.y
+	var sy := node.scale.y if node.scale.y > 0.001 else 1.0
+	node.position.y -= aabb.position.y * sy
+
+
+static func combined_aabb(node: Node) -> AABB:
+	return _combined_aabb(node)
 
 
 static func _combined_aabb(node: Node) -> AABB:

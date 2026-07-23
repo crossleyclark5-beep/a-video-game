@@ -116,7 +116,7 @@ func _cache_cutaway_nodes() -> void:
 	_cutaway_meshes.clear()
 	_cutaway_bodies.clear()
 	var names := [
-		"Body", "RoofPeak", "PorchRoof", "Garage", "Chimney", "ChimneyCap", "Belt",
+		"Body", "RoofPeak", "PorchRoof", "Chimney", "ChimneyCap", "Belt",
 		"ShellFloor", "Yard",
 		## Front wall cutaway so the camera can see into the occupied room.
 		"WallF1", "WallF2", "Door", "DoorFrame",

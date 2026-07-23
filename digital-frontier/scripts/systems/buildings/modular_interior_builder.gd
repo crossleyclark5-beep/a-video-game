@@ -47,16 +47,30 @@ static func _make_floor(index: int, fname: String) -> BuildingFloor:
 
 
 static func _shell_walls(fl: BuildingFloor, kind: StringName, is_top: bool, personality: int = InteriorPersonality.Style.MODEST) -> void:
+	var room := _room_size(kind)
 	var wall_c := InteriorPersonality.wall_tint(personality, _wall_color(kind))
 	var floor_c := InteriorPersonality.floor_tint(personality, _floor_color(kind))
-	StylizedMesh.add_box(fl, ROOM, floor_c, Vector3(0, 0.06, 0), "Floor", true, 1.0, &"wood")
+	var floor_pat: StringName = &"wood"
+	if kind == InteriorKinds.GARAGE:
+		floor_c = WorldPalette.ROAD.lightened(0.08)
+		floor_pat = &"asphalt"
+	StylizedMesh.add_box(fl, room, floor_c, Vector3(0, 0.06, 0), "Floor", true, 1.0, floor_pat)
 	var wall_h := 1.7 if is_top and kind != InteriorKinds.TOWER else 2.8
-	StylizedMesh.add_box(fl, Vector3(ROOM.x, wall_h, 0.2), wall_c, Vector3(0, wall_h * 0.5, -ROOM.z * 0.5), "WallBack", true)
-	StylizedMesh.add_box(fl, Vector3(0.2, wall_h, ROOM.z), wall_c, Vector3(-ROOM.x * 0.5, wall_h * 0.5, 0), "WallL", true)
-	StylizedMesh.add_box(fl, Vector3(0.2, wall_h, ROOM.z), wall_c, Vector3(ROOM.x * 0.5, wall_h * 0.5, 0), "WallR", true)
+	if kind == InteriorKinds.GARAGE:
+		wall_h = 2.35
+	StylizedMesh.add_box(fl, Vector3(room.x, wall_h, 0.2), wall_c, Vector3(0, wall_h * 0.5, -room.z * 0.5), "WallBack", true)
+	StylizedMesh.add_box(fl, Vector3(0.2, wall_h, room.z), wall_c, Vector3(-room.x * 0.5, wall_h * 0.5, 0), "WallL", true)
+	StylizedMesh.add_box(fl, Vector3(0.2, wall_h, room.z), wall_c, Vector3(room.x * 0.5, wall_h * 0.5, 0), "WallR", true)
 	## Front doorway gap — keep center clear for walking.
-	StylizedMesh.add_box(fl, Vector3(2.4, wall_h, 0.2), wall_c, Vector3(-2.2, wall_h * 0.5, ROOM.z * 0.5), "WallF1", true)
-	StylizedMesh.add_box(fl, Vector3(2.4, wall_h, 0.2), wall_c, Vector3(2.2, wall_h * 0.5, ROOM.z * 0.5), "WallF2", true)
+	var wing := maxf((room.x - 1.6) * 0.5, 0.6)
+	StylizedMesh.add_box(fl, Vector3(wing, wall_h, 0.2), wall_c, Vector3(-(wing * 0.5 + 0.8), wall_h * 0.5, room.z * 0.5), "WallF1", true)
+	StylizedMesh.add_box(fl, Vector3(wing, wall_h, 0.2), wall_c, Vector3(wing * 0.5 + 0.8, wall_h * 0.5, room.z * 0.5), "WallF2", true)
+
+
+static func _room_size(kind: StringName) -> Vector3:
+	if kind == InteriorKinds.GARAGE:
+		return Vector3(3.4, 0.12, 4.6)
+	return ROOM
 
 
 static func _furnish_floor(
@@ -76,6 +90,8 @@ static func _furnish_floor(
 			_furnish_office(fl, index, rng)
 		InteriorKinds.WAREHOUSE, InteriorKinds.BARN:
 			_furnish_warehouse(fl, kind, rng)
+		InteriorKinds.GARAGE:
+			_furnish_garage(fl, rng)
 		InteriorKinds.BOOTH:
 			_furnish_booth(fl, rng)
 		InteriorKinds.APARTMENT, InteriorKinds.TOWER:
@@ -87,8 +103,28 @@ static func _furnish_floor(
 		_:
 			_furnish_house(fl, index, rng, personality)
 	## Chest against a wall — never mid-path near door (z > 0 toward door).
-	if index == 0 and rng.randf() < 0.55:
+	if index == 0 and kind != InteriorKinds.GARAGE and rng.randf() < 0.55:
 		_add_chest(fl, Vector3(rng.randf_range(-2.6, -2.0), 0.4, rng.randf_range(-2.4, -1.8)), building_id, index, ChestInteractable.Rarity.NORMAL)
+
+
+static func _furnish_garage(fl: BuildingFloor, rng: RandomNumberGenerator) -> void:
+	## Compact workshop — shelves, tools, storage; clear lane from door (+Z) to back.
+	StylizedMesh.add_box(fl, Vector3(1.4, 1.8, 0.35), WorldPalette.WOOD.darkened(0.1), Vector3(-1.2, 0.95, -1.8), "ShelfUnit", true, 1.0, &"wood")
+	for i in 3:
+		StylizedMesh.add_box(fl, Vector3(1.2, 0.06, 0.3), WorldPalette.WOOD, Vector3(-1.2, 0.45 + float(i) * 0.45, -1.8), "Shelf_%d" % i, false, 1.0, &"wood")
+		StylizedMesh.add_box(fl, Vector3(0.35, 0.28, 0.25), Color(0.55, 0.35, 0.22), Vector3(-1.35 + float(i % 2) * 0.35, 0.6 + float(i) * 0.4, -1.75), "Bin_%d" % i)
+	StylizedMesh.add_box(fl, Vector3(1.5, 0.85, 0.7), WorldPalette.WOOD, Vector3(1.0, 0.5, -1.7), "Workbench", true, 1.0, &"wood")
+	StylizedMesh.add_box(fl, Vector3(0.15, 0.08, 0.55), WorldPalette.METAL, Vector3(0.7, 0.95, -1.7), "ToolBar")
+	StylizedMesh.add_box(fl, Vector3(0.35, 0.12, 0.12), WorldPalette.METAL.darkened(0.15), Vector3(1.2, 0.98, -1.55), "Wrench")
+	StylizedMesh.add_box(fl, Vector3(0.7, 0.55, 0.45), Color(0.75, 0.55, 0.2), Vector3(1.15, 0.4, -0.6), "Toolbox", true)
+	StylizedMesh.add_box(fl, Vector3(0.55, 0.7, 0.55), Color(0.4, 0.42, 0.45), Vector3(-1.1, 0.4, -0.4), "Drum", true)
+	StylizedMesh.add_box(fl, Vector3(0.8, 0.5, 0.5), WorldPalette.WOOD.darkened(0.05), Vector3(-1.0, 0.35, 0.8), "Crate", true, 1.0, &"wood")
+	StylizedMesh.add_box(fl, Vector3(0.08, 1.4, 1.0), Color(0.35, 0.38, 0.4), Vector3(1.5, 1.1, 0.2), "Pegboard")
+	for i in 4:
+		StylizedMesh.add_box(fl, Vector3(0.06, 0.35, 0.06), WorldPalette.METAL, Vector3(1.42, 0.85 + float(i % 2) * 0.35, -0.15 + float(i) * 0.22), "HangTool_%d" % i)
+	if rng.randf() < 0.7:
+		StylizedMesh.add_box(fl, Vector3(0.9, 0.7, 0.35), Color(0.2, 0.45, 0.7), Vector3(0.9, 0.4, 1.2), "Cooler")
+	StylizedMesh.add_box(fl, Vector3(1.2, 0.02, 0.8), Color(0.25, 0.22, 0.18), Vector3(0, 0.1, 1.5), "Mat")
 
 
 static func _furnish_house(fl: BuildingFloor, index: int, rng: RandomNumberGenerator, personality: int) -> void:
@@ -437,7 +473,7 @@ static func _wall_color(kind: StringName) -> Color:
 			return Color(0.88, 0.84, 0.76)
 		InteriorKinds.RESTAURANT:
 			return Color(0.82, 0.72, 0.62)
-		InteriorKinds.WAREHOUSE, InteriorKinds.BARN:
+		InteriorKinds.WAREHOUSE, InteriorKinds.BARN, InteriorKinds.GARAGE:
 			return Color(0.7, 0.62, 0.5)
 		InteriorKinds.OFFICE, InteriorKinds.TOWER:
 			return Color(0.78, 0.8, 0.84)
@@ -449,7 +485,7 @@ static func _wall_color(kind: StringName) -> Color:
 
 static func _floor_color(kind: StringName) -> Color:
 	match kind:
-		InteriorKinds.WAREHOUSE, InteriorKinds.BARN:
+		InteriorKinds.WAREHOUSE, InteriorKinds.BARN, InteriorKinds.GARAGE:
 			return Color(0.45, 0.4, 0.35)
 		InteriorKinds.SHOP, InteriorKinds.RESTAURANT:
 			return Color(0.55, 0.42, 0.32)

@@ -66,6 +66,11 @@ func _process(_delta: float) -> void:
 	ok = _assert_named(office, ["Desk", "Terminal", "Bookshelves"]) and ok
 	office.free()
 
+	## Garage interior — tools / shelves / workbench
+	var garage := ModularInteriorBuilder.build(InteriorKinds.GARAGE, &"smoke_garage", 6)
+	ok = _assert_named(garage, ["ShelfUnit", "Workbench", "Toolbox", "Pegboard"]) and ok
+	garage.free()
+
 	## Placement guards reject road / hub centers
 	var hub: Vector3 = GrasslandLayout.hub_exclusion_zones()[0]["pos"]
 	if RegionVegetationBuilder.placement_allowed(hub, true):
