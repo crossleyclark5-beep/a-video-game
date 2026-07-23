@@ -53,7 +53,20 @@ func _ready() -> void:
 	EventBus.creature_discovered.connect(_on_creature_discovered)
 	EventBus.day_phase_changed.connect(_on_phase_chrome)
 	EventBus.weather_changed.connect(_on_weather_chrome)
+	call_deferred("_bind_inspect_chrome")
 	_refresh()
+
+
+func _bind_inspect_chrome() -> void:
+	for n in get_tree().get_nodes_in_group(WorldInspectController.GROUP):
+		if n is WorldInspectController:
+			var ctrl := n as WorldInspectController
+			if not ctrl.mode_changed.is_connected(_on_inspect_mode_changed):
+				ctrl.mode_changed.connect(_on_inspect_mode_changed)
+
+
+func _on_inspect_mode_changed(_active: bool) -> void:
+	_refresh_chrome()
 
 
 func bind_companion(companion: AdventureCompanionActor) -> void:
@@ -393,10 +406,18 @@ func _refresh_chrome() -> void:
 		_notice_line.text = _companion.get_notice_prompt()
 	else:
 		_notice_line.visible = false
-	_hint.text = InputManager.get_control_legend() + "  ·  %s strike/companion · %s map · Select settings" % [
+	var hint := InputManager.get_control_legend() + "  ·  %s strike/companion · %s map · Select settings" % [
 		InputManager.get_action_glyph(&"creature_action"),
 		InputManager.get_action_glyph(&"map_peek"),
 	]
+	if GameConfig.enable_cheats:
+		var inspect_on := false
+		for n in get_tree().get_nodes_in_group(WorldInspectController.GROUP):
+			if n is WorldInspectController and (n as WorldInspectController).is_active():
+				inspect_on = true
+				break
+		hint += "  ·  3D View %s (Select→ or F3)" % ("ON" if inspect_on else "OFF")
+	_hint.text = hint
 
 
 func _on_health_changed(current: float, maximum: float) -> void:

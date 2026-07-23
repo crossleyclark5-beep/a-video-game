@@ -77,7 +77,8 @@ static func _load_scene(path: String) -> PackedScene:
 
 
 static func _add_proxy_collision(root: Node3D, prop_id: String) -> void:
-	## Cheap capsule/box collision — world-meter sizes, counter-scaled by root.scale.
+	## Tight proxy collision matched to visual footprint — leave walk space in rooms.
+	## World-meter sizes, counter-scaled by root.scale so local shape stays correct.
 	var body := StaticBody3D.new()
 	body.name = "ProxyCollision"
 	root.add_child(body)
@@ -86,52 +87,67 @@ static func _add_proxy_collision(root: Node3D, prop_id: String) -> void:
 	var inv := 1.0 / maxf(root.scale.x, 0.01)
 	if sid.begins_with("tree_"):
 		var cap := CapsuleShape3D.new()
-		cap.radius = clampf(0.35, 0.28, 0.55) * inv
-		cap.height = clampf(3.2, 2.0, 4.5) * inv
+		cap.radius = 0.32 * inv
+		cap.height = 3.0 * inv
 		shape.shape = cap
 		shape.position = Vector3(0, cap.height * 0.5, 0)
-	elif sid in ["bench", "sofa", "bed", "desk", "coffee_table", "market_stall", "cart"]:
-		var box := BoxShape3D.new()
-		box.size = Vector3(1.4, 0.75, 0.85) * inv
-		shape.shape = box
-		shape.position = Vector3(0, 0.38 * inv, 0)
 	elif sid.begins_with("craft_") or sid in ["park_car", "adventure_suv"]:
 		var box_v := BoxShape3D.new()
-		box_v.size = Vector3(2.2, 1.15, 4.0) * inv
+		box_v.size = Vector3(1.9, 1.15, 3.6) * inv
 		shape.shape = box_v
-		shape.position = Vector3(0, 0.6 * inv, 0)
-	elif sid == "hangar_small":
-		var box_h := BoxShape3D.new()
-		box_h.size = Vector3(5.0, 2.8, 5.0) * inv
-		shape.shape = box_h
-		shape.position = Vector3(0, 1.4 * inv, 0)
-	elif sid in ["treasure_chest", "supply_crate", "supply_crate_item", "barrel"]:
-		var box_c := BoxShape3D.new()
-		box_c.size = Vector3(1.1, 0.9, 1.1) * inv
-		shape.shape = box_c
-		shape.position = Vector3(0, 0.45 * inv, 0)
-	elif sid in ["fence", "fence_gate"]:
-		var box2 := BoxShape3D.new()
-		box2.size = Vector3(1.8, 1.1, 0.22) * inv
-		shape.shape = box2
-		shape.position = Vector3(0, 0.55 * inv, 0)
-	elif sid == "tent":
-		var box3 := BoxShape3D.new()
-		box3.size = Vector3(2.4, 1.5, 2.4) * inv
-		shape.shape = box3
-		shape.position = Vector3(0, 0.75 * inv, 0)
-	elif sid == "fountain":
-		var cyl := CylinderShape3D.new()
-		cyl.radius = 0.85 * inv
-		cyl.height = 1.35 * inv
-		shape.shape = cyl
-		shape.position = Vector3(0, 0.7 * inv, 0)
+		shape.position = Vector3(0, 0.58 * inv, 0)
 	else:
-		var sphere := SphereShape3D.new()
-		sphere.radius = 0.55 * inv
-		shape.shape = sphere
-		shape.position = Vector3(0, 0.4 * inv, 0)
+		var dims := _furniture_collision_dims(sid)
+		var box := BoxShape3D.new()
+		## 10% XZ shrink so players can squeeze past without clipping the mesh badly.
+		box.size = Vector3(dims.x * 0.9, dims.y, dims.z * 0.9) * inv
+		shape.shape = box
+		shape.position = Vector3(0, dims.y * 0.5 * inv, 0)
 	body.add_child(shape)
+
+
+static func _furniture_collision_dims(sid: String) -> Vector3:
+	match sid:
+		"bench":
+			return Vector3(1.15, 0.5, 0.45)
+		"sofa":
+			return Vector3(1.7, 0.7, 0.7)
+		"bed":
+			return Vector3(1.8, 0.55, 1.15)
+		"desk":
+			return Vector3(1.2, 0.75, 0.6)
+		"coffee_table":
+			return Vector3(0.85, 0.35, 0.5)
+		"chair":
+			return Vector3(0.42, 0.85, 0.42)
+		"bookcase":
+			return Vector3(0.9, 1.85, 0.35)
+		"fridge":
+			return Vector3(0.65, 1.7, 0.6)
+		"stove":
+			return Vector3(0.65, 0.9, 0.55)
+		"sink":
+			return Vector3(0.55, 0.85, 0.45)
+		"toilet":
+			return Vector3(0.4, 0.7, 0.55)
+		"market_stall":
+			return Vector3(1.8, 2.0, 1.2)
+		"cart":
+			return Vector3(1.1, 1.1, 1.6)
+		"fountain":
+			return Vector3(1.15, 1.2, 1.15)
+		"tent":
+			return Vector3(2.0, 1.4, 2.0)
+		"fence", "fence_gate":
+			return Vector3(1.6, 1.0, 0.18)
+		"treasure_chest", "supply_crate", "supply_crate_item", "barrel":
+			return Vector3(0.85, 0.8, 0.85)
+		"hangar_small":
+			return Vector3(4.5, 2.6, 4.5)
+		"log", "rock_large", "rock_tall":
+			return Vector3(0.9, 0.7, 0.7)
+		_:
+			return Vector3(0.5, 0.7, 0.5)
 
 
 static func _mark_all_meshes_occludable(node: Node) -> void:

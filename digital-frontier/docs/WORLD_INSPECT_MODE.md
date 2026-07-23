@@ -9,7 +9,10 @@ Temporary free-camera + overlay suite for reviewing Digital Frontier as a **true
 | Action | Binding |
 | --- | --- |
 | Enter / exit inspect | **F3** (`inspect_toggle`) |
+| Adventure Settings | **3D View · ON/OFF** (cheats / debug builds) |
 | Exit | **Esc** / F3 |
+
+The Settings entry closes the pause menu, toggles instantly, and toasts `3D View · ON/OFF`. The Adventure HUD chrome also shows the current state when cheats are enabled.
 
 Starts from the current ortho gameplay camera; swaps to a perspective free-cam. Restores the 2.5D rig on exit. Input context becomes `WORLD_INSPECT` so the player/vehicles stop.
 

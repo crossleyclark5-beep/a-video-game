@@ -31,7 +31,7 @@ const PROPS: Dictionary = {
 	&"bench": {"path": "town/bench.glb", "scale": 2.1, "y": 0.0, "collision": true, "category": &"town", "target_height": 0.55},
 	&"market_stall": {"path": "town/market_stall.glb", "scale": 1.55, "y": 0.0, "collision": true, "category": &"town", "target_height": 2.4},
 	&"cart": {"path": "town/cart.glb", "scale": 1.7, "y": 0.0, "collision": true, "category": &"town", "target_height": 1.4},
-	&"fountain": {"path": "town/fountain.glb", "scale": 2.4, "y": 0.0, "collision": true, "category": &"town", "target_height": 1.35},
+	&"fountain": {"path": "town/fountain.glb", "scale": 1.8, "y": 0.0, "collision": true, "category": &"town", "target_height": 1.25},
 	&"banner": {"path": "town/banner.glb", "scale": 1.8, "y": 0.0, "collision": false, "category": &"town"},
 	## Interior — furniture sized for 1.7m humans
 	&"bed": {"path": "interior/bed.glb", "scale": 1.55, "y": 0.0, "collision": true, "category": &"interior", "target_height": 0.75},

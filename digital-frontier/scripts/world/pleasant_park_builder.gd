@@ -161,20 +161,78 @@ static func _add_road_network(root: Node3D) -> void:
 	_add_crosswalk(roads, Vector3(PARK_ROAD, Y_MARK, 0), false)
 	_add_crosswalk(roads, Vector3(0, Y_MARK, -FRONTAGE), true)
 	_add_crosswalk(roads, Vector3(0, Y_MARK, FRONTAGE), true)
-	## Driveway aprons from frontage toward each house (paired with house local driveways).
-	var drives := [
-		{"pos": Vector3(-12, Y_ROAD + 0.005, -25.2), "size": Vector3(2.8, 0.05, 5.0)},
-		{"pos": Vector3(12, Y_ROAD + 0.005, -25.2), "size": Vector3(2.8, 0.05, 5.0)},
-		{"pos": Vector3(25.2, Y_ROAD + 0.005, -12), "size": Vector3(5.0, 0.05, 2.8)},
-		{"pos": Vector3(25.2, Y_ROAD + 0.005, 12), "size": Vector3(5.0, 0.05, 2.8)},
-		{"pos": Vector3(-12, Y_ROAD + 0.005, 25.2), "size": Vector3(2.8, 0.05, 5.0)},
-		{"pos": Vector3(12, Y_ROAD + 0.005, 25.2), "size": Vector3(2.8, 0.05, 5.0)},
-		{"pos": Vector3(-25.2, Y_ROAD + 0.005, -12), "size": Vector3(5.0, 0.05, 2.8)},
-		{"pos": Vector3(-25.2, Y_ROAD + 0.005, 12), "size": Vector3(5.0, 0.05, 2.8)},
+	_add_crosswalk(roads, Vector3(-FRONTAGE, Y_MARK, 0), false)
+	_add_crosswalk(roads, Vector3(FRONTAGE, Y_MARK, 0), false)
+	## Junction pads — square fills at arterial × frontage / park-road crossings (no hairline gaps).
+	for jx: float in [-FRONTAGE, 0.0, FRONTAGE]:
+		for jz: float in [-FRONTAGE, 0.0, FRONTAGE]:
+			if is_zero_approx(jx) and is_zero_approx(jz):
+				continue
+			StylizedMesh.add_box(
+				roads,
+				Vector3(5.2, 0.05, 5.2),
+				ROAD,
+				Vector3(jx, Y_ROAD + 0.004, jz),
+				"JctF_%d_%d" % [int(jx), int(jz)],
+				true,
+				1.0,
+				&"asphalt"
+			)
+	for jx: float in [-PARK_ROAD, PARK_ROAD]:
+		for jz: float in [-PARK_ROAD, PARK_ROAD]:
+			StylizedMesh.add_box(
+				roads,
+				Vector3(5.5, 0.05, 5.5),
+				ROAD,
+				Vector3(jx, Y_ROAD + 0.004, jz),
+				"JctP_%d_%d" % [int(jx), int(jz)],
+				true,
+				1.0,
+				&"asphalt"
+			)
+	## Driveway aprons — world-space pads aligned to each house garage mouth
+	## (local x≈5, extruded along local +Z) so local Driveway meets frontage asphalt.
+	var h := HOUSE_RING
+	var house_drives := [
+		{"pos": Vector3(-12, 0, -h), "yaw": 0.0},
+		{"pos": Vector3(12, 0, -h), "yaw": 0.0},
+		{"pos": Vector3(h, 0, -12), "yaw": -90.0},
+		{"pos": Vector3(h, 0, 12), "yaw": -90.0},
+		{"pos": Vector3(-12, 0, h), "yaw": 180.0},
+		{"pos": Vector3(12, 0, h), "yaw": 180.0},
+		{"pos": Vector3(-h, 0, -12), "yaw": 90.0},
+		{"pos": Vector3(-h, 0, 12), "yaw": 90.0},
 	]
-	for i in drives.size():
-		var d: Dictionary = drives[i]
-		StylizedMesh.add_box(roads, d["size"], ROAD.lightened(0.06), d["pos"], "Drive_%d" % i, true, 1.0, &"asphalt")
+	for i in house_drives.size():
+		var apron: Dictionary = _driveway_apron_world(house_drives[i]["pos"] as Vector3, float(house_drives[i]["yaw"]))
+		StylizedMesh.add_box(
+			roads,
+			apron["size"] as Vector3,
+			ROAD.lightened(0.06),
+			apron["pos"] as Vector3,
+			"Drive_%d" % i,
+			true,
+			1.0,
+			&"asphalt"
+		)
+
+
+## Apron under a garage: mouth at local (5, 0, garage_front), extruded along local +Z toward the street.
+static func _driveway_apron_world(house_pos: Vector3, yaw_deg: float) -> Dictionary:
+	var yaw: float = deg_to_rad(yaw_deg)
+	## Matches _build_detailed_house driveway: centered on garage (local x=5), extends past porch toward curb.
+	var local_mouth := Vector3(5.0, 0.0, 1.8)
+	var world_mouth: Vector3 = house_pos + local_mouth.rotated(Vector3.UP, yaw)
+	var out_dir: Vector3 = Vector3(0.0, 0.0, 1.0).rotated(Vector3.UP, yaw)
+	var apron_len: float = 5.0
+	var apron_w: float = 3.0
+	var center: Vector3 = world_mouth + out_dir * (apron_len * 0.5)
+	var size := Vector3(
+		absf(out_dir.x) * apron_len + absf(out_dir.z) * apron_w,
+		0.05,
+		absf(out_dir.z) * apron_len + absf(out_dir.x) * apron_w
+	)
+	return {"pos": Vector3(center.x, Y_ROAD + 0.005, center.z), "size": size}
 
 
 static func _road_segment(parent: Node3D, pos: Vector3, size: Vector3, node_name: String, along_x: bool) -> void:
@@ -251,23 +309,23 @@ static func _add_central_park(root: Node3D) -> void:
 	StylizedMesh.add_box(park, Vector3(5.2, 0.03, 0.9), PATH.lightened(0.05), Vector3(-5.2, Y_PATH, -2.4), "PondPathS", false, 1.0, &"dirt")
 	StylizedMesh.add_box(park, Vector3(0.9, 0.03, 5.2), PATH.lightened(0.05), Vector3(-2.4, Y_PATH, -5.2), "PondPathE", false, 1.0, &"dirt")
 
-	## Iconic centerpiece gazebo (OG identity).
+	## Iconic centerpiece gazebo — human-scale (~4.5m roof, not a pavilion).
 	var gazebo := Node3D.new()
 	gazebo.name = "Gazebo"
 	park.add_child(gazebo)
-	for offset in [Vector3(-2.4, 1.35, -2.4), Vector3(2.4, 1.35, -2.4), Vector3(-2.4, 1.35, 2.4), Vector3(2.4, 1.35, 2.4)]:
-		StylizedMesh.add_box(gazebo, Vector3(0.32, 2.7, 0.32), WorldPalette.WOOD, offset, "Post", true, 1.0, &"wood")
-	var gazebo_roof := StylizedMesh.add_box(gazebo, Vector3(7.0, 0.2, 7.0), WorldPalette.ROOF_RED, Vector3(0, 2.75, 0), "RoofDeck", false, 1.0, &"wood")
-	var gazebo_peak := StylizedMesh.add_box(gazebo, Vector3(4.6, 0.55, 4.6), WorldPalette.ROOF_RED.darkened(0.08), Vector3(0, 3.2, 0), "RoofPeak", false, 1.0, &"wood")
+	for offset in [Vector3(-1.7, 1.2, -1.7), Vector3(1.7, 1.2, -1.7), Vector3(-1.7, 1.2, 1.7), Vector3(1.7, 1.2, 1.7)]:
+		StylizedMesh.add_box(gazebo, Vector3(0.26, 2.4, 0.26), WorldPalette.WOOD, offset, "Post", true, 1.0, &"wood")
+	var gazebo_roof := StylizedMesh.add_box(gazebo, Vector3(4.6, 0.16, 4.6), WorldPalette.ROOF_RED, Vector3(0, 2.45, 0), "RoofDeck", false, 1.0, &"wood")
+	var gazebo_peak := StylizedMesh.add_box(gazebo, Vector3(3.0, 0.45, 3.0), WorldPalette.ROOF_RED.darkened(0.08), Vector3(0, 2.85, 0), "RoofPeak", false, 1.0, &"wood")
 	OcclusionUtil.mark(gazebo_roof)
 	OcclusionUtil.mark(gazebo_peak)
-	StylizedMesh.add_box(gazebo, Vector3(5.2, 0.16, 5.2), WorldPalette.WOOD.lightened(0.1), Vector3(0, 0.14, 0), "Floor", true, 1.0, &"wood")
-	for z in [-2.5, 2.5]:
-		StylizedMesh.add_box(gazebo, Vector3(4.6, 0.08, 0.08), WorldPalette.WOOD.lightened(0.15), Vector3(0, 1.05, z), "Rail")
-	for x in [-2.5, 2.5]:
-		StylizedMesh.add_box(gazebo, Vector3(0.08, 0.08, 4.6), WorldPalette.WOOD.lightened(0.15), Vector3(x, 1.05, 0), "Rail")
+	StylizedMesh.add_box(gazebo, Vector3(3.6, 0.14, 3.6), WorldPalette.WOOD.lightened(0.1), Vector3(0, 0.12, 0), "Floor", true, 1.0, &"wood")
+	for z in [-1.75, 1.75]:
+		StylizedMesh.add_box(gazebo, Vector3(3.2, 0.07, 0.07), WorldPalette.WOOD.lightened(0.15), Vector3(0, 0.95, z), "Rail")
+	for x in [-1.75, 1.75]:
+		StylizedMesh.add_box(gazebo, Vector3(0.07, 0.07, 3.2), WorldPalette.WOOD.lightened(0.15), Vector3(x, 0.95, 0), "Rail")
 
-	## Proper park pond — human-scale (~4m), not a flooded plaza.
+	## Park pond — intimate (~3.4m), not a flooded plaza.
 	_add_park_pond(park, Vector3(-5.5, 0, -5.5))
 
 	## Picnic tables around the gazebo (OG park staple).
@@ -276,42 +334,42 @@ static func _add_central_park(root: Node3D) -> void:
 	_picnic_set(park, Vector3(-6.5, 0, 6.5))
 	_picnic_set(park, Vector3(6.5, 0, -6.5))
 
-	## Small fountain on south path — secondary landmark (~1.35m), gazebo stays hero.
+	## Small fountain on south path — secondary landmark (~1.35m tall, ~1.6m basin).
 	if ExternalPropKit.is_available():
-		ExternalPropKit.spawn(park, &"fountain", Vector3(0, 0, 7.5), 0.0, 1.0, "Fountain")
+		ExternalPropKit.spawn(park, &"fountain", Vector3(0, 0, 7.5), 0.0, 0.85, "Fountain")
 	else:
 		var fountain := Node3D.new()
 		fountain.name = "Fountain"
 		fountain.position = Vector3(0, 0, 7.5)
 		park.add_child(fountain)
-		StylizedMesh.add_box(fountain, Vector3(2.2, 0.22, 2.2), WorldPalette.SIDEWALK, Vector3(0, 0.18, 0), "Basin", true)
+		StylizedMesh.add_box(fountain, Vector3(1.6, 0.18, 1.6), WorldPalette.SIDEWALK, Vector3(0, 0.14, 0), "Basin", true)
 		var water_mi := MeshInstance3D.new()
 		water_mi.name = "Water"
 		var water_mesh := BoxMesh.new()
-		water_mesh.size = Vector3(1.7, 0.1, 1.7)
+		water_mesh.size = Vector3(1.2, 0.08, 1.2)
 		water_mi.mesh = water_mesh
 		water_mi.material_override = StylizedMesh.make_water_material(WorldPalette.WATER)
-		water_mi.position = Vector3(0, 0.28, 0)
+		water_mi.position = Vector3(0, 0.22, 0)
 		fountain.add_child(water_mi)
-		RegionPropKit.attach_living_water(water_mi, Vector3(1.7, 0.1, 1.7))
-		StylizedMesh.add_box(fountain, Vector3(0.32, 0.75, 0.32), WorldPalette.METAL, Vector3(0, 0.7, 0), "Spire")
-		StylizedMesh.add_box(fountain, Vector3(0.45, 0.2, 0.45), WorldPalette.WATER.lightened(0.15), Vector3(0, 1.1, 0), "WaterTop")
+		RegionPropKit.attach_living_water(water_mi, Vector3(1.2, 0.08, 1.2))
+		StylizedMesh.add_box(fountain, Vector3(0.28, 0.7, 0.28), WorldPalette.METAL, Vector3(0, 0.6, 0), "Spire")
+		StylizedMesh.add_box(fountain, Vector3(0.4, 0.16, 0.4), WorldPalette.WATER.lightened(0.15), Vector3(0, 1.0, 0), "WaterTop")
 		for i in 4:
 			var a := float(i) / 4.0 * TAU
-			StylizedMesh.add_box(fountain, Vector3(0.28, 0.12, 0.18), WorldPalette.METAL, Vector3(cos(a) * 1.05, 0.26, sin(a) * 1.05), "Rim")
+			StylizedMesh.add_box(fountain, Vector3(0.22, 0.1, 0.14), WorldPalette.METAL, Vector3(cos(a) * 0.72, 0.22, sin(a) * 0.72), "Rim")
 
-	## Playground tucked in NE park corner.
+	## Playground tucked in NE park corner — child-scale.
 	var play := Node3D.new()
 	play.name = "Playground"
 	play.position = Vector3(7.5, 0, -7.5)
 	park.add_child(play)
-	StylizedMesh.add_box(play, Vector3(4.5, 0.05, 4.0), WorldPalette.SAND, Vector3(0, Y_PATH, 0), "Sand", true, 1.0, &"dirt")
-	StylizedMesh.add_box(play, Vector3(0.2, 1.6, 0.2), WorldPalette.UI_ACCENT, Vector3(-1.2, 0.9, 0), "SwingPostL", true)
-	StylizedMesh.add_box(play, Vector3(0.2, 1.6, 0.2), WorldPalette.UI_ACCENT, Vector3(1.2, 0.9, 0), "SwingPostR", true)
-	StylizedMesh.add_box(play, Vector3(2.6, 0.12, 0.16), WorldPalette.BRICK, Vector3(0, 1.65, 0), "SwingBeam")
-	StylizedMesh.add_box(play, Vector3(0.5, 0.1, 0.28), WorldPalette.WINDOW, Vector3(0, 0.7, 0), "Seat")
-	StylizedMesh.add_box(play, Vector3(1.0, 0.7, 1.0), WorldPalette.UI_ACCENT, Vector3(0, 0.45, 1.3), "SlideBase", true)
-	StylizedMesh.add_box(play, Vector3(0.7, 0.1, 1.4), WorldPalette.UI_ACCENT.lightened(0.1), Vector3(0, 0.85, 0.6), "Slide")
+	StylizedMesh.add_box(play, Vector3(3.6, 0.05, 3.2), WorldPalette.SAND, Vector3(0, Y_PATH, 0), "Sand", true, 1.0, &"dirt")
+	StylizedMesh.add_box(play, Vector3(0.16, 1.35, 0.16), WorldPalette.UI_ACCENT, Vector3(-1.0, 0.75, 0), "SwingPostL", true)
+	StylizedMesh.add_box(play, Vector3(0.16, 1.35, 0.16), WorldPalette.UI_ACCENT, Vector3(1.0, 0.75, 0), "SwingPostR", true)
+	StylizedMesh.add_box(play, Vector3(2.2, 0.1, 0.14), WorldPalette.BRICK, Vector3(0, 1.4, 0), "SwingBeam")
+	StylizedMesh.add_box(play, Vector3(0.42, 0.08, 0.24), WorldPalette.WINDOW, Vector3(0, 0.6, 0), "Seat")
+	StylizedMesh.add_box(play, Vector3(0.85, 0.6, 0.85), WorldPalette.UI_ACCENT, Vector3(0, 0.4, 1.1), "SlideBase", true)
+	StylizedMesh.add_box(play, Vector3(0.6, 0.08, 1.15), WorldPalette.UI_ACCENT.lightened(0.1), Vector3(0, 0.75, 0.5), "Slide")
 
 
 static func _add_park_pond(park: Node3D, pos: Vector3) -> void:
@@ -319,23 +377,23 @@ static func _add_park_pond(park: Node3D, pos: Vector3) -> void:
 	pond.name = "ParkPond"
 	pond.position = pos
 	park.add_child(pond)
-	## Stone rim ~4m across; water shallow so it reads as a park pond, not a lake.
-	StylizedMesh.add_box(pond, Vector3(4.4, 0.22, 4.0), WorldPalette.ROCK.lightened(0.05), Vector3(0, 0.12, 0), "Rim", true, 1.0, &"dirt")
-	StylizedMesh.add_box(pond, Vector3(3.6, 0.08, 3.2), WorldPalette.ROCK.darkened(0.08), Vector3(0, 0.06, 0), "Basin", false, 1.0, &"dirt")
+	## Stone rim ~3.4m across; shallow so it reads as a park pond, not a lake.
+	StylizedMesh.add_box(pond, Vector3(3.4, 0.18, 3.1), WorldPalette.ROCK.lightened(0.05), Vector3(0, 0.1, 0), "Rim", true, 1.0, &"dirt")
+	StylizedMesh.add_box(pond, Vector3(2.8, 0.06, 2.5), WorldPalette.ROCK.darkened(0.08), Vector3(0, 0.05, 0), "Basin", false, 1.0, &"dirt")
 	var water_mi := MeshInstance3D.new()
 	water_mi.name = "PondWater"
 	var water_mesh := BoxMesh.new()
-	water_mesh.size = Vector3(3.3, AssetStandardizer.HEIGHT_POND_DEPTH, 2.9)
+	water_mesh.size = Vector3(2.5, AssetStandardizer.HEIGHT_POND_DEPTH, 2.2)
 	water_mi.mesh = water_mesh
 	water_mi.material_override = StylizedMesh.make_water_material(WorldPalette.WATER)
-	water_mi.position = Vector3(0, 0.14, 0)
+	water_mi.position = Vector3(0, 0.12, 0)
 	pond.add_child(water_mi)
-	RegionPropKit.attach_living_water(water_mi, Vector3(3.3, AssetStandardizer.HEIGHT_POND_DEPTH, 2.9))
+	RegionPropKit.attach_living_water(water_mi, Vector3(2.5, AssetStandardizer.HEIGHT_POND_DEPTH, 2.2))
 	## Reeds / rocks at the edge — intentional placement, not clutter.
-	StylizedMesh.add_box(pond, Vector3(0.18, 0.45, 0.12), WorldPalette.LEAF_DARK, Vector3(-1.6, 0.35, 1.3), "ReedA")
-	StylizedMesh.add_box(pond, Vector3(0.16, 0.4, 0.12), WorldPalette.LEAF, Vector3(-1.35, 0.32, 1.45), "ReedB")
-	StylizedMesh.add_box(pond, Vector3(0.35, 0.18, 0.28), WorldPalette.ROCK, Vector3(1.55, 0.2, -1.2), "ShoreRock")
-	_bench(park, pos + Vector3(3.2, 0, 0.5), -90)
+	StylizedMesh.add_box(pond, Vector3(0.16, 0.4, 0.1), WorldPalette.LEAF_DARK, Vector3(-1.2, 0.3, 1.0), "ReedA")
+	StylizedMesh.add_box(pond, Vector3(0.14, 0.35, 0.1), WorldPalette.LEAF, Vector3(-1.0, 0.28, 1.15), "ReedB")
+	StylizedMesh.add_box(pond, Vector3(0.3, 0.16, 0.24), WorldPalette.ROCK, Vector3(1.2, 0.16, -0.95), "ShoreRock")
+	_bench(park, pos + Vector3(2.6, 0, 0.4), -90)
 
 
 static func _picnic_set(parent: Node3D, pos: Vector3) -> void:
@@ -486,8 +544,8 @@ static func _build_detailed_house(parent: Node3D, spec: Dictionary) -> Node3D:
 	StylizedMesh.add_box(house, Vector3(11, 0.035, 10), yard_tint, Vector3(0, Y_GRASS, 0), "Lawn", false, 1.0, &"grass")
 	StylizedMesh.add_box(house, Vector3(8.2, 0.04, 7.0), WorldPalette.DIRT.lightened(0.06), Vector3(0, Y_GRASS + 0.01, 0), "Yard", false, 1.0, &"dirt")
 
-	## Driveway — from garage front toward street (+Z local meets frontage apron).
-	StylizedMesh.add_box(house, Vector3(2.8, 0.045, 5.4), ROAD.lightened(0.08), Vector3(4.0, Y_ROAD - 0.01, 2.8), "Driveway", true, 1.0, &"asphalt")
+	## Driveway — centered on garage (local x=5), runs past porch to meet street apron.
+	StylizedMesh.add_box(house, Vector3(3.0, 0.045, 6.4), ROAD.lightened(0.08), Vector3(5.0, Y_ROAD - 0.01, 3.3), "Driveway", true, 1.0, &"asphalt")
 
 	## Main body + foundation
 	var wall_pattern: StringName = &"brick" if style == &"brick" else &"wood"

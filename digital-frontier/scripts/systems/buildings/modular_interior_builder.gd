@@ -155,14 +155,14 @@ static func _furnish_living_zone(fl: BuildingFloor, personality: int, rng: Rando
 		InteriorPersonality.Style.ABANDONED:
 			couch_c = Color(0.4, 0.38, 0.32)
 	if not _try_external(fl, &"sofa", Vector3(-1.8, 0, -1.8), 180.0, 1.05, "Couch"):
-		StylizedMesh.add_box(fl, Vector3(2.2, 0.55, 0.85), couch_c, Vector3(-1.8, 0.4, -1.8), "Couch")
-	StylizedMesh.add_box(fl, Vector3(0.55, 0.55, 0.55), couch_c.darkened(0.08), Vector3(-0.5, 0.4, -1.9), "Armchair")
+		StylizedMesh.add_box(fl, Vector3(2.0, 0.55, 0.75), couch_c, Vector3(-1.8, 0.4, -1.8), "Couch", true)
+	StylizedMesh.add_box(fl, Vector3(0.5, 0.55, 0.5), couch_c.darkened(0.08), Vector3(-0.5, 0.4, -1.9), "Armchair", true)
 	if not _try_external(fl, &"coffee_table", Vector3(-1.5, 0, -0.85), 0.0, 1.0, "CoffeeTable"):
-		StylizedMesh.add_box(fl, Vector3(1.0, 0.28, 0.55), WorldPalette.WOOD, Vector3(-1.5, 0.28, -0.85), "CoffeeTable", false, 1.0, &"wood")
+		StylizedMesh.add_box(fl, Vector3(0.9, 0.28, 0.5), WorldPalette.WOOD, Vector3(-1.5, 0.28, -0.85), "CoffeeTable", true, 1.0, &"wood")
 	## TV / entertainment against back wall — not kitchen appliances.
 	if not _try_external(fl, &"television", Vector3(-1.6, 0, -2.55), 0.0, 1.0, "Television"):
 		StylizedMesh.add_box(fl, Vector3(1.3, 0.75, 0.2), Color(0.15, 0.15, 0.18), Vector3(-1.6, 1.15, -2.75), "Television")
-		StylizedMesh.add_box(fl, Vector3(1.5, 0.45, 0.4), WorldPalette.WOOD.darkened(0.1), Vector3(-1.6, 0.45, -2.55), "TVStand", false, 1.0, &"wood")
+		StylizedMesh.add_box(fl, Vector3(1.4, 0.45, 0.38), WorldPalette.WOOD.darkened(0.1), Vector3(-1.6, 0.45, -2.55), "TVStand", true, 1.0, &"wood")
 	StylizedMesh.add_box(fl, Vector3(1.8, 0.04, 1.2), Color(0.55, 0.2, 0.25) if personality != InteriorPersonality.Style.MODERN else Color(0.35, 0.4, 0.45), Vector3(-1.4, 0.14, -1.2), "LivingRug")
 	if personality == InteriorPersonality.Style.WEALTHY or personality == InteriorPersonality.Style.MODEST:
 		StylizedMesh.add_box(fl, Vector3(0.7, 0.7, 0.12), Color(0.85, 0.8, 0.7), Vector3(-2.8, 1.4, -2.5), "FamilyPhoto")
@@ -175,9 +175,9 @@ static func _furnish_living_zone(fl: BuildingFloor, personality: int, rng: Rando
 		_try_external(fl, &"floor_lamp", Vector3(-2.6, 0, -1.2), 0.0, 1.0, "FloorLamp")
 	## Fireplace opposite the couch — living rooms feel finished.
 	if personality != InteriorPersonality.Style.ABANDONED and personality != InteriorPersonality.Style.MODERN:
-		StylizedMesh.add_box(fl, Vector3(1.35, 1.15, 0.45), WorldPalette.BRICK, Vector3(0.2, 0.7, -2.55), "Fireplace", false, 1.0, &"brick")
+		StylizedMesh.add_box(fl, Vector3(1.2, 1.15, 0.4), WorldPalette.BRICK, Vector3(0.2, 0.7, -2.55), "Fireplace", true, 1.0, &"brick")
 		StylizedMesh.add_box(fl, Vector3(0.85, 0.55, 0.25), Color(0.12, 0.1, 0.1), Vector3(0.2, 0.45, -2.35), "Firebox")
-		StylizedMesh.add_box(fl, Vector3(1.5, 0.12, 0.55), WorldPalette.WOOD.darkened(0.1), Vector3(0.2, 1.3, -2.5), "Mantel", false, 1.0, &"wood")
+		StylizedMesh.add_box(fl, Vector3(1.35, 0.12, 0.5), WorldPalette.WOOD.darkened(0.1), Vector3(0.2, 1.3, -2.5), "Mantel", false, 1.0, &"wood")
 		if personality == InteriorPersonality.Style.RUSTIC or personality == InteriorPersonality.Style.WEALTHY:
 			StylizedMesh.add_box(fl, Vector3(0.35, 0.25, 0.35), WorldPalette.UI_ACCENT.lerp(Color(1.0, 0.45, 0.1), 0.5), Vector3(0.2, 0.35, -2.4), "Embers")
 	elif personality == InteriorPersonality.Style.MODERN:
@@ -188,17 +188,17 @@ static func _furnish_living_zone(fl: BuildingFloor, personality: int, rng: Rando
 static func _furnish_kitchen_zone(fl: BuildingFloor, personality: int, _rng: RandomNumberGenerator) -> void:
 	## Right / back — counters, fridge, stove. Never beds or couches here.
 	if personality == InteriorPersonality.Style.ABANDONED:
-		StylizedMesh.add_box(fl, Vector3(1.4, 0.7, 0.55), Color(0.55, 0.5, 0.42), Vector3(2.0, 0.5, -2.0), "BrokenCounter")
-		StylizedMesh.add_box(fl, Vector3(0.7, 1.4, 0.6), Color(0.5, 0.5, 0.48), Vector3(2.7, 0.85, -0.8), "DustyFridge")
+		StylizedMesh.add_box(fl, Vector3(1.3, 0.7, 0.5), Color(0.55, 0.5, 0.42), Vector3(2.0, 0.5, -2.0), "BrokenCounter", true)
+		StylizedMesh.add_box(fl, Vector3(0.65, 1.4, 0.55), Color(0.5, 0.5, 0.48), Vector3(2.7, 0.85, -0.8), "DustyFridge", true)
 		return
-	StylizedMesh.add_box(fl, Vector3(2.2, 0.7, 0.55), Color(0.75, 0.75, 0.78), Vector3(1.9, 0.5, -2.2), "KitchenCounter")
-	StylizedMesh.add_box(fl, Vector3(2.0, 0.08, 0.5), Color(0.85, 0.85, 0.88), Vector3(1.9, 0.88, -2.2), "CounterTop")
+	StylizedMesh.add_box(fl, Vector3(2.0, 0.7, 0.5), Color(0.75, 0.75, 0.78), Vector3(1.9, 0.5, -2.2), "KitchenCounter", true)
+	StylizedMesh.add_box(fl, Vector3(1.9, 0.08, 0.45), Color(0.85, 0.85, 0.88), Vector3(1.9, 0.88, -2.2), "CounterTop")
 	if not _try_external(fl, &"fridge", Vector3(2.7, 0, -0.9), 90.0, 1.0, "Refrigerator"):
-		StylizedMesh.add_box(fl, Vector3(0.7, 1.5, 0.65), Color(0.7, 0.72, 0.75), Vector3(2.7, 0.9, -0.9), "Refrigerator")
+		StylizedMesh.add_box(fl, Vector3(0.65, 1.5, 0.6), Color(0.7, 0.72, 0.75), Vector3(2.7, 0.9, -0.9), "Refrigerator", true)
 	if not _try_external(fl, &"stove", Vector3(1.1, 0, -2.2), 0.0, 1.0, "Stove"):
-		StylizedMesh.add_box(fl, Vector3(0.7, 0.55, 0.55), Color(0.35, 0.35, 0.38), Vector3(1.1, 0.45, -2.2), "Stove")
+		StylizedMesh.add_box(fl, Vector3(0.65, 0.55, 0.5), Color(0.35, 0.35, 0.38), Vector3(1.1, 0.45, -2.2), "Stove", true)
 		StylizedMesh.add_box(fl, Vector3(0.55, 0.08, 0.45), Color(0.2, 0.2, 0.22), Vector3(1.1, 0.78, -2.2), "Burners")
-	StylizedMesh.add_box(fl, Vector3(0.9, 1.2, 0.4), WorldPalette.WOOD, Vector3(2.7, 1.5, -2.3), "Cabinets", false, 1.0, &"wood")
+	StylizedMesh.add_box(fl, Vector3(0.85, 1.2, 0.35), WorldPalette.WOOD, Vector3(2.7, 1.5, -2.3), "Cabinets", true, 1.0, &"wood")
 	if personality == InteriorPersonality.Style.WEALTHY:
 		StylizedMesh.add_box(fl, Vector3(0.45, 0.35, 0.45), Color(0.9, 0.9, 0.92), Vector3(2.0, 1.1, -2.15), "Mixer")
 	if personality == InteriorPersonality.Style.RUSTIC:
@@ -210,15 +210,15 @@ static func _furnish_dining_zone(fl: BuildingFloor, personality: int, rng: Rando
 	var table_c := WorldPalette.WOOD
 	if personality == InteriorPersonality.Style.MODERN:
 		table_c = Color(0.55, 0.55, 0.58)
-	StylizedMesh.add_box(fl, Vector3(1.3, 0.5, 0.9), table_c, Vector3(1.3, 0.4, 0.5), "DiningTable", false, 1.0, &"wood")
+	StylizedMesh.add_box(fl, Vector3(1.2, 0.5, 0.8), table_c, Vector3(1.3, 0.4, 0.5), "DiningTable", true, 1.0, &"wood")
 	if not _try_external(fl, &"chair", Vector3(0.55, 0, 0.5), 90.0, 1.0, "ChairL"):
-		StylizedMesh.add_box(fl, Vector3(0.4, 0.55, 0.4), table_c.darkened(0.1), Vector3(0.55, 0.35, 0.5), "ChairL")
+		StylizedMesh.add_box(fl, Vector3(0.38, 0.55, 0.38), table_c.darkened(0.1), Vector3(0.55, 0.35, 0.5), "ChairL", true)
 	if not _try_external(fl, &"chair", Vector3(2.05, 0, 0.5), -90.0, 1.0, "ChairR"):
-		StylizedMesh.add_box(fl, Vector3(0.4, 0.55, 0.4), table_c.darkened(0.1), Vector3(2.05, 0.35, 0.5), "ChairR")
+		StylizedMesh.add_box(fl, Vector3(0.38, 0.55, 0.38), table_c.darkened(0.1), Vector3(2.05, 0.35, 0.5), "ChairR", true)
 	if personality != InteriorPersonality.Style.ABANDONED and rng.randf() < 0.7:
 		StylizedMesh.add_box(fl, Vector3(0.35, 0.12, 0.35), Color(0.9, 0.85, 0.7), Vector3(1.3, 0.72, 0.5), "PlaceSetting")
 	if personality == InteriorPersonality.Style.WEALTHY:
-		StylizedMesh.add_box(fl, Vector3(0.9, 1.5, 0.35), Color(0.4, 0.3, 0.45), Vector3(2.7, 0.95, 1.6), "ChinaCabinet", false, 1.0, &"wood")
+		StylizedMesh.add_box(fl, Vector3(0.85, 1.5, 0.32), Color(0.4, 0.3, 0.45), Vector3(2.7, 0.95, 1.6), "ChinaCabinet", true, 1.0, &"wood")
 
 
 static func _furnish_bedroom_zone(fl: BuildingFloor, personality: int, rng: RandomNumberGenerator) -> void:
@@ -234,13 +234,13 @@ static func _furnish_bedroom_zone(fl: BuildingFloor, personality: int, rng: Rand
 		InteriorPersonality.Style.ABANDONED:
 			bed_c = Color(0.4, 0.4, 0.38)
 	if not _try_external(fl, &"bed", Vector3(-1.7, 0, -0.4), 90.0, 1.0, "Bed"):
-		StylizedMesh.add_box(fl, Vector3(2.0, 0.4, 1.4), bed_c, Vector3(-1.7, 0.35, -0.4), "Bed")
-		StylizedMesh.add_box(fl, Vector3(1.8, 0.18, 0.5), Color(0.9, 0.9, 0.92), Vector3(-1.7, 0.65, -0.85), "Pillow")
-	StylizedMesh.add_box(fl, Vector3(0.5, 0.45, 0.45), WorldPalette.WOOD, Vector3(-0.35, 0.35, -1.6), "Nightstand", false, 1.0, &"wood")
+		StylizedMesh.add_box(fl, Vector3(1.9, 0.4, 1.3), bed_c, Vector3(-1.7, 0.35, -0.4), "Bed", true)
+		StylizedMesh.add_box(fl, Vector3(1.7, 0.18, 0.45), Color(0.9, 0.9, 0.92), Vector3(-1.7, 0.65, -0.85), "Pillow")
+	StylizedMesh.add_box(fl, Vector3(0.45, 0.45, 0.4), WorldPalette.WOOD, Vector3(-0.35, 0.35, -1.6), "Nightstand", true, 1.0, &"wood")
 	StylizedMesh.add_box(fl, Vector3(0.2, 0.35, 0.2), Color(0.95, 0.9, 0.7), Vector3(-0.35, 0.75, -1.6), "Lamp")
 	if not _try_external(fl, &"bookcase", Vector3(1.8, 0, -1.8), 0.0, 1.0, "Dresser"):
-		StylizedMesh.add_box(fl, Vector3(1.0, 1.15, 0.45), WorldPalette.WOOD, Vector3(1.8, 0.7, -1.8), "Dresser", false, 1.0, &"wood")
-	StylizedMesh.add_box(fl, Vector3(0.9, 1.7, 0.4), Color(0.55, 0.45, 0.35), Vector3(2.5, 1.0, 0.8), "Closet", false, 1.0, &"wood")
+		StylizedMesh.add_box(fl, Vector3(0.95, 1.15, 0.4), WorldPalette.WOOD, Vector3(1.8, 0.7, -1.8), "Dresser", true, 1.0, &"wood")
+	StylizedMesh.add_box(fl, Vector3(0.85, 1.7, 0.35), Color(0.55, 0.45, 0.35), Vector3(2.5, 1.0, 0.8), "Closet", true, 1.0, &"wood")
 	StylizedMesh.add_box(fl, Vector3(0.7, 0.7, 0.12), Color(0.85, 0.8, 0.7), Vector3(-2.6, 1.35, -2.4), "WallArt")
 	if personality == InteriorPersonality.Style.WEALTHY:
 		if not _try_external(fl, &"desk", Vector3(0.8, 0, 1.5), 180.0, 0.85, "Vanity"):
@@ -258,10 +258,10 @@ static func _furnish_bath_zone(fl: BuildingFloor, personality: int, _rng: Random
 		StylizedMesh.add_box(fl, Vector3(0.7, 0.55, 0.45), Color(0.65, 0.65, 0.6), Vector3(1.2, 0.4, 2.0), "CrackedSink")
 		return
 	if not _try_external(fl, &"sink", Vector3(0.9, 0, 2.0), 180.0, 0.85, "Sink"):
-		StylizedMesh.add_box(fl, Vector3(0.7, 0.55, 0.45), Color(0.9, 0.9, 0.92), Vector3(0.9, 0.4, 2.0), "Sink")
+		StylizedMesh.add_box(fl, Vector3(0.65, 0.55, 0.4), Color(0.9, 0.9, 0.92), Vector3(0.9, 0.4, 2.0), "Sink", true)
 	if not _try_external(fl, &"toilet", Vector3(1.8, 0, 2.0), 180.0, 1.0, "Toilet"):
-		StylizedMesh.add_box(fl, Vector3(0.45, 0.45, 0.55), Color(0.88, 0.88, 0.9), Vector3(1.8, 0.35, 2.0), "Toilet")
-	StylizedMesh.add_box(fl, Vector3(1.3, 0.55, 0.7), Color(0.85, 0.88, 0.92), Vector3(-0.5, 0.4, 2.0), "Bathtub")
+		StylizedMesh.add_box(fl, Vector3(0.4, 0.45, 0.5), Color(0.88, 0.88, 0.9), Vector3(1.8, 0.35, 2.0), "Toilet", true)
+	StylizedMesh.add_box(fl, Vector3(1.2, 0.55, 0.65), Color(0.85, 0.88, 0.92), Vector3(-0.5, 0.4, 2.0), "Bathtub", true)
 	StylizedMesh.add_box(fl, Vector3(0.5, 0.7, 0.12), Color(0.7, 0.75, 0.8), Vector3(0.9, 1.15, 2.35), "Mirror")
 
 

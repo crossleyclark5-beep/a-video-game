@@ -12,8 +12,9 @@ Apply via `AssetStandardizer` height targets + catalog `target_height` where nee
 | NPC adult | 1.60 |
 | Sedan | 1.45 |
 | SUV | 1.70 |
-| Fountain | 1.35 |
-| Park pond | ~4m across, ~0.18 deep |
+| Fountain | 1.25 |
+| Park pond | ~3.4m across, ~0.18 deep |
+| Gazebo | ~4.5m roof |
 
 Do not fix props one-off — change the rule, then re-fit.
 
@@ -21,7 +22,9 @@ Do not fix props one-off — change the rule, then re-fit.
 
 - **Arterials** N–S / E–W through the square
 - **Park curb loop** around the lawn
-- **Frontage streets** in front of houses; driveways meet them
+- **Frontage streets** in front of houses; driveways + garage-aligned aprons meet them
+- **Junction pads** at arterial × frontage / park-road crossings (no hairline gaps)
+- **Corridor path starts** snap to park arterial tips (Approach / Soccer / Fuel / EW)
 - **Side streets** between house pairs (no dead stubs)
 - Houses face the park; garages are enterable (`InteriorKinds.GARAGE`)
 

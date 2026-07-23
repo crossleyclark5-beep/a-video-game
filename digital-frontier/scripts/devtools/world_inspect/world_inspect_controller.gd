@@ -105,6 +105,19 @@ func toggle() -> void:
 		enter_mode()
 
 
+## Close any open MENU modal, then toggle — safe from Device Settings.
+func toggle_from_ui() -> void:
+	if not GameConfig.enable_cheats:
+		EventBus.ui_notification_requested.emit("3D View is a developer tool (debug builds).", 2.2)
+		return
+	## Pop MENU context if settings/pause is open so can_enter succeeds.
+	while InputManager.get_context() == InputManager.Context.MENU:
+		InputManager.pop_context()
+	toggle()
+	var state := "ON" if active else "OFF"
+	EventBus.ui_notification_requested.emit("3D View · %s" % state, 1.8)
+
+
 func enter_mode() -> void:
 	if active or not can_enter():
 		return

@@ -50,9 +50,11 @@ static func walk_minutes(distance: float) -> float:
 
 
 ## Road polylines (world XZ). Curves + waypoints so travel isn't a ruler line.
+## First waypoint snaps to Pleasant Park arterial tips (RoadApproach / RoadSoccer / RoadFuel / ArterialEW)
+## so corridor asphalt meets the hub with no gap.
 static func path_park_to_salty() -> Array[Vector3]:
 	return [
-		Vector3(20.0, 0.0, 40.0),
+		Vector3(0.0, 0.0, 41.0), ## RoadApproach south tip
 		Vector3(120.0, 0.0, 420.0),
 		Vector3(260.0, 0.0, 900.0),
 		LANDMARK_PINE_HOLLOW,
@@ -63,7 +65,7 @@ static func path_park_to_salty() -> Array[Vector3]:
 
 static func path_park_to_reels() -> Array[Vector3]:
 	return [
-		Vector3(10.0, 0.0, -40.0),
+		Vector3(0.0, 0.0, -42.0), ## RoadSoccer north tip
 		Vector3(-40.0, 0.0, -520.0),
 		Vector3(40.0, 0.0, -1100.0),
 		LANDMARK_NORTH_PASS,
@@ -76,7 +78,7 @@ static func path_park_to_reels() -> Array[Vector3]:
 static func path_park_to_fields() -> Array[Vector3]:
 	## Southeast arc — not stacked under Salty.
 	return [
-		Vector3(40.0, 0.0, 40.0),
+		Vector3(20.0, 0.0, 41.0), ## south approach, then peel SE
 		Vector3(480.0, 0.0, 380.0),
 		Vector3(1100.0, 0.0, 900.0),
 		Vector3(1700.0, 0.0, 1800.0),
@@ -88,7 +90,7 @@ static func path_park_to_fields() -> Array[Vector3]:
 
 static func path_park_to_mere() -> Array[Vector3]:
 	return [
-		Vector3(40.0, 0.0, -20.0),
+		Vector3(42.0, 0.0, -8.0), ## RoadFuel east tip, peel NE
 		Vector3(280.0, 0.0, -180.0),
 		LANDMARK_STREAM_CROSSING,
 		LANDMARK_CREEK_BRIDGE,
@@ -99,7 +101,7 @@ static func path_park_to_mere() -> Array[Vector3]:
 
 static func path_park_to_mile() -> Array[Vector3]:
 	return [
-		Vector3(40.0, 0.0, 20.0),
+		Vector3(42.0, 0.0, 0.0), ## RoadFuel east tip
 		Vector3(520.0, 0.0, 60.0),
 		LANDMARK_CREATURE_DEN,
 		Vector3(1800.0, 0.0, 140.0),
@@ -110,7 +112,7 @@ static func path_park_to_mile() -> Array[Vector3]:
 
 static func path_park_to_grove() -> Array[Vector3]:
 	return [
-		Vector3(-30.0, 0.0, 20.0),
+		Vector3(-28.0, 0.0, 0.0), ## ArterialEW west tip
 		LANDMARK_SECRET_SHACK,
 		Vector3(-720.0, 0.0, 680.0),
 		Vector3(-1400.0, 0.0, 1100.0),
