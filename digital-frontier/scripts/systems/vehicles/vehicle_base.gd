@@ -251,6 +251,9 @@ func _ensure_visual() -> void:
 		ExternalPropKit.spawn(_visual, prop_id, Vector3.ZERO, 0.0, 1.0, "Mesh", body_col)
 		## External props bring their own proxy collision — remove duplicate static bodies under visual.
 		_strip_proxy_collision(_visual)
+		_decorate_vehicle_accents(color)
+	elif vehicle_id == &"utility_truck" or (data and data.id == &"utility_truck"):
+		_build_procedural_truck(color)
 	else:
 		_build_procedural_car(color)
 
@@ -264,20 +267,97 @@ func _strip_proxy_collision(node: Node) -> void:
 
 
 func _build_procedural_car(color: Color) -> void:
-	StylizedMesh.add_box(_visual, Vector3(1.8, 0.55, 3.6), color, Vector3(0, 0.45, 0), "Body", false)
-	StylizedMesh.add_box(_visual, Vector3(1.6, 0.5, 1.8), color.lightened(0.08), Vector3(0, 0.95, -0.2), "Cabin")
+	## Compact sedan silhouette — windows, tires, lights, door seams (not a colored brick).
+	var body_dark := color.darkened(0.12)
+	var trim := Color(0.18, 0.18, 0.2)
+	StylizedMesh.add_box(_visual, Vector3(1.85, 0.42, 3.7), color, Vector3(0, 0.42, 0), "Body", false)
+	StylizedMesh.add_box(_visual, Vector3(1.75, 0.18, 3.55), body_dark, Vector3(0, 0.22, 0), "Rocker")
+	StylizedMesh.add_box(_visual, Vector3(1.55, 0.55, 1.85), color.lightened(0.06), Vector3(0, 0.92, -0.15), "Cabin")
+	## Hood / trunk shelves.
+	StylizedMesh.add_box(_visual, Vector3(1.7, 0.12, 0.85), color.darkened(0.05), Vector3(0, 0.68, 1.15), "Hood")
+	StylizedMesh.add_box(_visual, Vector3(1.65, 0.12, 0.7), color.darkened(0.08), Vector3(0, 0.68, -1.35), "Trunk")
+	## Grille + bumper.
+	StylizedMesh.add_box(_visual, Vector3(1.2, 0.28, 0.1), trim, Vector3(0, 0.42, 1.88), "Grille")
+	StylizedMesh.add_box(_visual, Vector3(1.9, 0.16, 0.18), Color(0.28, 0.28, 0.3), Vector3(0, 0.28, 1.92), "BumperF")
+	StylizedMesh.add_box(_visual, Vector3(1.9, 0.16, 0.18), Color(0.28, 0.28, 0.3), Vector3(0, 0.28, -1.92), "BumperR")
+	## Door seam lines.
+	StylizedMesh.add_box(_visual, Vector3(0.03, 0.35, 1.1), trim.lightened(0.15), Vector3(-0.93, 0.55, 0.15), "DoorSeamL")
+	StylizedMesh.add_box(_visual, Vector3(0.03, 0.35, 1.1), trim.lightened(0.15), Vector3(0.93, 0.55, 0.15), "DoorSeamR")
+	StylizedMesh.add_box(_visual, Vector3(0.08, 0.08, 0.08), WorldPalette.FLOWER_Y, Vector3(-0.95, 0.55, 0.55), "HandleL")
+	StylizedMesh.add_box(_visual, Vector3(0.08, 0.08, 0.08), WorldPalette.FLOWER_Y, Vector3(0.95, 0.55, 0.55), "HandleR")
+	## Glass — windshield, rear, sides.
+	_add_car_glass(Vector3(1.4, 0.42, 0.06), Vector3(0, 0.98, 0.78), "Windshield")
+	_add_car_glass(Vector3(1.35, 0.38, 0.06), Vector3(0, 0.98, -1.05), "RearGlass")
+	_add_car_glass(Vector3(0.06, 0.36, 1.2), Vector3(-0.8, 0.95, -0.1), "SideGlassL")
+	_add_car_glass(Vector3(0.06, 0.36, 1.2), Vector3(0.8, 0.95, -0.1), "SideGlassR")
+	## Interior seats (read through glass).
+	StylizedMesh.add_box(_visual, Vector3(0.55, 0.28, 0.45), Color(0.22, 0.22, 0.28), Vector3(-0.35, 0.72, 0.15), "SeatL")
+	StylizedMesh.add_box(_visual, Vector3(0.55, 0.28, 0.45), Color(0.22, 0.22, 0.28), Vector3(0.35, 0.72, 0.15), "SeatR")
+	StylizedMesh.add_box(_visual, Vector3(1.1, 0.08, 0.35), Color(0.15, 0.15, 0.18), Vector3(0, 0.7, 0.55), "Dash")
+	## Tires + hubcaps.
+	for wp in [Vector3(-0.92, 0.28, 1.15), Vector3(0.92, 0.28, 1.15), Vector3(-0.92, 0.28, -1.15), Vector3(0.92, 0.28, -1.15)]:
+		StylizedMesh.add_box(_visual, Vector3(0.28, 0.48, 0.48), Color(0.08, 0.08, 0.08), wp, "Tire")
+		StylizedMesh.add_box(_visual, Vector3(0.12, 0.22, 0.22), Color(0.55, 0.55, 0.58), wp + Vector3(0.1 if wp.x > 0.0 else -0.1, 0, 0), "Hub")
+	## Lights.
+	var head := WorldPalette.LAMP_GLOW
+	var tail := Color(0.85, 0.15, 0.12)
+	StylizedMesh.add_box(_visual, Vector3(0.28, 0.14, 0.12), head, Vector3(-0.65, 0.48, 1.88), "HeadL")
+	StylizedMesh.add_box(_visual, Vector3(0.28, 0.14, 0.12), head, Vector3(0.65, 0.48, 1.88), "HeadR")
+	StylizedMesh.add_box(_visual, Vector3(0.32, 0.12, 0.1), tail, Vector3(-0.65, 0.5, -1.88), "TailL")
+	StylizedMesh.add_box(_visual, Vector3(0.32, 0.12, 0.1), tail, Vector3(0.65, 0.5, -1.88), "TailR")
+	## Mirrors + plate.
+	StylizedMesh.add_box(_visual, Vector3(0.18, 0.1, 0.22), trim, Vector3(-1.0, 0.85, 0.55), "MirrorL")
+	StylizedMesh.add_box(_visual, Vector3(0.18, 0.1, 0.22), trim, Vector3(1.0, 0.85, 0.55), "MirrorR")
+	StylizedMesh.add_box(_visual, Vector3(0.45, 0.14, 0.04), Color(0.9, 0.9, 0.88), Vector3(0, 0.38, -1.98), "Plate")
+
+
+func _build_procedural_truck(color: Color) -> void:
+	## Chunky work truck — taller cab + bed (not a recolored sedan).
+	var trim := Color(0.18, 0.18, 0.2)
+	var bed := color.darkened(0.18)
+	StylizedMesh.add_box(_visual, Vector3(2.05, 0.55, 4.4), color, Vector3(0, 0.55, 0), "Body", false)
+	StylizedMesh.add_box(_visual, Vector3(1.85, 0.85, 1.6), color.lightened(0.05), Vector3(0, 1.25, 0.85), "Cabin")
+	StylizedMesh.add_box(_visual, Vector3(1.95, 0.55, 2.2), bed, Vector3(0, 0.95, -1.0), "Bed")
+	StylizedMesh.add_box(_visual, Vector3(1.95, 0.35, 0.12), bed.darkened(0.1), Vector3(0, 1.2, -2.05), "Tailgate")
+	StylizedMesh.add_box(_visual, Vector3(0.12, 0.45, 2.0), bed.darkened(0.08), Vector3(-0.95, 1.15, -1.0), "RailL")
+	StylizedMesh.add_box(_visual, Vector3(0.12, 0.45, 2.0), bed.darkened(0.08), Vector3(0.95, 1.15, -1.0), "RailR")
+	_add_car_glass(Vector3(1.55, 0.5, 0.06), Vector3(0, 1.35, 1.55), "Windshield")
+	_add_car_glass(Vector3(0.06, 0.4, 0.9), Vector3(-0.95, 1.3, 0.85), "SideGlassL")
+	_add_car_glass(Vector3(0.06, 0.4, 0.9), Vector3(0.95, 1.3, 0.85), "SideGlassR")
+	StylizedMesh.add_box(_visual, Vector3(1.3, 0.3, 0.1), trim, Vector3(0, 0.55, 2.2), "Grille")
+	for wp in [Vector3(-1.0, 0.35, 1.35), Vector3(1.0, 0.35, 1.35), Vector3(-1.0, 0.35, -1.35), Vector3(1.0, 0.35, -1.35)]:
+		StylizedMesh.add_box(_visual, Vector3(0.32, 0.55, 0.55), Color(0.08, 0.08, 0.08), wp, "Tire")
+		StylizedMesh.add_box(_visual, Vector3(0.14, 0.24, 0.24), Color(0.55, 0.55, 0.58), wp + Vector3(0.12 if wp.x > 0.0 else -0.12, 0, 0), "Hub")
+	StylizedMesh.add_box(_visual, Vector3(0.3, 0.16, 0.12), WorldPalette.LAMP_GLOW, Vector3(-0.7, 0.6, 2.2), "HeadL")
+	StylizedMesh.add_box(_visual, Vector3(0.3, 0.16, 0.12), WorldPalette.LAMP_GLOW, Vector3(0.7, 0.6, 2.2), "HeadR")
+	StylizedMesh.add_box(_visual, Vector3(0.35, 0.14, 0.1), Color(0.85, 0.15, 0.12), Vector3(-0.7, 0.7, -2.2), "TailL")
+	StylizedMesh.add_box(_visual, Vector3(0.35, 0.14, 0.1), Color(0.85, 0.15, 0.12), Vector3(0.7, 0.7, -2.2), "TailR")
+	StylizedMesh.add_box(_visual, Vector3(0.5, 0.14, 0.04), Color(0.9, 0.9, 0.88), Vector3(0, 0.45, -2.25), "Plate")
+
+
+func _add_car_glass(size: Vector3, pos: Vector3, node_name: String) -> void:
 	var win := MeshInstance3D.new()
-	win.name = "Windshield"
+	win.name = node_name
 	var wm := BoxMesh.new()
-	wm.size = Vector3(1.5, 0.4, 0.08)
+	wm.size = size
 	win.mesh = wm
 	win.material_override = StylizedMesh.make_glass_material()
-	win.position = Vector3(0, 0.95, 0.7)
+	win.position = pos
 	_visual.add_child(win)
-	for wp in [Vector3(-0.85, 0.28, 1.1), Vector3(0.85, 0.28, 1.1), Vector3(-0.85, 0.28, -1.1), Vector3(0.85, 0.28, -1.1)]:
-		StylizedMesh.add_box(_visual, Vector3(0.22, 0.45, 0.45), Color(0.12, 0.12, 0.12), wp, "Wheel")
-	StylizedMesh.add_box(_visual, Vector3(0.25, 0.12, 0.15), WorldPalette.LAMP_GLOW, Vector3(-0.6, 0.45, 1.8), "HeadL")
-	StylizedMesh.add_box(_visual, Vector3(0.25, 0.12, 0.15), WorldPalette.LAMP_GLOW, Vector3(0.6, 0.45, 1.8), "HeadR")
+
+
+func _decorate_vehicle_accents(color: Color) -> void:
+	## Light / plate overlays on GLB bodies so fleet cars aren't flat silhouettes.
+	var accents := Node3D.new()
+	accents.name = "DetailAccents"
+	_visual.add_child(accents)
+	StylizedMesh.add_box(accents, Vector3(0.22, 0.1, 0.08), WorldPalette.LAMP_GLOW, Vector3(-0.55, 0.45, 1.75), "HeadL")
+	StylizedMesh.add_box(accents, Vector3(0.22, 0.1, 0.08), WorldPalette.LAMP_GLOW, Vector3(0.55, 0.45, 1.75), "HeadR")
+	StylizedMesh.add_box(accents, Vector3(0.28, 0.1, 0.08), Color(0.85, 0.15, 0.12), Vector3(-0.55, 0.48, -1.75), "TailL")
+	StylizedMesh.add_box(accents, Vector3(0.28, 0.1, 0.08), Color(0.85, 0.15, 0.12), Vector3(0.55, 0.48, -1.75), "TailR")
+	StylizedMesh.add_box(accents, Vector3(0.4, 0.12, 0.04), Color(0.92, 0.92, 0.9), Vector3(0, 0.35, -1.85), "Plate")
+	## Subtle body stripe for variety without fighting GLB materials.
+	StylizedMesh.add_box(accents, Vector3(1.7, 0.06, 0.04), color.lightened(0.2), Vector3(0, 0.55, 0.2), "Stripe")
 
 
 func _ensure_enter_pad() -> void:

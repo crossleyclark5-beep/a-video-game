@@ -30,17 +30,18 @@ func _ready() -> void:
 		push_error("villager scale out of band %s" % villager_s)
 		ok = false
 
-	## Vehicles larger than toy go-karts
+	## Vehicles larger than toy go-karts (catalog scale OR fitted target height).
 	var car_s := float(ExternalPropCatalog.prop_def(&"park_car").get("scale", 1.0))
-	if car_s < 2.5:
-		push_error("park_car still tiny scale=%s" % car_s)
+	var car_h := float(ExternalPropCatalog.prop_def(&"park_car").get("target_height", 0.0))
+	if car_s < 2.5 and car_h < 1.2:
+		push_error("park_car still tiny scale=%s height=%s" % [car_s, car_h])
 		ok = false
 	var tree_s := float(ExternalPropCatalog.prop_def(&"tree_oak").get("scale", 1.0))
 	if tree_s < 2.5:
 		push_error("oak tree too short scale=%s" % tree_s)
 		ok = false
 
-	## Spawn rematerialized props — no pure white albedo
+	## Spawn rematerialized props — no pure white albedo; fitted vehicles in human band.
 	var root := Node3D.new()
 	add_child(root)
 	for id in [&"park_car", &"bench", &"fountain", &"fridge", &"tree_pine", &"adventure_suv"]:
@@ -52,6 +53,14 @@ func _ready() -> void:
 		if _has_pure_white_material(n):
 			push_error("white material remains on %s" % String(id))
 			ok = false
+		if id == &"park_car" or id == &"adventure_suv" or id == &"fountain":
+			var aabb := AssetStandardizer.combined_aabb(n)
+			var world_h := aabb.size.y * n.scale.y
+			var lo := 1.1 if id != &"fountain" else 0.9
+			var hi := 2.2 if id != &"fountain" else 1.8
+			if world_h < lo or world_h > hi:
+				push_error("%s fitted height out of band %s" % [String(id), world_h])
+				ok = false
 		print("ok_prop ", id)
 
 	## Character kit path

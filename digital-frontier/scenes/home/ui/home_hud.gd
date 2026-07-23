@@ -55,14 +55,14 @@ func _ready() -> void:
 
 
 func _relabel_digipet_buttons() -> void:
-	## Core digi-pet loop labels (classic companion device feel).
+	## Core digi-pet loop — labels match verbs (Rest rests, Play plays).
 	var map := {
 		"BottomBar/BottomMargin/BottomCol/CareRow/PetButton": "Interact",
 		"BottomBar/BottomMargin/BottomCol/CareRow/FeedButton": "Feed",
-		"BottomBar/BottomMargin/BottomCol/CareRow/RestButton": "Heal",
-		"BottomBar/BottomMargin/BottomCol/CareRow/PlayButton": "Train",
-		"BottomBar/BottomMargin/BottomCol/CareRow/TrainButton": "Status",
-		"BottomBar/BottomMargin/BottomCol/CareRow/StatusButton": "Battle",
+		"BottomBar/BottomMargin/BottomCol/CareRow/RestButton": "Rest",
+		"BottomBar/BottomMargin/BottomCol/CareRow/PlayButton": "Play",
+		"BottomBar/BottomMargin/BottomCol/CareRow/TrainButton": "Train",
+		"BottomBar/BottomMargin/BottomCol/CareRow/StatusButton": "Status",
 		"BottomBar/BottomMargin/BottomCol/NavRow/InventoryButton": "Pack",
 		"BottomBar/BottomMargin/BottomCol/NavRow/CollectionButton": "Journal",
 		"BottomBar/BottomMargin/BottomCol/NavRow/ShopButton": "Shop",
@@ -91,6 +91,11 @@ func _unhandled_input(_event: InputEvent) -> void:
 		DeviceService.notify_event(&"creature_care")
 		get_viewport().set_input_as_handled()
 		return
+	## X → device battle (care strip stays Rest/Play honest)
+	if InputManager.is_action_just_pressed(&"device_cycle"):
+		_on_battle_pressed()
+		get_viewport().set_input_as_handled()
+		return
 	## B closes pack/collection sheet
 	if InputManager.is_action_just_pressed(&"ui_cancel"):
 		if _inventory_open:
@@ -117,9 +122,9 @@ func _unhandled_input(_event: InputEvent) -> void:
 
 func _build_focus_strip() -> void:
 	_focus_entries.clear()
-	## Care strip + device destinations — Adventure is the gateway out.
+	## Care strip matches labels; Battle is X (device_cycle), not a stolen Rest/Play slot.
 	var order: Array[StringName] = [
-		&"interact", &"feed", &"heal", &"train", &"status", &"battle",
+		&"interact", &"feed", &"rest", &"play", &"train", &"status",
 		&"pack", &"collection", &"shop", &"adventure",
 	]
 	for id in order:
@@ -138,14 +143,13 @@ func _build_focus_strip() -> void:
 
 
 func _find_button_for(id: StringName) -> Button:
-	## Remap digi-pet ids onto existing button nodes.
 	var path_map := {
 		&"interact": "BottomBar/BottomMargin/BottomCol/CareRow/PetButton",
 		&"feed": "BottomBar/BottomMargin/BottomCol/CareRow/FeedButton",
-		&"heal": "BottomBar/BottomMargin/BottomCol/CareRow/RestButton",
-		&"train": "BottomBar/BottomMargin/BottomCol/CareRow/PlayButton",
-		&"status": "BottomBar/BottomMargin/BottomCol/CareRow/TrainButton",
-		&"battle": "BottomBar/BottomMargin/BottomCol/CareRow/StatusButton",
+		&"rest": "BottomBar/BottomMargin/BottomCol/CareRow/RestButton",
+		&"play": "BottomBar/BottomMargin/BottomCol/CareRow/PlayButton",
+		&"train": "BottomBar/BottomMargin/BottomCol/CareRow/TrainButton",
+		&"status": "BottomBar/BottomMargin/BottomCol/CareRow/StatusButton",
 		&"pack": "BottomBar/BottomMargin/BottomCol/NavRow/InventoryButton",
 		&"collection": "BottomBar/BottomMargin/BottomCol/NavRow/CollectionButton",
 		&"shop": "BottomBar/BottomMargin/BottomCol/NavRow/ShopButton",
@@ -164,14 +168,14 @@ func _callable_for(id: StringName) -> Callable:
 			return _on_pet_pressed
 		&"feed":
 			return _on_feed_pressed
-		&"heal":
-			return _on_heal_pressed
+		&"rest":
+			return _on_rest_care_pressed
+		&"play":
+			return _on_play_care_pressed
 		&"train":
 			return _on_care_train_pressed
 		&"status":
 			return _on_show_status_pressed
-		&"battle":
-			return _on_battle_pressed
 		&"pack":
 			return _on_inventory_pressed
 		&"collection":
@@ -244,7 +248,7 @@ func _update_hint() -> void:
 	var focused := ""
 	if not _focus_entries.is_empty():
 		focused = String(_focus_entries[_focus_index][&"id"]).capitalize()
-	_hint_label.text = "D-pad  ·  %s %s  ·  %s back  ·  %s Adventure  ·  Select settings" % [
+	_hint_label.text = "D-pad  ·  %s %s  ·  %s back  ·  X Battle  ·  %s Adventure  ·  Select settings" % [
 		InputManager.get_action_glyph(&"ui_confirm"),
 		focused,
 		InputManager.get_action_glyph(&"ui_cancel"),
@@ -412,23 +416,33 @@ func _on_feed_pressed() -> void:
 
 
 func _on_rest_pressed() -> void:
-	## Scene connection: RestButton remapped to Heal.
-	_on_heal_pressed()
+	## Scene signal from RestButton.
+	_on_rest_care_pressed()
 
 
 func _on_play_pressed() -> void:
-	## Scene connection: PlayButton remapped to Train.
-	_on_care_train_pressed()
+	## Scene signal from PlayButton.
+	_on_play_care_pressed()
 
 
 func _on_train_pressed() -> void:
-	## Scene connection: TrainButton remapped to Status.
-	_on_show_status_pressed()
+	## Scene signal from TrainButton.
+	_on_care_train_pressed()
 
 
 func _on_status_pressed() -> void:
-	## Scene connection: StatusButton remapped to Battle.
-	_on_battle_pressed()
+	## Scene signal from StatusButton.
+	_on_show_status_pressed()
+
+
+func _on_rest_care_pressed() -> void:
+	care_requested.emit(&"rest")
+	DeviceService.notify_event(&"creature_care")
+
+
+func _on_play_care_pressed() -> void:
+	care_requested.emit(&"play")
+	DeviceService.notify_event(&"creature_care")
 
 
 func _on_heal_pressed() -> void:

@@ -17,12 +17,19 @@ Digital Frontier no longer rematerializes imports ad-hoc. Every curated GLB goes
 | Kind | Height |
 |------|--------|
 | Player | 1.70m |
-| Adult NPC | 1.60–1.70m |
-| Child NPC | 1.25–1.35m |
-| Car | ~1.55m |
-| Truck | ~2.10m |
-| Tree (med/tall) | 4.5–7.5m |
-| Bench / furniture | believable interior proportions |
+| Adult NPC | 1.60m |
+| Child NPC | 1.25m |
+| Sedan | 1.45m |
+| SUV | 1.70m |
+| Truck | ~2.05m |
+| Tree (small / med / tall) | 4.5 / 6.0 / 7.5m |
+| Bench | 0.55m |
+| Fountain | 1.35m |
+| Furniture | ~0.90m |
+
+Catalog entries should declare `target_height` when mesh raw size varies. Runtime uses `AssetStandardizer.fit_to_height`.
+
+See also: `DIGITAL_FRONTIER_STYLE_GUIDE.md`.
 
 ## Runtime path
 

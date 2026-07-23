@@ -1,15 +1,18 @@
 extends BaseManager
-## Music and SFX playback with bus routing + placeholder synthesized beeps.
+## Music and SFX playback with bus routing + placeholder synthesized beds/beeps.
 
 @onready var _music_player: AudioStreamPlayer = null
 var _sfx_pool: Array[AudioStreamPlayer] = []
 var _sfx_streams: Dictionary = {}
+var _music_streams: Dictionary = {}
+var _current_music_id: StringName = &""
 const SFX_POOL_SIZE := 8
 
 
 func _initialize_manager() -> void:
 	_setup_players()
 	_build_placeholder_sfx()
+	_build_placeholder_music()
 	EventBus.music_change_requested.connect(_on_music_change_requested)
 	EventBus.sfx_play_requested.connect(_on_sfx_play_requested)
 	_apply_volume_settings()
@@ -50,22 +53,58 @@ func _build_placeholder_sfx() -> void:
 	_sfx_streams[&"evolve"] = _make_chord([349.23, 440.0, 554.37, 698.46], 0.55, 0.28)
 	_sfx_streams[&"creature_feed"] = _make_beep(600.0, 0.08, 0.22)
 	_sfx_streams[&"creature_pet"] = _make_beep(720.0, 0.07, 0.2)
+	_sfx_streams[&"creature_interact"] = _make_beep(720.0, 0.07, 0.2)
 	_sfx_streams[&"creature_train"] = _make_beep(340.0, 0.1, 0.25)
 	_sfx_streams[&"creature_rest"] = _make_beep(280.0, 0.14, 0.2)
 	_sfx_streams[&"creature_heal"] = _make_beep(760.0, 0.12, 0.22)
 	_sfx_streams[&"creature_play"] = _make_beep(640.0, 0.09, 0.22)
 	_sfx_streams[&"creature_status"] = _make_beep(500.0, 0.06, 0.18)
+	_sfx_streams[&"vehicle_launch"] = _make_beep(160.0, 0.22, 0.32)
+	_sfx_streams[&"vehicle_land"] = _make_beep(140.0, 0.18, 0.3)
+	_sfx_streams[&"vehicle_engine"] = _make_beep(110.0, 0.1, 0.18)
+
+
+func _build_placeholder_music() -> void:
+	## Soft looping beds so music_change_requested is never silent.
+	_music_streams[&"home_night"] = _make_music_bed([196.0, 246.94, 293.66], 4.0, 0.11)
+	_music_streams[&"adventure_day"] = _make_music_bed([261.63, 329.63, 392.0], 3.2, 0.1)
+	_music_streams[&"adventure"] = _music_streams[&"adventure_day"]
+	_music_streams[&"adventure_night"] = _make_music_bed([174.61, 220.0, 261.63], 4.5, 0.09)
+	_music_streams[&"combat"] = _make_music_bed([146.83, 185.0, 220.0, 277.18], 2.4, 0.12)
+	_music_streams[&"battle"] = _music_streams[&"combat"]
+	_music_streams[&"shop"] = _make_music_bed([293.66, 349.23, 440.0], 3.6, 0.1)
 
 
 func _apply_volume_settings() -> void:
-	AudioServer.set_bus_volume_db(
-		AudioServer.get_bus_index(&"Master"),
-		linear_to_db(GameConfig.master_volume)
-	)
+	_set_bus_linear(&"Master", GameConfig.master_volume)
+	_set_bus_linear(&"Music", GameConfig.music_volume)
+	_set_bus_linear(&"SFX", GameConfig.sfx_volume)
+
+
+func _set_bus_linear(bus_name: StringName, linear: float) -> void:
+	var idx := AudioServer.get_bus_index(bus_name)
+	if idx < 0:
+		return
+	AudioServer.set_bus_volume_db(idx, linear_to_db(clampf(linear, 0.0001, 1.0)))
+
+
+func refresh_volumes() -> void:
+	_apply_volume_settings()
 
 
 func _on_music_change_requested(track_id: StringName) -> void:
+	var stream: AudioStream = _music_streams.get(track_id)
+	if stream == null:
+		## Soft fallback — still play something rather than silence.
+		stream = _music_streams.get(&"adventure_day")
+	if stream == null:
+		_log("Music change requested (no bed): %s" % track_id)
+		return
+	if _current_music_id == track_id and _music_player and _music_player.playing:
+		return
+	_current_music_id = track_id
 	_log("Music change requested: %s" % track_id)
+	play_music(stream, true)
 
 
 func _on_sfx_play_requested(sfx_id: StringName, _position: Vector3) -> void:
@@ -88,19 +127,22 @@ func play_sfx(sfx_id: StringName) -> void:
 
 
 func play_music(stream: AudioStream, crossfade: bool = true) -> void:
-	if _music_player == null:
+	if _music_player == null or stream == null:
 		return
+	_music_player.volume_db = 0.0
 	if crossfade and _music_player.playing:
 		var tween := create_tween()
-		tween.tween_property(_music_player, "volume_db", -40.0, 0.5)
+		tween.tween_property(_music_player, "volume_db", -40.0, 0.35)
 		await tween.finished
 	_music_player.stream = stream
+	_music_player.volume_db = 0.0
 	_music_player.play()
 
 
 func stop_music(fade: bool = true) -> void:
 	if _music_player == null or not _music_player.playing:
 		return
+	_current_music_id = &""
 	if fade:
 		var tween := create_tween()
 		tween.tween_property(_music_player, "volume_db", -40.0, 0.5)
@@ -143,4 +185,38 @@ func _make_chord(freqs: Array, duration: float, amp: float) -> AudioStreamWAV:
 	stream.format = AudioStreamWAV.FORMAT_16_BITS
 	stream.mix_rate = sample_rate
 	stream.data = data
+	return stream
+
+
+func _make_music_bed(freqs: Array, duration: float, amp: float) -> AudioStreamWAV:
+	## Soft looping pad — placeholder until authored music lands.
+	var sample_rate := 22050
+	var sample_count := int(sample_rate * duration)
+	var data := PackedByteArray()
+	data.resize(sample_count * 2)
+	for i in sample_count:
+		var t := float(i) / float(sample_rate)
+		## Gentle attack + release so the loop seam is less clicky.
+		var env := 1.0
+		var edge := 0.12
+		if t < edge:
+			env = t / edge
+		elif t > duration - edge:
+			env = (duration - t) / edge
+		var mix := 0.0
+		for fi in freqs.size():
+			var f := float(freqs[fi])
+			mix += sin(TAU * f * t) * (1.0 - float(fi) * 0.12)
+		mix /= float(maxi(freqs.size(), 1))
+		## Slow tremolo for life.
+		mix *= 0.85 + 0.15 * sin(TAU * 0.35 * t)
+		var sample := int(clamp(amp * env * mix, -1.0, 1.0) * 32767.0)
+		data.encode_s16(i * 2, sample)
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = sample_rate
+	stream.data = data
+	stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	stream.loop_begin = 0
+	stream.loop_end = sample_count
 	return stream

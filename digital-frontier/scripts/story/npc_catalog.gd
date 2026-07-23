@@ -109,6 +109,8 @@ static func memory_lines(npc_id: StringName, memories: Array) -> PackedStringArr
 		out.append("Thanks again for finishing that job.")
 	if NpcMemory.has_id(memories, &"discovered_hollow"):
 		out.append("So you found Pine Hollow yourself… brave.")
+	if NpcMemory.has_id(memories, &"camp_cleared"):
+		out.append("That nest you cleared stayed quiet — wildlife's coming back.")
 	match npc_id:
 		&"park_villager":
 			if NpcMemory.has_id(memories, &"village_safe"):
@@ -119,4 +121,9 @@ static func memory_lines(npc_id: StringName, memories: Array) -> PackedStringArr
 		&"lost_scout":
 			if NpcMemory.has_id(memories, &"rescued"):
 				out.append("I owe you a trail marker — and a snack.")
+		&"field_ranger":
+			if NpcMemory.has_id(memories, &"camp_cleared"):
+				out.append("Appreciate the patrol help. Nests don't stay empty forever.")
+		&"park_kid":
+			out.append("Wanna see how fast I can run to the fountain?")
 	return out

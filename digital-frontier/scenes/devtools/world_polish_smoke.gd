@@ -66,6 +66,74 @@ func _process(_delta: float) -> void:
 	ok = _assert_named(office, ["Desk", "Terminal", "Bookshelves"]) and ok
 	office.free()
 
+	## Garage interior — tools / shelves / workbench
+	var garage := ModularInteriorBuilder.build(InteriorKinds.GARAGE, &"smoke_garage", 6)
+	ok = _assert_named(garage, ["ShelfUnit", "Workbench", "Toolbox", "Pegboard"]) and ok
+	garage.free()
+
+	## Pleasant Park layout contracts — pond, frontage, enterable garage shell
+	var park_root := Node3D.new()
+	add_child(park_root)
+	var built := PleasantParkBuilder.build(park_root)
+	if park_root.find_child("ParkPond", true, false) == null:
+		push_error("park pond missing")
+		ok = false
+	if park_root.find_child("FrontageN", true, false) == null or park_root.find_child("ArterialNS", true, false) == null:
+		push_error("redesigned road network missing")
+		ok = false
+	if park_root.find_child("Drive_0", true, false) == null or park_root.find_child("JctF_22_22", true, false) == null:
+		push_error("garage aprons / junction pads missing")
+		ok = false
+	## Gazebo must stay human-scale (roof deck ~4.6m, not the old 7m pavilion).
+	var gazebo := park_root.find_child("Gazebo", true, false)
+	if gazebo:
+		var roof := gazebo.get_node_or_null("RoofDeck") as MeshInstance3D
+		if roof and roof.mesh is BoxMesh:
+			var rs: Vector3 = (roof.mesh as BoxMesh).size
+			if rs.x > 5.2 or rs.z > 5.2:
+				push_error("gazebo roof oversized: %s" % rs)
+				ok = false
+	else:
+		push_error("gazebo missing")
+		ok = false
+	var gcount := 0
+	for n in park_root.find_children("GarageVolume", "", true, false):
+		gcount += 1
+		if n.get_node_or_null("DoorInteractable") == null:
+			push_error("garage missing door")
+			ok = false
+		if n.get_node_or_null("GarageDoor") == null:
+			push_error("garage missing door mesh")
+			ok = false
+	if gcount < 8:
+		push_error("expected 8 garages, got %d" % gcount)
+		ok = false
+	## Every enterable house needs a local Driveway that meets the street apron.
+	var drive_count := 0
+	for n in park_root.find_children("Driveway", "", true, false):
+		drive_count += 1
+	if drive_count < 8:
+		push_error("expected 8 house driveways, got %d" % drive_count)
+		ok = false
+	if (built.get(&"enterable_houses", []) as Array).size() < 8:
+		push_error("enterable houses missing")
+		ok = false
+	## Furniture collision proxies stay tight (sofa footprint, not a shared 1.4×0.85 slab).
+	var sofa_dims: Vector3 = ExternalPropKit._furniture_collision_dims("sofa")
+	if sofa_dims.x > 1.85 or sofa_dims.z > 0.85:
+		push_error("sofa collision too large: %s" % sofa_dims)
+		ok = false
+	var chair_dims: Vector3 = ExternalPropKit._furniture_collision_dims("chair")
+	if chair_dims.x > 0.5 or chair_dims.z > 0.5:
+		push_error("chair collision too large: %s" % chair_dims)
+		ok = false
+	## Corridor spokes leave the hub at arterial tips (not floating mid-lawn).
+	var salty0: Vector3 = GrasslandLayout.path_park_to_salty()[0]
+	if absf(salty0.z - 41.0) > 0.5:
+		push_error("salty path should start at RoadApproach tip, got %s" % salty0)
+		ok = false
+	park_root.queue_free()
+
 	## Placement guards reject road / hub centers
 	var hub: Vector3 = GrasslandLayout.hub_exclusion_zones()[0]["pos"]
 	if RegionVegetationBuilder.placement_allowed(hub, true):

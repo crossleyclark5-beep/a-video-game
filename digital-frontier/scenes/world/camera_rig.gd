@@ -33,6 +33,7 @@ var _vehicle_mode: bool = false
 var _pre_vehicle_zoom: float = 14.5
 var _pre_vehicle_follow: Vector3 = Vector3.ZERO
 var _vehicle_look_ahead: float = 3.2
+var _inspect_paused: bool = false
 
 @onready var _camera: Camera3D = $Camera3D
 
@@ -107,7 +108,7 @@ func enter_battle_mode(anchor: Vector3, player: Node3D = null, companion: Node3D
 		_battle_anchor = player.global_position.lerp(anchor, 0.55)
 	_active_follow_distance = Vector3(0.0, 16.0, 12.0)
 	set_zoom_size(11.0, false)
-	EventBus.sfx_play_requested.emit(&"menu_beep", _battle_anchor)
+	EventBus.sfx_play_requested.emit(&"battle_start", _battle_anchor)
 
 
 func exit_battle_mode() -> void:
@@ -159,8 +160,21 @@ func _unhandled_input(event: InputEvent) -> void:
 			set_zoom_size(_target_zoom + zoom_step)
 
 
+func set_inspect_paused(paused: bool) -> void:
+	## World Inspection Mode owns a free perspective camera — freeze follow.
+	_inspect_paused = paused
+	set_process(not paused)
+	set_process_unhandled_input(not paused)
+	if _occlusion_fader:
+		_occlusion_fader.set_process(not paused)
+
+
+func get_gameplay_camera() -> Camera3D:
+	return _camera
+
+
 func _process(delta: float) -> void:
-	if _camera == null:
+	if _camera == null or _inspect_paused:
 		return
 	if _battle_mode:
 		_process_battle_camera(delta)

@@ -84,8 +84,8 @@ func _check_spawn() -> void:
 		print("companion ok children=", companion.get_child_count())
 	_baseline_nodes = _count_nodes(_world)
 	print("world_node_count=", _baseline_nodes)
-	if _baseline_nodes > 11500:
-		_fail("node budget too high (%d)" % _baseline_nodes)
+	if _baseline_nodes > AdventureNodeBudget.AUTHORED_NODE_GATE:
+		_fail("node budget too high (%d > %d)" % [_baseline_nodes, AdventureNodeBudget.AUTHORED_NODE_GATE])
 
 
 func _simulate_move() -> void:

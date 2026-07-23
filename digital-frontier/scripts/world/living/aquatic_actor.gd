@@ -21,6 +21,8 @@ var _timer: float = 0.0
 var _attack_cd: float = 0.0
 var _rng := RandomNumberGenerator.new()
 var _indexed: bool = false
+var _ai_detail: int = 2
+var _scattering: bool = false
 
 
 func setup(def: Dictionary, player: Node3D, bounds: AABB, origin: Vector3) -> void:
@@ -68,11 +70,18 @@ func _build_visual(def: Dictionary) -> void:
 	StylizedMesh.add_box(_visual, Vector3(0.04, 0.25 * scale_v, 0.18 * scale_v), col.darkened(0.15), Vector3(0, 0, 0.28 * scale_v), "Tail")
 
 
+func set_ai_detail(level: int) -> void:
+	_ai_detail = clampi(level, 0, 2)
+
+
 func _process(delta: float) -> void:
+	if _ai_detail <= 0:
+		return
 	_timer -= delta
 	_attack_cd = maxf(0.0, _attack_cd - delta)
 	if _timer <= 0.0:
 		_pick_target()
+	var spd := move_speed * (1.55 if _scattering else 1.0) * (0.75 if _ai_detail == 1 else 1.0)
 	if _player and is_instance_valid(_player):
 		var d := global_position.distance_to(_player.global_position)
 		if d < 12.0 and not _indexed:
@@ -86,6 +95,17 @@ func _process(delta: float) -> void:
 				&"habitat": "Water",
 				&"temperament_label": "Aggressive" if hostile else "Passive",
 			}, global_position, true)
+		## School scatter when a Field Unit wades close.
+		if not hostile and d < 4.5:
+			_scattering = true
+			var away := global_position - _player.global_position
+			away.y = 0.0
+			if away.length() < 0.1:
+				away = Vector3(_rng.randf_range(-1, 1), 0, _rng.randf_range(-1, 1))
+			_target = _clamp_in_water(global_position + away.normalized() * 6.0)
+			_timer = 0.8
+		elif d > 7.0:
+			_scattering = false
 		if hostile and d < 10.0:
 			_target = _player.global_position
 			_target.y = clampf(_target.y, _bounds.position.y + 0.2, _bounds.end.y - 0.2)
@@ -98,7 +118,7 @@ func _process(delta: float) -> void:
 	var flat := _target - global_position
 	if flat.length() > 0.15:
 		var dir := flat.normalized()
-		global_position += dir * move_speed * delta
+		global_position += dir * spd * delta
 		global_position = _clamp_in_water(global_position)
 		if _visual:
 			_visual.rotation.y = lerp_angle(_visual.rotation.y, atan2(dir.x, dir.z), clampf(8.0 * delta, 0.0, 1.0))
@@ -107,6 +127,15 @@ func _process(delta: float) -> void:
 
 func _pick_target() -> void:
 	_timer = _rng.randf_range(1.5, 3.5)
+	## Soft school bias — fish keep near the volume center more often.
+	var center := _bounds.get_center()
+	if not hostile and _rng.randf() < 0.45:
+		_target = Vector3(
+			lerpf(center.x, _rng.randf_range(_bounds.position.x, _bounds.end.x), 0.55),
+			_rng.randf_range(_bounds.position.y + 0.15, _bounds.end.y - 0.15),
+			lerpf(center.z, _rng.randf_range(_bounds.position.z, _bounds.end.z), 0.55),
+		)
+		return
 	_target = Vector3(
 		_rng.randf_range(_bounds.position.x, _bounds.end.x),
 		_rng.randf_range(_bounds.position.y + 0.15, _bounds.end.y - 0.15),

@@ -46,6 +46,8 @@ Layouts use a **hub-and-spoke** around Pleasant Park (Fortnite-style landmark sp
 
 Travel corridors include forests, hills, streams, caves, overlooks, creature dens, and wayside chests. Mini-map markers stay **mystery B&W** until discovered, then full color.
 
+The grassland ground is a **true 3D heightfield** (hubs stay flat; wilderness rolls). Minor / secret discoveries stay **off the mini-map**. See `WORLD_3D_FOUNDATION.md`.
+
 ## Creature ecosystem (chapter 1 only)
 
 Grassland introduces a **small** early set — not the full world roster. Beginner wildlife, three lookalike pests, **Glitch Alpha** (mini-boss), and **Hollow Warden** (major boss). Partner pick: six Digimon-inspired DF look-alikes. Full biome plan: `docs/CREATURE_DISTRIBUTION.md`.

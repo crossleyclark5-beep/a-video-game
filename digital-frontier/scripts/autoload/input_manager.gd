@@ -12,6 +12,7 @@ enum Context {
 	COMBAT,
 	BUILDING_INTERIOR,
 	HOME,
+	WORLD_INSPECT, ## Developer free-cam — not a player feature
 }
 
 ## Last device used for glyph hints (keyboard still works as fallback).
@@ -86,6 +87,8 @@ func _register_default_actions() -> void:
 	_add_joy_button(&"map_peek", JOY_BUTTON_RIGHT_SHOULDER)
 	_add_key_action(&"pause_menu", [KEY_F1])
 	_add_joy_button(&"pause_menu", JOY_BUTTON_BACK)
+	## Dev-only world inspection (WorldInspectController also listens for F3).
+	_add_key_action(&"inspect_toggle", [KEY_F3])
 
 	## Scene shortcuts — Start is context-sensitive in scenes (Home=Adventure, Field=menu).
 	_add_key_action(&"go_home", [KEY_H])
@@ -148,7 +151,12 @@ func _set_context(context: Context) -> void:
 
 
 func get_move_vector() -> Vector2:
-	if _active_context == Context.MENU or _active_context == Context.DIALOGUE or _active_context == Context.HOME:
+	if (
+		_active_context == Context.MENU
+		or _active_context == Context.DIALOGUE
+		or _active_context == Context.HOME
+		or _active_context == Context.WORLD_INSPECT
+	):
 		return Vector2.ZERO
 	return Input.get_vector(&"move_left", &"move_right", &"move_forward", &"move_back")
 

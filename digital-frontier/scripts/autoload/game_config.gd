@@ -6,6 +6,7 @@ extends BaseManager
 
 @export var debug_logging: bool = OS.is_debug_build()
 @export var show_debug_overlay: bool = OS.is_debug_build()
+## Enables World Inspection Mode (F3 free-cam) and other temporary dev tools.
 @export var enable_cheats: bool = OS.is_debug_build()
 
 ## Master audio levels (0.0 – 1.0). Persisted via SaveManager settings section.

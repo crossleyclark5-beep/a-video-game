@@ -2,32 +2,31 @@
 
 Digital Frontier’s overworld is a **budgeted living ecosystem**, not an empty map.
 
+For simulation details (schedules, weather reactions, ambience, world memory) see **`LIVING_WORLD_SIMULATION.md`**.
+
 ## Pieces
 
 | System | Role |
 |--------|------|
-| `LivingWorldController` | Distance-budgeted spawn/despawn of wildlife, hostiles, NPCs, aquatics |
-| `LivingWorldCatalog` | Grassland species tables (biome stubs for desert/jungle/ocean later) |
-| `WildlifeActor` | Friendly roamers (rabbit, bird, squirrel, deer, moose) — wander + flee |
-| `HostileCreatureActor` | Glitchmites, bats, wolves, boars — aggro, melee, Bits loot |
-| `WorldNpcActor` | Villagers / explorers / merchants with dialogue + quest offers |
-| `AquaticActor` + `WaterBody` | Bobbing water, shore ripples, fish / hostile eels |
-| `PlayerHealth` | HP bar, damage, Field Unit reboot respawn to checkpoint |
+| `LivingWorldController` | Distance-budgeted spawn/despawn + AI LOD |
+| `EcosystemCreature` | Live wildlife / hostiles (graze, flee, patrol, chase) |
+| `LivingWorldCatalog` | NPC + aquatic tables (wildlife tables are legacy) |
+| `WorldNpcActor` | Schedule-driven townsfolk, merchants, guards, kids |
+| `AquaticActor` + `WaterBody` | Bobbing water, schools, scatter |
+| `WorldAmbienceController` | Insects, leaves, night motes |
+| `WorldSimMemory` | Cleared camps persist for a while |
+| `WorldEncounterDirector` | Ambient vignettes |
+| `PlayerHealth` | HP bar, damage, Field Unit reboot |
 
 ## Handheld combat
 
-- **Y** (`creature_action`) — strike nearest hostile in melee range + companion assist
-- If no hostile nearby — companion notice / bond (unchanged)
+- **Y** (`creature_action`) — strike nearest hostile / start companion battle
 - Death → brief reboot → respawn at adventure checkpoint
 
 ## Performance
 
-Caps (approx): 18 wildlife · 8 hostiles · 6 NPCs · 14 aquatics  
-Spawn radius ~95 · Despawn ~130 · Tick ~0.55s  
-
-## Vegetation
-
-`RegionVegetationBuilder` denser corridor forests, bushes, rocks, wilderness fill between hubs, pine ridges on mountain landmarks.
+Caps from `AdventureNodeBudget`: **14** wildlife · **6** hostiles · **5** NPCs · **10** aquatics  
+Spawn ~90 · Despawn ~125 · AI full ≤55 · AI simple ≤95  
 
 ## Quests
 
@@ -36,4 +35,7 @@ Spawn radius ~95 · Despawn ~130 · Tick ~0.55s
 
 ## Smoke
 
-`res://scenes/devtools/living_world_smoke.tscn`
+```bash
+godot --headless --path digital-frontier --scene res://scenes/devtools/living_world_sim_smoke.tscn
+godot --headless --path digital-frontier --scene res://scenes/devtools/living_world_smoke.tscn
+```

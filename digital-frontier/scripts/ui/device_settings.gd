@@ -109,24 +109,60 @@ func _build() -> void:
 	DFStyle.apply_label_paper(_hint, DFStyle.FONT_HINT)
 	_hint.add_theme_color_override("font_color", WorldPalette.UI_MUTED)
 	vbox.add_child(_hint)
+	_rebuild_entries()
+
+
+func _rebuild_entries() -> void:
 	_entries = [
 		{"id": &"volume_up", "label": "Master Volume +", "blurb": "Louder beeps & music"},
 		{"id": &"volume_down", "label": "Master Volume −", "blurb": "Quieter device"},
 		{"id": &"haptics", "label": "Haptics", "blurb": "Toggle rumble feedback"},
 		{"id": &"led", "label": "LED Pulse", "blurb": "Cycle device status light"},
 		{"id": &"legend", "label": "Control Legend", "blurb": "Show button map toast"},
+	]
+	## Developer 3D inspection — visible ON/OFF in Adventure settings (debug builds).
+	if GameConfig.enable_cheats:
+		_entries.append({
+			"id": &"view_3d",
+			"label": "3D View",
+			"blurb": _view_3d_blurb(),
+		})
+	_entries.append_array([
 		{"id": &"switch_profile", "label": "Switch Profile", "blurb": "Save & choose another user"},
 		{"id": &"close", "label": "Close Settings", "blurb": "Return to device"},
-	]
+	])
+
+
+func _view_3d_blurb() -> String:
+	var on := _inspect_is_active()
+	return "Developer camera · now %s · F3 also toggles" % ("ON" if on else "OFF")
+
+
+func _inspect_is_active() -> bool:
+	var nodes := get_tree().get_nodes_in_group(WorldInspectController.GROUP)
+	if nodes.is_empty():
+		return false
+	var c := nodes[0] as WorldInspectController
+	return c != null and c.is_active()
 
 
 func _refresh() -> void:
+	## Keep 3D View label current each redraw.
+	_rebuild_entries()
+	if _index >= _entries.size():
+		_index = maxi(0, _entries.size() - 1)
 	var lines: PackedStringArray = PackedStringArray()
 	lines.append(DFStyle.color_tag(WorldPalette.UI_GOLD, "Volume  %d%%" % int(GameConfig.master_volume * 100.0)))
+	if GameConfig.enable_cheats:
+		var mode := "ON" if _inspect_is_active() else "OFF"
+		lines.append(DFStyle.color_tag(WorldPalette.UI_CYAN, "3D View  %s" % mode))
 	lines.append("")
 	for i in _entries.size():
 		var e: Dictionary = _entries[i]
-		lines.append(DFStyle.card_bb(String(e["label"]), String(e["blurb"]), i == _index, "◆" if i == _index else ""))
+		var label := String(e["label"])
+		if e["id"] == &"view_3d":
+			label = "3D View · %s" % ("ON" if _inspect_is_active() else "OFF")
+		lines.append(DFStyle.card_bb(label, String(e["blurb"]), i == _index, "◆" if i == _index else ""))
 	_list.text = "\n".join(lines)
 	_hint.text = "↑↓ select  ·  %s confirm  ·  %s back" % [
 		InputManager.get_action_glyph(&"ui_confirm"),
@@ -139,11 +175,11 @@ func _activate() -> void:
 	match e["id"]:
 		&"volume_up":
 			GameConfig.master_volume = clampf(GameConfig.master_volume + 0.1, 0.0, 1.0)
-			AudioServer.set_bus_volume_db(AudioServer.get_bus_index(&"Master"), linear_to_db(GameConfig.master_volume))
+			AudioManager.refresh_volumes()
 			EventBus.sfx_play_requested.emit(&"ui_confirm", Vector3.ZERO)
 		&"volume_down":
 			GameConfig.master_volume = clampf(GameConfig.master_volume - 0.1, 0.0, 1.0)
-			AudioServer.set_bus_volume_db(AudioServer.get_bus_index(&"Master"), linear_to_db(GameConfig.master_volume))
+			AudioManager.refresh_volumes()
 			EventBus.sfx_play_requested.emit(&"ui_confirm", Vector3.ZERO)
 		&"haptics":
 			DeviceService.notify_event(&"ui")
@@ -155,6 +191,16 @@ func _activate() -> void:
 		&"legend":
 			EventBus.ui_notification_requested.emit(InputManager.get_control_legend(), 3.0)
 			EventBus.sfx_play_requested.emit(&"menu_beep", Vector3.ZERO)
+		&"view_3d":
+			close()
+			var inspects := get_tree().get_nodes_in_group(WorldInspectController.GROUP)
+			if inspects.is_empty():
+				EventBus.ui_notification_requested.emit("3D View unavailable in this scene.", 2.0)
+				return
+			var ctrl := inspects[0] as WorldInspectController
+			if ctrl:
+				ctrl.toggle_from_ui()
+			return
 		&"switch_profile":
 			close()
 			var main := get_tree().get_first_node_in_group(&"main_shell")

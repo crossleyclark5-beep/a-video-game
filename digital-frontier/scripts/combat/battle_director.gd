@@ -116,7 +116,13 @@ func _process(delta: float) -> void:
 		Phase.RESOLVE:
 			pass
 		Phase.RESULT:
-			_finish()
+			_poll_result()
+
+
+func _poll_result() -> void:
+	## Hold the victory/defeat beat until the player confirms (premium feel).
+	if InputManager.is_action_just_pressed(&"ui_confirm") or InputManager.is_action_just_pressed(&"interact") or InputManager.is_action_just_pressed(&"ui_cancel"):
+		_finish()
 
 
 func _poll_choose() -> void:

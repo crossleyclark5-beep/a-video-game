@@ -49,6 +49,11 @@ var _pack_mates: Array[Node] = []
 var _rng := RandomNumberGenerator.new()
 var _gravity: float = 28.0
 var _bob: float = 0.0
+var _ai_detail: int = 2
+var _tags: Array = []
+var _patrol: Array[Vector3] = []
+var _patrol_i: int = 0
+var _wing: Node3D = null
 
 
 func setup(def: Dictionary, player: Node3D, origin: Vector3) -> void:
@@ -70,6 +75,7 @@ func setup(def: Dictionary, player: Node3D, origin: Vector3) -> void:
 		temperament == EcosystemCatalog.Temperament.AGGRESSIVE
 		or temperament == EcosystemCatalog.Temperament.PREDATOR
 	)
+	_tags = def.get("tags", [])
 	_player = player
 	_home = origin
 	global_position = origin
@@ -80,6 +86,8 @@ func setup(def: Dictionary, player: Node3D, origin: Vector3) -> void:
 	floor_snap_length = 0.3
 	_build_collision()
 	_build_visual(def)
+	if is_hostile:
+		_build_patrol_route()
 	_pick_activity(true)
 	add_to_group(GROUP)
 	add_to_group(GameConstants.GROUP_CREATURES)
@@ -87,6 +95,33 @@ func setup(def: Dictionary, player: Node3D, origin: Vector3) -> void:
 		add_to_group(HostileCreatureActor.GROUP)
 	else:
 		add_to_group(WildlifeActor.GROUP)
+	if not EventBus.weather_changed.is_connected(_on_weather_changed):
+		EventBus.weather_changed.connect(_on_weather_changed)
+
+
+func set_ai_detail(level: int) -> void:
+	## 2 full FSM · 1 slow wander · 0 paused by LivingWorldController.
+	_ai_detail = clampi(level, 0, 2)
+
+
+func _on_weather_changed(weather: StringName) -> void:
+	if is_hostile:
+		return
+	if (weather == &"rain" or weather == &"storm") and _tags.has(&"rain_hide"):
+		_activity = Activity.HIDE
+		_target = _home
+		_activity_timer = 6.0
+	elif weather == &"fog" and rarity >= EcosystemCatalog.Rarity.RARE:
+		## Rare mist encounters feel braver in fog.
+		_activity_timer = mini(_activity_timer, 1.0)
+
+
+func _build_patrol_route() -> void:
+	_patrol.clear()
+	for i in 4:
+		var ang := float(i) * TAU * 0.25 + _rng.randf() * 0.4
+		var r := 5.0 + _rng.randf() * 6.0
+		_patrol.append(_home + Vector3(cos(ang) * r, 0.0, sin(ang) * r))
 
 
 func is_alive() -> bool:
@@ -123,6 +158,8 @@ func apply_damage(amount: float, source: Node = null) -> void:
 func _die() -> void:
 	defeated.emit(species_id)
 	EventBus.hostile_defeated.emit(species_id, global_position)
+	if is_hostile:
+		WorldSimMemory.note_hostile_cleared(global_position, species_id)
 	CollectionManager.record_creature_battle(species_id, true)
 	if reward_bits > 0:
 		InventoryManager.add_bits(reward_bits)
@@ -190,6 +227,7 @@ func _viz_bird(col: Color, s: float, moth: bool) -> void:
 	var w := StylizedMesh.add_box(_visual, Vector3((0.7 if moth else 0.55) * s, 0.05 * s, 0.2 * s), wing_c, Vector3(0, 0.52 * s, 0), "Wing")
 	if moth:
 		w.material_override = StylizedMesh.make_material(wing_c, 1.0, 0.0, 0.25, &"flat")
+	_wing = w
 	StylizedMesh.add_box(_visual, Vector3(0.06 * s, 0.06 * s, 0.18 * s), col.darkened(0.2), Vector3(0, 0.48 * s, -0.2 * s), "Tail")
 	StylizedCreatureKit.eye_pair(_visual, Vector3(0, 0.55 * s, 0.12 * s), 0.05 * s, 0.025 * s)
 
@@ -276,15 +314,25 @@ func _viz_mite(col: Color, s: float) -> void:
 func _physics_process(delta: float) -> void:
 	if not is_alive() or _player == null or not is_instance_valid(_player):
 		return
+	if _ai_detail <= 0:
+		return
 	_bob += delta * (5.0 if flying else 2.5)
 	_attack_cd = maxf(0.0, _attack_cd - delta)
 	_hit_flash = maxf(0.0, _hit_flash - delta)
 	_activity_timer -= delta
 	if _visual:
 		_visual.scale = Vector3.ONE * (1.1 if _hit_flash > 0.0 else 1.0)
+	if _wing and is_instance_valid(_wing):
+		_wing.rotation.z = sin(_bob * (2.2 if _activity == Activity.FLEE else 1.2)) * 0.45
 
 	_try_discover()
-	_update_ai(delta)
+	if _ai_detail >= 2 or _activity == Activity.FLEE or _activity == Activity.CHASE or _activity == Activity.HUNT:
+		_update_ai(delta)
+	elif _activity_timer <= 0.0:
+		## Simple LOD — wander only.
+		_activity = Activity.WANDER
+		_pick_wander_target()
+		_activity_timer = _rng.randf_range(3.0, 6.0)
 
 	var dest := _target
 	if flying:
@@ -369,8 +417,9 @@ func _update_ai(_delta: float) -> void:
 					_attack_cd = 1.15
 					_strike_player()
 			elif _activity_timer <= 0.0:
-				_activity = Activity.GUARD
-				_pick_wander_target()
+				## Patrol territory when not threatened — never idle forever.
+				_activity = Activity.GUARD if _rng.randf() < 0.4 else Activity.WANDER
+				_advance_patrol()
 				_activity_timer = _rng.randf_range(2.0, 4.0)
 		_:
 			if _activity_timer <= 0.0:
@@ -397,10 +446,32 @@ func _warn_pack() -> void:
 
 func _pick_activity(initial: bool) -> void:
 	_activity_timer = _rng.randf_range(2.2, 5.5)
-	if is_hostile:
-		_activity = Activity.GUARD if _rng.randf() < 0.5 else Activity.WANDER
-		_pick_wander_target()
+	var weather := WorldAtmosphere.current_weather_id()
+	if not is_hostile and (weather == &"rain" or weather == &"storm") and _tags.has(&"rain_hide"):
+		_activity = Activity.HIDE
+		_target = _home
+		_activity_timer = 5.0
 		return
+	if is_hostile:
+		var night := WorldAtmosphere.current_phase_index() == WorldAtmosphere.Phase.NIGHT
+		if night and _rng.randf() < 0.25:
+			_activity = Activity.SLEEP
+			_target = global_position
+			return
+		_activity = Activity.GUARD if _rng.randf() < 0.5 else Activity.WANDER
+		_advance_patrol()
+		return
+	## Birds land / peck / take off.
+	if flying and species_id == &"meadow_bird":
+		var bird_roll := _rng.randf()
+		if bird_roll < 0.35:
+			_activity = Activity.GRAZE  ## Peck on ground.
+			_target = global_position
+			return
+		if bird_roll < 0.55:
+			_activity = Activity.PLAY
+			_pick_wander_target()
+			return
 	var roll := _rng.randf()
 	if initial:
 		roll = 0.2
@@ -415,10 +486,19 @@ func _pick_activity(initial: bool) -> void:
 		_pick_wander_target()
 	elif roll < 0.55:
 		_activity = Activity.DRINK
-		_target = _home + Vector3(_rng.randf_range(-3, 3), 0, _rng.randf_range(-3, 3))
+		## Prefer a downhill / stream-ish offset from home.
+		_target = _home + Vector3(_rng.randf_range(-4, 4), 0, _rng.randf_range(2, 8))
 	else:
 		_activity = Activity.WANDER
 		_pick_wander_target()
+
+
+func _advance_patrol() -> void:
+	if _patrol.is_empty():
+		_pick_wander_target()
+		return
+	_patrol_i = (_patrol_i + 1) % _patrol.size()
+	_target = _patrol[_patrol_i]
 
 
 func _pick_wander_target() -> void:

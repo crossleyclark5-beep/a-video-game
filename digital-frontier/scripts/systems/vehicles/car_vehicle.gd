@@ -41,7 +41,9 @@ func _drive(delta: float) -> void:
 	var turn_auth := 0.15 + speed_ratio * 0.85
 	if absf(_speed) < 0.35:
 		turn_auth = 0.0
-	var yaw := steer_in * turn * turn_auth * signf(_speed if absf(_speed) > 0.01 else 1.0)
+	## LEFT (steer_in < 0) must yaw positive so −basis.z swings toward −X (screen-left).
+	## Negate steer: Godot +Y is CCW; without the flip, left input turned right.
+	var yaw := -steer_in * turn * turn_auth * signf(_speed if absf(_speed) > 0.01 else 1.0)
 	rotation.y += yaw * delta
 	_steer_visual = lerpf(_steer_visual, steer_in, clampf(8.0 * delta, 0.0, 1.0))
 

@@ -5,7 +5,7 @@ extends Resource
 ## Managers populate sections of this resource during save.
 ## Keeps save format decoupled from scene/node structure.
 
-@export var schema_version: int = 3
+@export var schema_version: int = 4
 @export var timestamp_unix: int = 0
 @export var playtime_seconds: float = 0.0
 
@@ -29,3 +29,5 @@ extends Resource
 @export var shop_data: Dictionary = {}
 @export var character_roster_data: Dictionary = {}
 @export var settings_data: Dictionary = {}
+## Core World Framework meta (region plugin state, coordinator snapshot).
+@export var framework_data: Dictionary = {}

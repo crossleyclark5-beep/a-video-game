@@ -89,7 +89,53 @@ static func grassland_npcs() -> Array[Dictionary]:
 			]),
 			"quest_offer": &"",
 		},
+		{
+			"id": &"park_kid",
+			"label": "Park Kid",
+			"color": Color(0.95, 0.7, 0.45),
+			"role": "villager",
+			"schedule": "child_play",
+			"weight": 2,
+			"lines": PackedStringArray([
+				"Race you to the fountain!",
+				"Mom said be home before the lamps blink.",
+			]),
+			"quest_offer": &"",
+		},
+		{
+			"id": &"park_guard",
+			"label": "Park Guard",
+			"color": Color(0.35, 0.4, 0.55),
+			"role": "explorer",
+			"schedule": "guard_patrol",
+			"weight": 2,
+			"lines": PackedStringArray([
+				"Keep the roads clear — mites push in after dark.",
+				"Shift change at dusk. Don't make me chase you.",
+			]),
+			"quest_offer": &"",
+		},
+		{
+			"id": &"road_carter",
+			"label": "Road Carter",
+			"color": Color(0.7, 0.5, 0.3),
+			"role": "merchant",
+			"schedule": "merchant_road",
+			"weight": 1,
+			"lines": PackedStringArray([
+				"Mile to Grove, Grove to Mere — Bits don't walk themselves.",
+				"Rain slows the wagon. Fog slows the mind.",
+			]),
+			"quest_offer": &"",
+		},
 	]
+
+
+static func find_npc(id: StringName) -> Dictionary:
+	for e in grassland_npcs():
+		if e.get("id", &"") == id:
+			return e
+	return {}
 
 
 static func grassland_aquatics() -> Array[Dictionary]:

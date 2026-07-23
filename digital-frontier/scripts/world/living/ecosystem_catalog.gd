@@ -38,7 +38,7 @@ static func grassland_species() -> Array[Dictionary]:
 		_sp(&"meadow_bird", "Meadow Bird", "Morning song maps the grassland roads.",
 			Rarity.COMMON, Temperament.PASSIVE, Biome.GRASSLAND,
 			Color(0.35, 0.55, 0.95), 0.4, 5.5, 12.0, 3,
-			[0, 1], [], true, 0, 0, 0),
+			[0, 1], [&"rain_hide"], true, 0, 0, 0),
 		_sp(&"park_deer", "Park Deer", "Grazes clearings; bolts if the Field Unit beeps too loud.",
 			Rarity.UNCOMMON, Temperament.DEFENSIVE, Biome.GRASSLAND,
 			Color(0.7, 0.48, 0.28), 1.05, 4.5, 14.0, 2,
@@ -363,8 +363,9 @@ static func _phase_ok(e: Dictionary, phase: int) -> bool:
 
 static func _weather_ok(e: Dictionary, weather: StringName) -> bool:
 	var tags: Array = e.get("tags", [])
-	if weather == &"rain" and tags.has(&"rain_hide"):
-		return true
+	## Birds / shy grazers vanish from the spawn pool in rain.
+	if (weather == &"rain" or weather == &"storm") and tags.has(&"rain_hide"):
+		return false
 	return true
 
 
