@@ -100,7 +100,7 @@ func _process(_delta: float) -> void:
 	inspect.set_overlay(WorldInspectController.Overlay.COLLISION, false)
 	inspect.set_overlay(WorldInspectController.Overlay.COLLISION, true)
 	await get_tree().process_frame
-	var col_root := inspect.get_node_or_null("Overlays/InspectCollision")
+	var col_root := inspect.find_child("InspectCollision", true, false)
 	if col_root == null or col_root.get_child_count() < 1:
 		push_error("collision overlay proxies missing")
 		ok = false
