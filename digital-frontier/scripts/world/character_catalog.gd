@@ -1,28 +1,27 @@
 class_name CharacterCatalog
 extends RefCounted
-## Curated character / creature prototypes — stylized, licensed, handheld-safe.
+## Curated character / creature prototypes — scales fit AssetStandardizer height targets.
+## Kenney Blocky raw height ≈ 2.7m → catalog scale ≈ 0.63 yields ~1.7m adults.
 
 
 const ROOT := "res://assets/models/external/characters/"
 
 ## id -> { path, scale, y, category, role_hint }
+## Player / adult NPC: 95–105% of 1.7m. Children would use ~0.48–0.52.
 const CHARACTERS: Dictionary = {
-	## Player / hero options (Fortnite-inspired stylized adventurers — original Kenney, not IP)
-	&"hero_a": {"path": "humans/hero_a.glb", "scale": 1.15, "y": 0.0, "category": &"player", "role_hint": &"hero"},
-	&"hero_b": {"path": "humans/hero_b.glb", "scale": 1.15, "y": 0.0, "category": &"player", "role_hint": &"hero"},
-	&"hero_c": {"path": "humans/hero_c.glb", "scale": 1.15, "y": 0.0, "category": &"player", "role_hint": &"hero"},
-	&"hero_alt": {"path": "humans/hero_alt.glb", "scale": 1.15, "y": 0.0, "category": &"player", "role_hint": &"hero"},
-	## NPC roster
-	&"npc_villager": {"path": "humans/npc_villager.glb", "scale": 1.1, "y": 0.0, "category": &"npc", "role_hint": &"villager"},
-	&"npc_merchant": {"path": "humans/npc_merchant.glb", "scale": 1.1, "y": 0.0, "category": &"npc", "role_hint": &"merchant"},
-	&"npc_explorer": {"path": "humans/npc_explorer.glb", "scale": 1.12, "y": 0.0, "category": &"npc", "role_hint": &"explorer"},
-	&"npc_researcher": {"path": "humans/npc_researcher.glb", "scale": 1.08, "y": 0.0, "category": &"npc", "role_hint": &"researcher"},
-	&"npc_story": {"path": "humans/npc_story.glb", "scale": 1.15, "y": 0.0, "category": &"npc", "role_hint": &"story"},
-	&"npc_guard": {"path": "humans/npc_guard.glb", "scale": 1.14, "y": 0.0, "category": &"npc", "role_hint": &"guard"},
-	## Digital-creature accents (Digimon-inspired silhouette language — original Kenney, not IP)
-	&"digital_mite": {"path": "creatures/digital_mite.glb", "scale": 0.85, "y": 0.0, "category": &"creature", "role_hint": &"wildlife"},
-	&"field_ranger": {"path": "creatures/field_ranger.glb", "scale": 1.05, "y": 0.0, "category": &"creature", "role_hint": &"special_npc"},
-	&"field_ranger_b": {"path": "creatures/field_ranger_b.glb", "scale": 1.05, "y": 0.0, "category": &"creature", "role_hint": &"special_npc"},
+	&"hero_a": {"path": "humans/hero_a.glb", "scale": 0.63, "y": 0.0, "category": &"player", "role_hint": &"hero"},
+	&"hero_b": {"path": "humans/hero_b.glb", "scale": 0.63, "y": 0.0, "category": &"player", "role_hint": &"hero"},
+	&"hero_c": {"path": "humans/hero_c.glb", "scale": 0.62, "y": 0.0, "category": &"player", "role_hint": &"hero"},
+	&"hero_alt": {"path": "humans/hero_alt.glb", "scale": 0.63, "y": 0.0, "category": &"player", "role_hint": &"hero"},
+	&"npc_villager": {"path": "humans/npc_villager.glb", "scale": 0.61, "y": 0.0, "category": &"npc", "role_hint": &"villager"},
+	&"npc_merchant": {"path": "humans/npc_merchant.glb", "scale": 0.62, "y": 0.0, "category": &"npc", "role_hint": &"merchant"},
+	&"npc_explorer": {"path": "humans/npc_explorer.glb", "scale": 0.63, "y": 0.0, "category": &"npc", "role_hint": &"explorer"},
+	&"npc_researcher": {"path": "humans/npc_researcher.glb", "scale": 0.60, "y": 0.0, "category": &"npc", "role_hint": &"researcher"},
+	&"npc_story": {"path": "humans/npc_story.glb", "scale": 0.64, "y": 0.0, "category": &"npc", "role_hint": &"story"},
+	&"npc_guard": {"path": "humans/npc_guard.glb", "scale": 0.65, "y": 0.0, "category": &"npc", "role_hint": &"guard"},
+	&"digital_mite": {"path": "creatures/digital_mite.glb", "scale": 0.55, "y": 0.0, "category": &"creature", "role_hint": &"wildlife"},
+	&"field_ranger": {"path": "creatures/field_ranger.glb", "scale": 0.7, "y": 0.0, "category": &"creature", "role_hint": &"special_npc"},
+	&"field_ranger_b": {"path": "creatures/field_ranger_b.glb", "scale": 0.7, "y": 0.0, "category": &"creature", "role_hint": &"special_npc"},
 }
 
 

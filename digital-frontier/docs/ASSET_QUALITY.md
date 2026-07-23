@@ -35,6 +35,7 @@ See also `PIXEL_WORLD_STYLE.md`, `MASCOT_EMBERLING.md`, `UI_STYLE_GUIDE.md`, `CH
 
 | Type | Path |
 |------|------|
+| `AssetStandardizer` | `scripts/world/asset_standardizer.gd` — permanent import pipeline |
 | `StylizedCreatureKit` | `scripts/world/stylized_creature_kit.gd` |
 | `HumanoidVisual` | `scripts/world/humanoid_visual.gd` |
 | `CharacterCatalog` / `CharacterKit` | `scripts/world/character_*.gd` |

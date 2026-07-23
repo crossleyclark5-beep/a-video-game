@@ -55,19 +55,19 @@ func _enable_library_mode() -> void:
 		add_child(_library_visual)
 	## Prefer equipped Item Shop outfit when roster is live.
 	if CharacterOutfitCatalog.has_outfit(CharacterRosterManager.get_equipped()):
-		_library_visual.build_outfit(CharacterRosterManager.get_equipped(), 1.2)
+		_library_visual.build_outfit(CharacterRosterManager.get_equipped(), 1.0)
 		return
 	var opts := CharacterCatalog.player_options()
 	var pick := library_character_id
 	if pick == &"" or not CharacterCatalog.has_character(pick):
 		pick = opts[0] if not opts.is_empty() else &"hero_a"
-	_library_visual.build(pick, 1.2)
+	_library_visual.build(pick, 1.0)
 
 
 func set_library_character(character_id: StringName) -> void:
 	library_character_id = character_id
 	if _library_visual:
-		_library_visual.build(character_id, 1.2)
+		_library_visual.build(character_id, 1.0)
 	elif use_character_library and CharacterKit.is_available():
 		_enable_library_mode()
 
@@ -82,7 +82,7 @@ func apply_character_outfit(outfit_id: StringName) -> void:
 		if _library_visual == null:
 			_enable_library_mode()
 		if _library_visual:
-			_library_visual.build_outfit(outfit_id, 1.2)
+			_library_visual.build_outfit(outfit_id, 1.0)
 		return
 	## Procedural fallback — retint body colors from outfit palette.
 	var def := CharacterOutfitCatalog.outfit_def(outfit_id)

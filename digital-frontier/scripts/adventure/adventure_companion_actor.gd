@@ -724,10 +724,8 @@ func _on_npc_talked(npc_id: StringName) -> void:
 
 
 func _face_direction(dir: Vector3, delta: float) -> void:
-	if dir.length_squared() < 0.001:
-		return
-	var target := Basis.looking_at(dir, Vector3.UP)
-	global_transform.basis = global_transform.basis.slerp(target, clampf(10.0 * delta, 0.0, 1.0))
+	## +Z model front — match player / NPC facing convention.
+	AssetStandardizer.face_velocity(self, dir, 10.0, delta)
 
 
 func _update_visual_motion() -> void:

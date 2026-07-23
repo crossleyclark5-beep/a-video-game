@@ -137,6 +137,16 @@ static func _furnish_living_zone(fl: BuildingFloor, personality: int, rng: Rando
 		StylizedMesh.add_box(fl, Vector3(0.4, 0.25, 0.5), Color(0.5, 0.45, 0.35), Vector3(-0.8, 0.25, -1.0), "FallenBook")
 	if personality != InteriorPersonality.Style.ABANDONED and rng.randf() < 0.5:
 		_try_external(fl, &"floor_lamp", Vector3(-2.6, 0, -1.2), 0.0, 1.0, "FloorLamp")
+	## Fireplace opposite the couch — living rooms feel finished.
+	if personality != InteriorPersonality.Style.ABANDONED and personality != InteriorPersonality.Style.MODERN:
+		StylizedMesh.add_box(fl, Vector3(1.35, 1.15, 0.45), WorldPalette.BRICK, Vector3(0.2, 0.7, -2.55), "Fireplace", false, 1.0, &"brick")
+		StylizedMesh.add_box(fl, Vector3(0.85, 0.55, 0.25), Color(0.12, 0.1, 0.1), Vector3(0.2, 0.45, -2.35), "Firebox")
+		StylizedMesh.add_box(fl, Vector3(1.5, 0.12, 0.55), WorldPalette.WOOD.darkened(0.1), Vector3(0.2, 1.3, -2.5), "Mantel", false, 1.0, &"wood")
+		if personality == InteriorPersonality.Style.RUSTIC or personality == InteriorPersonality.Style.WEALTHY:
+			StylizedMesh.add_box(fl, Vector3(0.35, 0.25, 0.35), WorldPalette.UI_ACCENT.lerp(Color(1.0, 0.45, 0.1), 0.5), Vector3(0.2, 0.35, -2.4), "Embers")
+	elif personality == InteriorPersonality.Style.MODERN:
+		## Media fireplace strip under the TV wall.
+		StylizedMesh.add_box(fl, Vector3(1.6, 0.35, 0.35), Color(0.25, 0.26, 0.28), Vector3(-1.6, 0.25, -2.55), "MediaHearth")
 
 
 static func _furnish_kitchen_zone(fl: BuildingFloor, personality: int, _rng: RandomNumberGenerator) -> void:

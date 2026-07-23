@@ -18,9 +18,9 @@ func _drive(delta: float) -> void:
 	var offroad := d.offroad_mul if d else 0.72
 
 	var input_v := InputManager.get_move_vector()
-	## Stick Y: forward = accelerate, back = brake / reverse. Stick X = steer.
+	## Stick Y: forward = accelerate, back = brake / reverse. Stick X = steer (natural).
 	var throttle := clampf(-input_v.y, -1.0, 1.0)
-	var steer_in := clampf(-input_v.x, -1.0, 1.0)
+	var steer_in := clampf(input_v.x, -1.0, 1.0)
 
 	var surface_mul := 1.0
 	if not _on_roadish():
@@ -61,7 +61,7 @@ func _drive(delta: float) -> void:
 	move_and_slide()
 	## Keep driver ghost locked to seat.
 	if _driver:
-		_driver.global_position = global_position + Vector3(0, 0.4, 0)
+		_driver.global_position = global_position + Vector3(0, 0.85, 0)
 
 
 func _on_roadish() -> bool:
